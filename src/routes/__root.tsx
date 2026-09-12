@@ -1,6 +1,7 @@
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import {
 	HeadContent,
+	Outlet,
 	Scripts,
 	createRootRouteWithContext,
 } from "@tanstack/react-router";
@@ -52,13 +53,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				<script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
 				<HeadContent />
 			</head>
-			<body className="font-sans antialiased wrap:anywhere] selection:bg-[rgba(79,184,178,0.24)]">
-				<div className="flex min-h-screen">
+			<body className="font-sans antialiased wrap:anywhere] selection:bg-[rgba(79,184,178,0.24)] overflow-y-hidden">
+				<div className="min-h-screen flex">
 					<Sidebar />
-					<div className="w-full">
-						<Header />
-						{children}
-					</div>
+					<Outlet />
 				</div>
 				<Footer />
 				<TanStackDevtools

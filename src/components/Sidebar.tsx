@@ -14,7 +14,7 @@ import NavSection from "./nav-section";
 import { Button } from "./ui/button";
 
 const navLinks = [
-	{ text: "Home", path: "/home", icon: Home },
+	{ text: "Home", path: "/", icon: Home },
 	{ text: "Library", path: "/library", icon: Library },
 	{ text: "Trash", path: "/trash", icon: Trash },
 ];
@@ -27,8 +27,8 @@ export default function Sidebar() {
 	};
 
 	return isOpen ? (
-		<nav className="w-100 flex flex-col p-4 border-r gap-10 min-h-screen h-full">
-			<div className="flex justify-end">
+		<nav className="bg-background w-100 overflow-y-auto scrollbar-auto shrink-0 flex flex-col p-4 border-r gap-10 h-screen">
+			<div className="flex justify-end sticky top-0">
 				<Button variant={"ghost"} onClick={toggleDrawer}>
 					<PanelLeft className="size-6" />
 				</Button>

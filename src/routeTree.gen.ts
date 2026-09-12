@@ -9,18 +9,12 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
 import { Route as EditorRouteImport } from './routes/editor'
 import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as HomeIndexRouteImport } from './routes/home/index'
+import { Route as HomeIndexRouteImport } from './routes/_home/index'
 import { Route as LibraryIndexRouteImport } from './routes/library/index'
 import { Route as TrashIndexRouteImport } from './routes/trash/index'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const EditorRoute = EditorRouteImport.update({
   id: '/editor',
   path: '/editor',
@@ -32,8 +26,8 @@ const SettingsRoute = SettingsRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const HomeIndexRoute = HomeIndexRouteImport.update({
-  id: '/home/',
-  path: '/home/',
+  id: '/_home/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LibraryIndexRoute = LibraryIndexRouteImport.update({
@@ -48,47 +42,36 @@ const TrashIndexRoute = TrashIndexRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
   '/editor': typeof EditorRoute
   '/settings': typeof SettingsRoute
-  '/home/': typeof HomeIndexRoute
+  '/': typeof HomeIndexRoute
   '/library/': typeof LibraryIndexRoute
   '/trash/': typeof TrashIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
   '/editor': typeof EditorRoute
   '/settings': typeof SettingsRoute
-  '/home': typeof HomeIndexRoute
+  '/': typeof HomeIndexRoute
   '/library': typeof LibraryIndexRoute
   '/trash': typeof TrashIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
   '/editor': typeof EditorRoute
   '/settings': typeof SettingsRoute
-  '/home/': typeof HomeIndexRoute
+  '/_home/': typeof HomeIndexRoute
   '/library/': typeof LibraryIndexRoute
   '/trash/': typeof TrashIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/editor' | '/settings' | '/home/' | '/library/' | '/trash/'
+  fullPaths: '/editor' | '/settings' | '/' | '/library/' | '/trash/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/editor' | '/settings' | '/home' | '/library' | '/trash'
-  id:
-    | '__root__'
-    | '/'
-    | '/editor'
-    | '/settings'
-    | '/home/'
-    | '/library/'
-    | '/trash/'
+  to: '/editor' | '/settings' | '/' | '/library' | '/trash'
+  id: '__root__' | '/editor' | '/settings' | '/_home/' | '/library/' | '/trash/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
   EditorRoute: typeof EditorRoute
   SettingsRoute: typeof SettingsRoute
   HomeIndexRoute: typeof HomeIndexRoute
@@ -98,13 +81,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/editor': {
       id: '/editor'
       path: '/editor'
@@ -119,10 +95,10 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/home/': {
-      id: '/home/'
-      path: '/home'
-      fullPath: '/home/'
+    '/_home/': {
+      id: '/_home/'
+      path: '/'
+      fullPath: '/'
       preLoaderRoute: typeof HomeIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
@@ -144,7 +120,6 @@ declare module '@tanstack/react-router' {
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
   EditorRoute: EditorRoute,
   SettingsRoute: SettingsRoute,
   HomeIndexRoute: HomeIndexRoute,

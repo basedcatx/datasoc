@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import HomeInfoCard from "#/components/home-infocard";
+import RecentlyCreatedCard from "#/components/recently-created-card";
+import RecentlyViewedCard from "#/components/recently-viewed-card";
 
-export const Route = createFileRoute("/home/")({
+export const Route = createFileRoute("/_home/")({
 	component: RouteComponent,
 });
 
@@ -16,10 +18,20 @@ function InfoCardSection() {
 	);
 }
 
+function RecentlyCreatedSection() {
+	return <RecentlyCreatedCard />;
+}
+
+function RecentlyViewedSection() {
+	return <RecentlyViewedCard />;
+}
+
 function RouteComponent() {
 	return (
-		<div className="px-4 min-w-full">
+		<div className="px-4 w-full flex flex-col gap-8 overflow-y-auto h-screen py-6 scroll-fade">
 			<InfoCardSection />
+			<RecentlyCreatedSection />
+			<RecentlyViewedSection />
 		</div>
 	);
 }

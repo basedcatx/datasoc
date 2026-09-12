@@ -9,7 +9,7 @@ export default function HomeInfoCard({
 	type: string;
 }) {
 	return (
-		<Card className="flex flex-col gap-14 w-full p-5">
+		<Card className="flex flex-col gap-14 rounded-none w-full p-5">
 			<GalleryVerticalEnd />
 			{/* TODO: Add real api */}
 			<div>

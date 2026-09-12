@@ -1,7 +1,7 @@
-import { cn } from "cn";
-import { Button } from "./ui/button";
 import { Link, useLocation } from "@tanstack/react-router";
+import { cn } from "cn";
 import type { LucideIcon } from "lucide-react";
+import { Button } from "./ui/button";
 
 export default function NavButton({
 	icon,
