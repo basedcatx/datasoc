@@ -1,10 +1,54 @@
-import { Ghost, Plus } from "lucide-react";
+import {
+	ArrowDownAz,
+	ChevronDown,
+	ChevronUp,
+	Filter,
+	Ghost,
+	Plus,
+} from "lucide-react";
 import EntryCard from "./entrycard";
-import { Card } from "./ui/card";
 import { Button } from "./ui/button";
+import { Card } from "./ui/card";
 import { Input } from "./ui/input";
 
+import {
+	Combobox,
+	ComboboxCollection,
+	ComboboxContent,
+	ComboboxEmpty,
+	ComboboxGroup,
+	ComboboxInput,
+	ComboboxItem,
+	ComboboxLabel,
+	ComboboxList,
+} from "@/components/ui/combobox";
+import { InputGroupAddon } from "@/components/ui/input-group";
+import { useReducer } from "react";
+
+function handleStateReducer(state: any, action: any) {
+	switch (action.type) {
+		case "togglesort": {
+			if (state.sortby === "Ascending") {
+				return { ...state, sortby: "Descending" };
+			}
+			return { ...state, sortby: "Ascending" };
+		}
+
+		case "changefilter": {
+			return { ...state, filterby: action.filterby };
+		}
+
+		default:
+			throw new Error("Invalid action type");
+	}
+}
+
 export default function LibraryCard() {
+	const [state, dispatch] = useReducer(handleStateReducer, {
+		sortby: "Ascending",
+		filterby: "Name",
+	});
+
 	return (
 		<div>
 			<Card className="flex flex-col gap-4 p-8 rounded-none h-screen overflow-y-auto bg-background">
@@ -17,7 +61,21 @@ export default function LibraryCard() {
 						</Button>
 					</div>
 
-					<Input className="max-w-xs" placeholder="Type to filter..." />
+					<div className="flex gap-2">
+						<Input className="max-w-xs" placeholder="Type to filter..." />
+						<ComboxboxInputGroup dispatch={dispatch} />
+						<Button
+							variant={"secondary"}
+							onClick={(e) => {
+								e.preventDefault();
+								dispatch({ type: "togglesort" });
+							}}
+						>
+							<ArrowDownAz />
+							<p>Sort by</p>
+							{state.sortby === "Ascending" ? <ChevronUp /> : <ChevronDown />}
+						</Button>
+					</div>
 				</div>
 
 				{entryList.length > 0 ? (
@@ -44,6 +102,55 @@ export default function LibraryCard() {
 				)}
 			</Card>
 		</div>
+	);
+}
+
+const filters = [
+	{
+		value: "Status",
+		items: ["Completed", "Drafted"],
+	},
+	{
+		value: "Info",
+		items: ["Tags", "Name"],
+	},
+] as const;
+
+export function ComboxboxInputGroup({
+	dispatch,
+}: {
+	dispatch: (action: any) => void;
+}) {
+	return (
+		<Combobox
+			items={filters}
+			onInputValueChange={(value) => {
+				dispatch({ type: "changefilter", filterby: value });
+			}}
+		>
+			<ComboboxInput placeholder="Filter list by">
+				<InputGroupAddon>
+					<Filter />
+				</InputGroupAddon>
+			</ComboboxInput>
+			<ComboboxContent alignOffset={-28} className="w-60">
+				<ComboboxEmpty>No filter selected</ComboboxEmpty>
+				<ComboboxList className={"flex flex-col gap-4"}>
+					{(group) => (
+						<ComboboxGroup key={group.value} items={group.items}>
+							<ComboboxLabel>{group.value}</ComboboxLabel>
+							<ComboboxCollection>
+								{(item) => (
+									<ComboboxItem key={item} value={item} className={"px-4"}>
+										{item}
+									</ComboboxItem>
+								)}
+							</ComboboxCollection>
+						</ComboboxGroup>
+					)}
+				</ComboboxList>
+			</ComboboxContent>
+		</Combobox>
 	);
 }
 
