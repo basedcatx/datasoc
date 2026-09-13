@@ -17,7 +17,7 @@ export default function LibraryCard() {
 						</Button>
 					</div>
 
-					<Input />
+					<Input className="max-w-xs" placeholder="Type to filter..." />
 				</div>
 
 				{entryList.length > 0 ? (
