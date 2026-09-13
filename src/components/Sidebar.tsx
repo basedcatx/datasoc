@@ -1,4 +1,5 @@
 import {
+	BookSearch,
 	File,
 	Home,
 	Library,
@@ -6,6 +7,9 @@ import {
 	LucideSearch,
 	LucideSettings,
 	PanelLeft,
+	Plus,
+	Search,
+	SearchAlertIcon,
 	Trash,
 } from "lucide-react";
 import { useState } from "react";
@@ -101,7 +105,7 @@ export default function Sidebar() {
 			</div>
 		</nav>
 	) : (
-		<div className="p-1 bg-card flex flex-col gap-8">
+		<div className="p-1 bg-card flex flex-col gap-12">
 			<Button variant={"ghost"} onClick={toggleDrawer}>
 				<PanelLeft className="size-6" />
 			</Button>
@@ -115,6 +119,9 @@ export default function Sidebar() {
 							className={cn(
 								location.pathname === l.path &&
 									"bg-secondary-foreground/5 p-2 rounded-full",
+								location.pathname === "/trash" &&
+									l.path === "/trash" &&
+									"bg-destructive/70 hover:bg-destructive/70",
 							)}
 						>
 							<Link to={l.path}>
@@ -124,6 +131,14 @@ export default function Sidebar() {
 					</li>
 				))}
 			</ul>
+
+			<Button variant={"secondary"} className="rounded-full">
+				<BookSearch className="size-6" />
+			</Button>
+
+			<Button variant={"secondary"} className="rounded-full">
+				<Plus className="size-6" />
+			</Button>
 		</div>
 	);
 }
