@@ -12,6 +12,8 @@ import { useState } from "react";
 import NavButton from "./nav-button";
 import NavSection from "./nav-section";
 import { Button } from "./ui/button";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import { cn } from "cn";
 
 const navLinks = [
 	{ text: "Home", path: "/", icon: Home },
@@ -21,20 +23,25 @@ const navLinks = [
 
 export default function Sidebar() {
 	const [isOpen, setIsOpen] = useState(false);
+	const location = useLocation();
 
 	const toggleDrawer = () => {
 		setIsOpen(!isOpen);
 	};
 
 	return isOpen ? (
-		<nav className="bg-background w-100 overflow-y-auto scrollbar-auto shrink-0 flex flex-col p-4 border-r gap-10 h-screen">
+		<nav className="bg-card w-100 overflow-y-auto scrollbar-thin scrollbar-thumb-primary shrink-0 flex flex-col p-4 border-r gap-10 h-screen">
 			<div className="flex justify-end sticky top-0">
-				<Button variant={"ghost"} onClick={toggleDrawer}>
+				<Button
+					variant={"ghost"}
+					onClick={toggleDrawer}
+					className="backdrop-blur-xs"
+				>
 					<PanelLeft className="size-6" />
 				</Button>
 			</div>
 
-			<div className="flex justify-between">
+			<div className="flex justify-between gap-4">
 				<ul className="flex gap-2">
 					{navLinks.map((l) => (
 						<li key={l.path}>
@@ -42,6 +49,7 @@ export default function Sidebar() {
 						</li>
 					))}
 				</ul>
+
 				<NavButton navText="Search" icon={LucideSearch} onClick={() => {}} />
 			</div>
 
@@ -93,10 +101,29 @@ export default function Sidebar() {
 			</div>
 		</nav>
 	) : (
-		<div className="p-4">
+		<div className="p-1 bg-card flex flex-col gap-8">
 			<Button variant={"ghost"} onClick={toggleDrawer}>
 				<PanelLeft className="size-6" />
 			</Button>
+
+			<ul className="flex flex-col gap-3 items-center">
+				{navLinks.map((l) => (
+					<li key={l.path}>
+						<Button
+							asChild
+							variant={"ghost"}
+							className={cn(
+								location.pathname === l.path &&
+									"bg-secondary-foreground/5 p-2 rounded-full",
+							)}
+						>
+							<Link to={l.path}>
+								<l.icon className="size-6" />
+							</Link>
+						</Button>
+					</li>
+				))}
+			</ul>
 		</div>
 	);
 }

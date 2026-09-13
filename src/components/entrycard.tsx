@@ -16,7 +16,7 @@ export default function EntryCard({
 	createdAt: string;
 }) {
 	return (
-		<Card className="p-3 hover:bg-muted dark:hover:bg-input/50">
+		<Card className="p-3 hover:bg-muted rounded-none dark:hover:bg-input/50 cursor-pointer">
 			<div className="flex justify-between items-center">
 				<div>
 					<p className="text-nowrap w-md text-ellipsis font-bold text-lg">

@@ -56,7 +56,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			<body className="font-sans antialiased wrap:anywhere] selection:bg-[rgba(79,184,178,0.24)] overflow-y-hidden">
 				<div className="min-h-screen flex">
 					<Sidebar />
-					<Outlet />
+					<div className="w-full">
+						<Outlet />
+					</div>
 				</div>
 				<Footer />
 				<TanStackDevtools

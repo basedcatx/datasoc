@@ -27,7 +27,7 @@ export default function NavSection({
 		<Collapsible open={isOpen} onOpenChange={setIsOpen}>
 			<div className="flex items-center">
 				<h3 className="text-sm text-muted-foreground">{sectionName}</h3>
-				<CollapsibleTrigger className="ml-1.5">
+				<CollapsibleTrigger className="ml-1.5 cursor-pointer">
 					<ChevronsUpDown className="stroke-muted-foreground size-4" />
 				</CollapsibleTrigger>
 			</div>
@@ -38,7 +38,7 @@ export default function NavSection({
 							<li key={i.name + String(Math.random() * 100)} className="w-full">
 								<Button
 									variant={"ghost"}
-									className="w-full justify-start"
+									className="w-full justify-start cursor-pointer"
 									onClick={i.action}
 								>
 									<Icon />

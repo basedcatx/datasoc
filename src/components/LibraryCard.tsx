@@ -1,13 +1,23 @@
-import { Ghost } from "lucide-react";
+import { Ghost, Plus } from "lucide-react";
 import EntryCard from "./entrycard";
 import { Card } from "./ui/card";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
 
-export default function RecentlyViewedCard() {
+export default function LibraryCard() {
 	return (
 		<div>
-			<Card className="flex flex-col gap-4 p-8 rounded-none">
+			<Card className="flex flex-col gap-4 p-8 rounded-none h-screen overflow-y-auto bg-background">
 				<div className="flex justify-between items-center my-2">
-					<h6 className="text-sm text-muted-foreground">Recently viewed</h6>
+					<div className="flex gap-4 items-center">
+						<h6 className="text-xl text-muted-foreground">Library</h6>
+						<Button className="flex p-4 cursor-pointer rounded-full">
+							<Plus />
+							<p className="text-lg">New</p>
+						</Button>
+					</div>
+
+					<Input />
 				</div>
 
 				{entryList.length > 0 ? (
@@ -19,11 +29,17 @@ export default function RecentlyViewedCard() {
 						))}
 					</ul>
 				) : (
-					<div className="flex flex-col justify-center items-center gap-4 my-8">
-						<Ghost className="size-18 stroke-muted-foreground" />
-						<p className="text-muted-foreground">
-							No entry found. Click on new to populate
+					<div className="flex flex-col justify-center h-screen items-center gap-4">
+						<Ghost className="size-22 stroke-muted-foreground" />
+
+						<p className="text-muted-foreground text-lg">
+							No record found. Click on new to create one
 						</p>
+
+						<Button className="flex items-center w-xs p-4 cursor-pointer rounded-full">
+							<Plus />
+							<p className="text-lg">New</p>
+						</Button>
 					</div>
 				)}
 			</Card>

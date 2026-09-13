@@ -22,7 +22,7 @@ export default function NavButton({
 			onClick={onClick}
 			asChild={path !== undefined}
 			className={cn(
-				"flex gap-3 rounded-full p-4",
+				"flex gap-3 rounded-full w-fit p-4 cursor-pointer",
 				isActive && "bg-primary w-30",
 			)}
 			variant={isActive ? "default" : "ghost"}

@@ -28,7 +28,7 @@ function RecentlyViewedSection() {
 
 function RouteComponent() {
 	return (
-		<div className="px-4 w-full flex flex-col gap-8 overflow-y-auto h-screen py-6 scroll-fade">
+		<div className="w-full flex flex-col gap-8 overflow-y-auto h-screen scroll-fade p-4 scrollbar-thin">
 			<InfoCardSection />
 			<RecentlyCreatedSection />
 			<RecentlyViewedSection />

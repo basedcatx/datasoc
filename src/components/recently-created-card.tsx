@@ -6,10 +6,13 @@ import { Card } from "./ui/card";
 export default function RecentlyCreatedCard() {
 	return (
 		<div>
-			<Card className="flex flex-col gap-4 p-4 rounded-xs">
+			<Card className="flex flex-col gap-4 p-8 rounded-none">
 				<div className="flex justify-between items-center my-2">
 					<h6 className="text-sm text-muted-foreground">Recently created</h6>
-					<Button size={"lg"} className="flex gap-4 rounded-full p-4">
+					<Button
+						size={"lg"}
+						className="flex gap-4 rounded-full p-4 cursor-pointer"
+					>
 						<Plus className="size-6" />
 						<p className="text-xl">New</p>
 					</Button>
