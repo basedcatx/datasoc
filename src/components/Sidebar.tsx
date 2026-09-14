@@ -119,9 +119,6 @@ export default function Sidebar() {
 							className={cn(
 								location.pathname === l.path &&
 									"bg-secondary-foreground/5 p-2 rounded-full",
-								location.pathname === "/trash" &&
-									l.path === "/trash" &&
-									"bg-destructive/70 hover:bg-destructive/70",
 							)}
 						>
 							<Link to={l.path}>
