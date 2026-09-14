@@ -7,7 +7,6 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import Footer from "../components/Footer";
-import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
