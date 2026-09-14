@@ -13,6 +13,7 @@ import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
 
 import appCss from "../styles.css?url";
 
+import { TooltipProvider } from "#/components/ui/tooltip";
 import type { QueryClient } from "@tanstack/react-query";
 
 interface MyRouterContext {
@@ -56,7 +57,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				<div className="min-h-screen flex">
 					<Sidebar />
 					<div className="w-full">
-						<Outlet />
+						<TooltipProvider>
+							<Outlet />
+						</TooltipProvider>
 					</div>
 				</div>
 				<Footer />
