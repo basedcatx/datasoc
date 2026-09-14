@@ -134,7 +134,9 @@ export default function Sidebar() {
 			</Button>
 
 			<Button variant={"secondary"} className="rounded-full">
-				<Plus className="size-6" />
+				<Link to="/editor">
+					<Plus className="size-6" />
+				</Link>
 			</Button>
 		</div>
 	);

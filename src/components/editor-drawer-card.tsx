@@ -8,6 +8,8 @@ import {
 	LucideSave,
 	LucideTrash,
 } from "lucide-react";
+import { useSelector } from "@tanstack/react-store";
+import { appStore } from "#/integrations/tanstack-query/store-provider";
 
 function TooltipButton({
 	children,
@@ -43,6 +45,9 @@ function GrowInput({ field, value }: { field?: string; value?: string }) {
 }
 
 export default function EditorDrawerCard() {
+	const tags = useSelector(appStore, (state) => state.editor.file.tags);
+	const metas = useSelector(appStore, (state) => state.editor.file.meta);
+
 	return (
 		<div className="flex flex-col gap-8 overflow-y-auto scrollbar-none h-full">
 			<div className="flex gap-4">

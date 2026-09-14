@@ -14,16 +14,7 @@ function RouteComponent() {
 
 	return (
 		<div>
-			<SimpleEditor
-				fileName={fileName}
-				onFileNameChange={setFileName}
-				fileTags={fileTags}
-				onFileTagsChanged={setFileTags}
-				metadata={meta}
-				onMetadataChanged={setFileMeta}
-				fileStatus={fileStatus}
-				onFileStatusChanged={setFileStatus}
-			/>
+			<SimpleEditor />
 		</div>
 	);
 }

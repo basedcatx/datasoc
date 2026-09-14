@@ -95,6 +95,8 @@ import {
 
 import { Button as BTN } from "#/components/ui/button";
 import EditorDrawerCard from "#/components/editor-drawer-card";
+import { appStore } from "#/integrations/tanstack-query/store-provider";
+import { useSelector } from "@tanstack/react-store";
 
 const MainToolbarContent = ({
 	onHighlighterClick,
@@ -111,11 +113,25 @@ const MainToolbarContent = ({
 	searchAndReplaceButtonRef: React.RefObject<HTMLButtonElement | null>;
 	isMobile: boolean;
 }) => {
+	const name = useSelector(appStore, (state) => state.editor.file.name);
+
 	return (
 		<div className="flex items-center gap-8 flex-row w-full">
 			<Input
 				className="ring-0 focus-visible:ring-0 bg-transparent focus-visible:bg-background focus-active:bg-background border-none w-sm rounded-none dark:bg-transparent"
 				placeholder="Name..."
+				value={name}
+				onChange={(e) => {
+					appStore.setState((s) => {
+						return {
+							...s,
+							editor: {
+								...s.editor,
+								file: { ...s.editor.file, name: e.target.value },
+							},
+						};
+					});
+				}}
 			/>
 			<ToolbarGroup>
 				<UndoRedoButton action="undo" />
@@ -189,16 +205,7 @@ const MainToolbarContent = ({
 						}
 					></DrawerTrigger>
 					<DrawerContent className={"rounded-sm"}>
-						<div className="p-6 h-full">
-							{
-								<EditorDrawerCard
-									metadata={metadata}
-									fileStatus={fileStatus}
-									fileTags={fileTags}
-									onMetadataChanged
-								/>
-							}
-						</div>
+						<div className="p-6 h-full">{<EditorDrawerCard />}</div>
 						<DrawerFooter>
 							<BTN variant="default">Save changes</BTN>
 							<DrawerClose render={<BTN variant="secondary" />}>
@@ -241,25 +248,7 @@ const MobileToolbarContent = ({
 	</>
 );
 
-export function SimpleEditor({
-	fileName,
-	onFileNameChanged,
-	fileStatus = "Draft",
-	onFileStatusChanged,
-	fileTags,
-	onFileTagsChanged,
-	metadata,
-	onMetadataChanged,
-}: {
-	fileName: string;
-	onFileNameChanged: () => void;
-	fileStatus: string;
-	onFileStatusChanged: () => void;
-	fileTags: string[];
-	onFileTagsChanged: () => void;
-	metadata: Record<string, string>;
-	onMetadataChanged: () => void;
-}) {
+export function SimpleEditor() {
 	const isMobile = useIsBreakpoint();
 	const { height } = useWindowSize();
 	const [mobileView, setMobileView] = useState<"main" | "highlighter" | "link">(

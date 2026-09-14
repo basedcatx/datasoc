@@ -46,10 +46,11 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 	shellComponent: RootDocument,
 });
 
-function RootDocument({ children }: { children: React.ReactNode }) {
+function RootDocument() {
 	return (
 		<html lang="en" suppressHydrationWarning>
 			<head>
+				{/** biome-ignore lint/security/noDangerouslySetInnerHtml: Init theme script */}
 				<script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
 				<HeadContent />
 			</head>
