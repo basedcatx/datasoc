@@ -130,7 +130,7 @@ export default function Sidebar() {
 			</ul>
 
 			<Button variant={"secondary"} className="rounded-full">
-				<BookSearch className="size-6" />
+				<Search className="size-6" />
 			</Button>
 
 			<Button variant={"secondary"} className="rounded-full">
