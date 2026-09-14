@@ -6,7 +6,6 @@ import {
 	Ghost,
 	Plus,
 } from "lucide-react";
-import EntryCard from "./entrycard";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Input } from "./ui/input";
@@ -24,6 +23,7 @@ import {
 } from "@/components/ui/combobox";
 import { InputGroupAddon } from "@/components/ui/input-group";
 import { useReducer } from "react";
+import LibraryEntryCard from "./library-entrycard";
 
 function handleStateReducer(state: any, action: any) {
 	switch (action.type) {
@@ -82,7 +82,7 @@ export default function LibraryCard() {
 					<ul className="flex gap-4 flex-col">
 						{entryList.slice(0, 5).map((e) => (
 							<li key={e.title}>
-								<EntryCard {...e} />
+								<LibraryEntryCard {...e} />
 							</li>
 						))}
 					</ul>
