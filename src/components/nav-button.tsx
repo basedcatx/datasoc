@@ -26,7 +26,7 @@ export default function NavButton({
 				isActive && "bg-primary w-30",
 				location.pathname === "/trash" &&
 					path === "/trash" &&
-					"bg-destructive/70 hover:bg-destructive/70 [&_svg]:stroke-primary-foreground",
+					"bg-destructive hover:bg-destructive/70 [&_svg]:stroke-primary-foreground",
 			)}
 			variant={isActive ? "default" : "ghost"}
 		>
