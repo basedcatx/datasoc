@@ -72,7 +72,7 @@ export default function LibraryCard() {
 							}}
 						>
 							<ArrowDownAz />
-							<p>Sort by</p>
+							<p>Sort by: {state.sortby}</p>
 							{state.sortby === "Ascending" ? <ChevronUp /> : <ChevronDown />}
 						</Button>
 					</div>
