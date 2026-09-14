@@ -62,6 +62,10 @@ export default function EntryCard({
 			</ContextMenuTrigger>
 			<ContextMenuContent className="px-2 text-xl">
 				<ContextMenuItem>
+					<ArrowUpRight />
+					Open in preview
+				</ContextMenuItem>
+				<ContextMenuItem>
 					<Search />
 					Search similar
 				</ContextMenuItem>
