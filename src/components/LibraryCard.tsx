@@ -129,7 +129,7 @@ export function ComboxboxInputGroup({
 			}}
 		>
 			<ComboboxInput placeholder="Filter list by">
-				<InputGroupAddon>
+				<InputGroupAddon contentEditable={false}>
 					<Filter />
 				</InputGroupAddon>
 			</ComboboxInput>
