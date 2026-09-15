@@ -115,7 +115,7 @@ const MainToolbarContent = ({
 	isMobile: boolean;
 	editor: any;
 }) => {
-	const name = useSelector(appStore, (state) => state.editor.file.name);
+	const name = useSelector(appStore, (state) => state.file.name);
 
 	return (
 		<div className="flex items-center gap-8 flex-row w-full">
@@ -128,8 +128,8 @@ const MainToolbarContent = ({
 						return {
 							...s,
 							editor: {
-								...s.editor,
-								file: { ...s.editor.file, name: e.target.value },
+								...s,
+								file: { ...s.file, name: e.target.value },
 							},
 						};
 					});
@@ -198,7 +198,7 @@ const MainToolbarContent = ({
 			</ToolbarGroup>
 
 			<ToolbarGroup>
-				<Drawer swipeDirection="right" modal={false} disablePointerDismissal>
+				<Drawer swipeDirection="right" modal={true}>
 					<DrawerTrigger
 						render={
 							<BTN variant="outline" className="p-4">
@@ -208,12 +208,6 @@ const MainToolbarContent = ({
 					></DrawerTrigger>
 					<DrawerContent className={"rounded-sm"}>
 						<div className="p-6 h-full">{<EditorDrawerCard />}</div>
-						<DrawerFooter>
-							<BTN variant="default">Save changes</BTN>
-							<DrawerClose render={<BTN variant="secondary" />}>
-								Cancel
-							</DrawerClose>
-						</DrawerFooter>
 					</DrawerContent>
 				</Drawer>
 			</ToolbarGroup>

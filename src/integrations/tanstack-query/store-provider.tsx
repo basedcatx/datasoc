@@ -1,12 +1,10 @@
 import { createStore } from "@tanstack/react-store";
 
 export const appStore = createStore({
-	editor: {
-		file: {
-			name: "",
-			content: "",
-			meta: {},
-			tags: [],
-		},
+	file: {
+		name: "",
+		content: "",
+		meta: [{}],
+		tags: [] as string[],
 	},
 });
