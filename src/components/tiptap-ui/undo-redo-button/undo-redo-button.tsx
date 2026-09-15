@@ -22,6 +22,7 @@ import {
 import type { ButtonProps } from "#/components/tiptap-ui-primitive/button";
 import { Button } from "#/components/tiptap-ui-primitive/button";
 import { Badge } from "#/components/tiptap-ui-primitive/badge";
+import { useEditorState } from "@tiptap/react";
 
 export interface UndoRedoButtonProps
 	extends Omit<ButtonProps, "type">,
@@ -70,10 +71,9 @@ export const UndoRedoButton = forwardRef<
 		},
 		ref,
 	) => {
-		const { editor } = useTiptapEditor(providedEditor);
 		const { isVisible, handleAction, label, canExecute, Icon, shortcutKeys } =
 			useUndoRedo({
-				editor,
+				editor: providedEditor,
 				action,
 				hideWhenUnavailable,
 				onExecuted,

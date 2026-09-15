@@ -31,12 +31,12 @@
 
   // Paragraph spacing
   p:not(:first-child):not(td p):not(th p) {
-    margin-top: 20px;
+    margin-top: 5px;
   }
 
   p:not(td p):not(th p) {
     font-size: 1rem;
-    line-height: 1.6;
+    line-height: 1.5;
     font-weight: normal;
   }
 

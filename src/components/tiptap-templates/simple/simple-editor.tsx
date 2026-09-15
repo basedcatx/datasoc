@@ -8,11 +8,16 @@ import { TaskItem, TaskList } from "@tiptap/extension-list";
 import { Subscript } from "@tiptap/extension-subscript";
 import { Superscript } from "@tiptap/extension-superscript";
 import { TextAlign } from "@tiptap/extension-text-align";
+import { LineHeight, TextStyle } from "@tiptap/extension-text-style";
 import { Typography } from "@tiptap/extension-typography";
-import { Selection } from "@tiptap/extensions";
+import { Placeholder, Selection, UndoRedo } from "@tiptap/extensions";
 import { EditorContent, EditorContext, useEditor } from "@tiptap/react";
 import { StarterKit } from "@tiptap/starter-kit";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
+import {
+	getHierarchicalIndexes,
+	TableOfContents,
+} from "@tiptap/extension-table-of-contents";
 
 // --- UI Primitives ---
 import { Button } from "#/components/tiptap-ui-primitive/button";
@@ -39,7 +44,6 @@ import { HighlighterIcon } from "#/components/tiptap-icons/highlighter-icon";
 import { LinkIcon } from "#/components/tiptap-icons/link-icon";
 // --- Tiptap UI ---
 import { BlockquoteButton } from "#/components/tiptap-ui/blockquote-button";
-import { CodeBlockButton } from "#/components/tiptap-ui/code-block-button";
 import {
 	ColorHighlightPopover,
 	ColorHighlightPopoverButton,
@@ -74,7 +78,6 @@ import { handleImageUpload, MAX_FILE_SIZE } from "#/lib/tiptap-utils";
 // --- Styles ---
 import "#/components/tiptap-templates/simple/simple-editor.scss";
 
-import content from "#/components/tiptap-templates/simple/data/content.json";
 import { Input } from "#/components/ui/input";
 import { LucideOption } from "lucide-react";
 
@@ -84,17 +87,14 @@ const SEARCH_AND_REPLACE_SCROLL_OPTIONS: ScrollIntoViewOptions = {
 
 import {
 	Drawer,
-	DrawerTrigger,
-	DrawerContent,
-	DrawerDescription,
-	DrawerHeader,
-	DrawerTitle,
 	DrawerClose,
+	DrawerContent,
 	DrawerFooter,
+	DrawerTrigger,
 } from "#/components/ui/drawer";
 
-import { Button as BTN } from "#/components/ui/button";
 import EditorDrawerCard from "#/components/editor-drawer-card";
+import { Button as BTN } from "#/components/ui/button";
 import { appStore } from "#/integrations/tanstack-query/store-provider";
 import { useSelector } from "@tanstack/react-store";
 
@@ -105,6 +105,7 @@ const MainToolbarContent = ({
 	isSearchAndReplaceOpen,
 	searchAndReplaceButtonRef,
 	isMobile,
+	editor,
 }: {
 	onHighlighterClick: () => void;
 	onLinkClick: () => void;
@@ -112,6 +113,7 @@ const MainToolbarContent = ({
 	isSearchAndReplaceOpen: boolean;
 	searchAndReplaceButtonRef: React.RefObject<HTMLButtonElement | null>;
 	isMobile: boolean;
+	editor: any;
 }) => {
 	const name = useSelector(appStore, (state) => state.editor.file.name);
 
@@ -134,8 +136,8 @@ const MainToolbarContent = ({
 				}}
 			/>
 			<ToolbarGroup>
-				<UndoRedoButton action="undo" />
-				<UndoRedoButton action="redo" />
+				<UndoRedoButton action="undo" editor={editor} />
+				<UndoRedoButton action="redo" editor={editor} />
 			</ToolbarGroup>
 
 			<ToolbarSeparator />
@@ -259,11 +261,11 @@ export function SimpleEditor() {
 	const searchAndReplaceButtonRef = useRef<HTMLButtonElement>(null);
 
 	const editor = useEditor({
-		immediatelyRender: false,
+		immediatelyRender: true,
 		editorProps: {
 			attributes: {
-				autocomplete: "off",
-				autocorrect: "off",
+				autocomplete: "on",
+				autocorrect: "on",
 				autocapitalize: "off",
 				"aria-label": "Main content area, start typing to enter text.",
 				class: "simple-editor",
@@ -284,6 +286,8 @@ export function SimpleEditor() {
 			Highlight.configure({ multicolor: true }),
 			Image,
 			Typography,
+			TextStyle,
+			LineHeight,
 			Superscript,
 			Subscript,
 			Selection,
@@ -291,6 +295,15 @@ export function SimpleEditor() {
 				searchDebounceMs: 500,
 				injectCSS: false,
 			}),
+			Placeholder.configure({
+				placeholder: ({ node }) => {
+					if (node.type.name === "heading") {
+						return "What's the title?";
+					}
+					return "Write something";
+				},
+			}),
+
 			ImageUploadNode.configure({
 				accept: "image/*",
 				maxSize: MAX_FILE_SIZE,
@@ -299,7 +312,6 @@ export function SimpleEditor() {
 				onError: (error) => console.error("Upload failed:", error),
 			}),
 		],
-		content,
 	});
 
 	const rect = useCursorVisibility({
@@ -332,6 +344,7 @@ export function SimpleEditor() {
 		openSearchAndReplace();
 	}, [closeSearchAndReplace, isSearchAndReplaceOpen, openSearchAndReplace]);
 
+	//other configurations
 	return (
 		<div className="simple-editor-wrapper">
 			<EditorContext.Provider value={{ editor }}>
@@ -353,6 +366,7 @@ export function SimpleEditor() {
 							isSearchAndReplaceOpen={isSearchAndReplaceOpen}
 							searchAndReplaceButtonRef={searchAndReplaceButtonRef}
 							isMobile={isMobile}
+							editor={editor}
 						/>
 					) : (
 						<MobileToolbarContent
@@ -369,7 +383,6 @@ export function SimpleEditor() {
 					onClose={closeSearchAndReplace}
 					scrollIntoViewOptions={SEARCH_AND_REPLACE_SCROLL_OPTIONS}
 				/>
-
 				<EditorContent
 					editor={editor}
 					role="presentation"
