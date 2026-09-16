@@ -16,54 +16,71 @@ import {
 	ContextMenuSeparator,
 	ContextMenuTrigger,
 } from "./ui/context-menu";
+import { Link } from "@tanstack/react-router";
+import { appStore } from "#/integrations/tanstack-query/store-provider";
+import { htmlContent } from "#/routes/view/$reportId";
 
 export default function EntryCard({
 	title,
 	desc,
 	state,
 	tags,
+	id,
 	createdAt,
 }: {
 	title: string;
 	desc: string;
+	id: string;
 	state: string;
 	tags: string[];
 	createdAt: string;
 }) {
+	const handlePreview = (id) => {
+		//Placeholder
+		appStore.setState((prev) => ({
+			...prev,
+			preview: { content: htmlContent },
+		}));
+	};
+
 	return (
 		<ContextMenu>
 			<ContextMenuTrigger>
-				<Card className="p-6 hover:bg-muted rounded-md dark:hover:bg-input/50 cursor-pointer">
-					<div className="flex justify-between items-center">
-						<div>
-							<p className="text-nowrap w-md text-ellipsis font-bold text-lg">
-								{title}
-							</p>
-							<p className="text-nowrap truncate w-sm md:w-2xl">{desc}</p>
+				<Link to={"/view/$reportId"} params={{ reportId: id }}>
+					<Card className="p-6 hover:bg-muted rounded-md dark:hover:bg-input/50 cursor-pointer">
+						<div className="flex justify-between items-center">
+							<div>
+								<p className="text-nowrap w-md text-ellipsis font-bold text-lg">
+									{title}
+								</p>
+								<p className="text-nowrap truncate w-sm md:w-2xl">{desc}</p>
+							</div>
+							<ArrowUpRight />
 						</div>
-						<ArrowUpRight />
-					</div>
-					<div className="flex justify-between items-center">
-						<div className="flex gap-3">
-							<Badge className="p-2">{state}</Badge>
-							<ul className="flex gap-1">
-								{tags.slice(0, 3).map((tag) => (
-									<li key={tag}>
-										<Badge variant={"secondary"} className="p-2">
-											{tag}
-										</Badge>
-									</li>
-								))}
-							</ul>
+						<div className="flex justify-between items-center">
+							<div className="flex gap-3">
+								<Badge className="p-2">{state}</Badge>
+								<ul className="flex gap-1">
+									{tags.slice(0, 3).map((tag) => (
+										<li key={tag}>
+											<Badge variant={"secondary"} className="p-2">
+												{tag}
+											</Badge>
+										</li>
+									))}
+								</ul>
+							</div>
+							<p className="text-muted-foreground">Created {createdAt}</p>
 						</div>
-						<p className="text-muted-foreground">Created {createdAt}</p>
-					</div>
-				</Card>
+					</Card>
+				</Link>
 			</ContextMenuTrigger>
 			<ContextMenuContent className="px-2 text-xl">
-				<ContextMenuItem>
+				<ContextMenuItem onClick={() => handlePreview(id)}>
 					<ArrowUpRight />
-					Open in preview
+					Open in preview window
+					{/* TODO: Open in preview Do some research and return and update our state
+					directly... could be a serverfn*/}
 				</ContextMenuItem>
 				<ContextMenuItem>
 					<Search />
@@ -77,14 +94,6 @@ export default function EntryCard({
 				<ContextMenuItem>
 					<SquarePen />
 					Edit
-				</ContextMenuItem>
-				<ContextMenuItem>
-					<Pencil />
-					Edit metadata
-				</ContextMenuItem>
-				<ContextMenuItem>
-					<Tags />
-					Edit tags
 				</ContextMenuItem>
 				<ContextMenuSeparator />
 				<ContextMenuItem variant="destructive">

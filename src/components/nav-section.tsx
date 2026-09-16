@@ -7,6 +7,7 @@ import {
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 
 export default function NavSection({
 	queryStr,
@@ -40,9 +41,12 @@ export default function NavSection({
 									variant={"ghost"}
 									className="w-full justify-start cursor-pointer"
 									onClick={i.action}
+									asChild
 								>
-									<Icon />
-									<p>{i.name}</p>
+									<Link to={"/view/$reportId"} params={{ reportId: i.id! }}>
+										<Icon />
+										<p>{i.name}</p>
+									</Link>
 								</Button>
 							</li>
 						);

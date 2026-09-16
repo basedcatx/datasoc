@@ -1,23 +1,20 @@
 import {
-	BookSearch,
 	File,
 	Home,
 	Library,
-	LucidePencilLine,
 	LucideSearch,
-	LucideSettings,
 	PanelLeft,
 	Plus,
 	Search,
-	SearchAlertIcon,
 	Trash,
 } from "lucide-react";
 import { useState } from "react";
 import NavButton from "./nav-button";
 import NavSection from "./nav-section";
 import { Button } from "./ui/button";
-import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import { cn } from "cn";
+import SearchComponent from "./SearchComponent";
 
 const navLinks = [
 	{ text: "Home", path: "/", icon: Home },
@@ -54,7 +51,9 @@ export default function Sidebar() {
 					))}
 				</ul>
 
-				<NavButton navText="Search" icon={LucideSearch} onClick={() => {}} />
+				<SearchComponent>
+					<NavButton navText="Search" icon={LucideSearch} />
+				</SearchComponent>
 			</div>
 
 			<NavSection
@@ -87,13 +86,8 @@ export default function Sidebar() {
 				]}
 			/>
 
-			<NavSection
-				sectionName="Misc"
-				icon={Trash}
-				items={[{ name: "Recently deleted", action: () => {} }]}
-			/>
-
-			<div className="flex justify-around items-center p-4">
+			{/* TODO:: Later
+* <div className="flex justify-around items-center p-4">
 				<Button variant={"secondary"} size={"lg"} className="p-4 rounded-full">
 					<LucideSettings />
 					<p>Settings</p>
@@ -102,7 +96,9 @@ export default function Sidebar() {
 					<LucidePencilLine />
 					<p>New</p>
 				</Button>
-			</div>
+
+				</div>
+*/}
 		</nav>
 	) : (
 		<div className="p-1 bg-card flex flex-col gap-12">
@@ -129,9 +125,11 @@ export default function Sidebar() {
 				))}
 			</ul>
 
-			<Button variant={"secondary"} className="rounded-full">
-				<Search className="size-6" />
-			</Button>
+			<SearchComponent>
+				<Button variant={"secondary"} className="rounded-full">
+					<Search className="size-6" />
+				</Button>
+			</SearchComponent>
 
 			<Button variant={"secondary"} className="rounded-full">
 				<Link to="/editor">

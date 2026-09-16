@@ -24,6 +24,7 @@ import {
 import { InputGroupAddon } from "@/components/ui/input-group";
 import { useReducer } from "react";
 import LibraryEntryCard from "./library-entrycard";
+import { Link } from "@tanstack/react-router";
 
 function handleStateReducer(state: any, action: any) {
 	switch (action.type) {
@@ -55,10 +56,12 @@ export default function LibraryCard() {
 				<div className="flex justify-between items-center my-2">
 					<div className="flex gap-4 items-center">
 						<h6 className="text-xl text-muted-foreground">Library</h6>
-						<Button className="flex p-4 cursor-pointer rounded-full">
-							<Plus />
-							<p className="text-lg">New</p>
-						</Button>
+						<Link to={"/editor"}>
+							<Button className="flex p-4 cursor-pointer rounded-full">
+								<Plus />
+								<p className="text-lg">New</p>
+							</Button>
+						</Link>
 					</div>
 
 					<div className="flex gap-2">

@@ -1,8 +1,19 @@
-import { Ghost, LucideTrash, Plus } from "lucide-react";
+import { Ghost, LoaderIcon, LucideTrash, Plus, Trash2Icon } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 
 import TrashEntryCard from "./trash-entrycard";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogMedia,
+	AlertDialogTitle,
+	AlertDialogTrigger,
+} from "./ui/alert-dialog";
 
 export default function TrashCard() {
 	return (
@@ -11,13 +22,46 @@ export default function TrashCard() {
 				<div className="flex justify-between items-center my-2">
 					<div className="flex gap-4 items-center justify-between w-full">
 						<h6 className="text-xl text-muted-foreground">Trash</h6>
-						<Button
-							variant={"default"}
-							className="flex p-6 cursor-pointer font-medium rounded-full bg-destructive hover:bg-destructive"
-						>
-							<LucideTrash className="size-6" />
-							<p className="text-lg">Delete all</p>
-						</Button>
+						<div className="flex gap-3">
+							<AlertDialog>
+								<AlertDialogTrigger>
+									<Button
+										variant={"default"}
+										className="flex p-6 cursor-pointer font-medium rounded-full bg-destructive hover:bg-destructive"
+									>
+										<LucideTrash className="size-6" />
+										<p className="text-lg">Delete all</p>
+									</Button>
+								</AlertDialogTrigger>
+								<AlertDialogContent size="sm">
+									<AlertDialogTrigger>
+										<AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
+											<Trash2Icon />
+										</AlertDialogMedia>
+										<AlertDialogTitle>Delete records?</AlertDialogTitle>
+										<AlertDialogDescription>
+											This would parmanently delete all records in the trash
+										</AlertDialogDescription>
+									</AlertDialogTrigger>
+									<AlertDialogFooter>
+										<AlertDialogCancel variant="outline">
+											Cancel
+										</AlertDialogCancel>
+										<AlertDialogAction variant="destructive">
+											Delete
+										</AlertDialogAction>
+									</AlertDialogFooter>
+								</AlertDialogContent>
+							</AlertDialog>
+
+							<Button
+								variant={"default"}
+								className="flex p-6 cursor-pointer font-medium rounded-full"
+							>
+								<LoaderIcon />
+								<p className="text-lg">Restore all</p>
+							</Button>
+						</div>
 					</div>
 				</div>
 

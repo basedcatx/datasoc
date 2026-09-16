@@ -2,6 +2,21 @@ import { createFileRoute } from "@tanstack/react-router";
 import HomeInfoCard from "#/components/home-infocard";
 import RecentlyCreatedCard from "#/components/recently-created-card";
 import RecentlyViewedCard from "#/components/recently-viewed-card";
+import { useSelector } from "@tanstack/react-store";
+import { appStore } from "#/integrations/tanstack-query/store-provider";
+import PreviewCard from "#/components/PreviewCard";
+
+import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogClose,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_home/")({
 	component: RouteComponent,
@@ -32,6 +47,7 @@ function RouteComponent() {
 			<InfoCardSection />
 			<RecentlyCreatedSection />
 			<RecentlyViewedSection />
+			<PreviewCard />
 		</div>
 	);
 }

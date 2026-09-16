@@ -2,8 +2,9 @@ import { Ghost, Plus } from "lucide-react";
 import EntryCard from "./entrycard";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
+import { Link } from "@tanstack/react-router";
 
-export default function RecentlyCreatedCard() {
+export default function RecentlyCreatedCard({ id }: { id: string }) {
 	return (
 		<div>
 			<Card className="flex flex-col gap-4 p-8 rounded-none">
@@ -11,10 +12,13 @@ export default function RecentlyCreatedCard() {
 					<h6 className="text-sm text-muted-foreground">Recently created</h6>
 					<Button
 						size={"lg"}
+						asChild
 						className="flex gap-4 rounded-full p-4 cursor-pointer"
 					>
-						<Plus className="size-6" />
-						<p className="text-xl">New</p>
+						<Link to={"/editor"}>
+							<Plus className="size-6" />
+							<p className="text-xl">New</p>
+						</Link>
 					</Button>
 				</div>
 
@@ -42,6 +46,7 @@ export default function RecentlyCreatedCard() {
 const entryList = [
 	{
 		title: "Hydraulic Pump Noise Troubleshooting",
+		slug: "sdf",
 		desc: "Step-by-step diagnostic process for identifying cavitation and air ingress in high-pressure hydraulic pumps.",
 		tags: ["pump", "maintenance", "hydraulics"],
 		state: "completed",

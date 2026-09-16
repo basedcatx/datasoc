@@ -10,14 +10,21 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as EditorRouteImport } from './routes/editor'
+import { Route as SearchRouteImport } from './routes/search'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as HomeIndexRouteImport } from './routes/_home/index'
 import { Route as LibraryIndexRouteImport } from './routes/library/index'
 import { Route as TrashIndexRouteImport } from './routes/trash/index'
+import { Route as ViewReportIdRouteImport } from './routes/view/$reportId'
 
 const EditorRoute = EditorRouteImport.update({
   id: '/editor',
   path: '/editor',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -40,17 +47,26 @@ const TrashIndexRoute = TrashIndexRouteImport.update({
   path: '/trash/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ViewReportIdRoute = ViewReportIdRouteImport.update({
+  id: '/view/$reportId',
+  path: '/view/$reportId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/editor': typeof EditorRoute
+  '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
+  '/view/$reportId': typeof ViewReportIdRoute
   '/': typeof HomeIndexRoute
   '/library/': typeof LibraryIndexRoute
   '/trash/': typeof TrashIndexRoute
 }
 export interface FileRoutesByTo {
   '/editor': typeof EditorRoute
+  '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
+  '/view/$reportId': typeof ViewReportIdRoute
   '/': typeof HomeIndexRoute
   '/library': typeof LibraryIndexRoute
   '/trash': typeof TrashIndexRoute
@@ -58,22 +74,48 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/editor': typeof EditorRoute
+  '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
+  '/view/$reportId': typeof ViewReportIdRoute
   '/_home/': typeof HomeIndexRoute
   '/library/': typeof LibraryIndexRoute
   '/trash/': typeof TrashIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/editor' | '/settings' | '/' | '/library/' | '/trash/'
+  fullPaths:
+    | '/editor'
+    | '/search'
+    | '/settings'
+    | '/view/$reportId'
+    | '/'
+    | '/library/'
+    | '/trash/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/editor' | '/settings' | '/' | '/library' | '/trash'
-  id: '__root__' | '/editor' | '/settings' | '/_home/' | '/library/' | '/trash/'
+  to:
+    | '/editor'
+    | '/search'
+    | '/settings'
+    | '/view/$reportId'
+    | '/'
+    | '/library'
+    | '/trash'
+  id:
+    | '__root__'
+    | '/editor'
+    | '/search'
+    | '/settings'
+    | '/view/$reportId'
+    | '/_home/'
+    | '/library/'
+    | '/trash/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   EditorRoute: typeof EditorRoute
+  SearchRoute: typeof SearchRoute
   SettingsRoute: typeof SettingsRoute
+  ViewReportIdRoute: typeof ViewReportIdRoute
   HomeIndexRoute: typeof HomeIndexRoute
   LibraryIndexRoute: typeof LibraryIndexRoute
   TrashIndexRoute: typeof TrashIndexRoute
@@ -86,6 +128,13 @@ declare module '@tanstack/react-router' {
       path: '/editor'
       fullPath: '/editor'
       preLoaderRoute: typeof EditorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -116,12 +165,21 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TrashIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/view/$reportId': {
+      id: '/view/$reportId'
+      path: '/view/$reportId'
+      fullPath: '/view/$reportId'
+      preLoaderRoute: typeof ViewReportIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   EditorRoute: EditorRoute,
+  SearchRoute: SearchRoute,
   SettingsRoute: SettingsRoute,
+  ViewReportIdRoute: ViewReportIdRoute,
   HomeIndexRoute: HomeIndexRoute,
   LibraryIndexRoute: LibraryIndexRoute,
   TrashIndexRoute: TrashIndexRoute,

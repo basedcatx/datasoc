@@ -14,37 +14,18 @@ import { appStore } from "#/integrations/tanstack-query/store-provider";
 import { Badge } from "./ui/badge";
 import { Textarea } from "./ui/textarea";
 
-function TooltipButton({
-	children,
-	tooltip,
-}: {
-	children: React.ReactNode;
-	tooltip: string;
-}) {
-	return (
-		<Tooltip>
-			<TooltipTrigger asChild>
-				<Button variant={"secondary"} className={"cursor-pointer"}>
-					{children}
-				</Button>
-			</TooltipTrigger>
-			<TooltipContent>
-				<p>{tooltip}</p>
-			</TooltipContent>
-		</Tooltip>
-	);
-}
-
 function MetaInput({
 	name,
 	value,
 	onDelete,
 	onDataChange,
+	enabled,
 	id,
 }: {
 	name: string;
 	value: string;
 	id: string;
+	enabled: boolean;
 	onDelete: (key: string) => void;
 	onDataChange: (id: string, field: "name" | "value", value: string) => void;
 }) {
@@ -52,6 +33,7 @@ function MetaInput({
 		<div className="flex flex-col items-center gap-4 w-full" id={id}>
 			<div className="flex items-center gap-3">
 				<Input
+					disabled={!enabled}
 					placeholder="field..."
 					defaultValue={name}
 					className="focus-visible:ring-0"
@@ -62,6 +44,7 @@ function MetaInput({
 				/>
 				<LucideChevronRight className="size-12" />
 				<Input
+					disabled={!enabled}
 					placeholder="value..."
 					defaultValue={value}
 					className="focus-visible:ring-0"
@@ -71,6 +54,7 @@ function MetaInput({
 					}}
 				/>
 				<Button
+					disabled={!enabled}
 					onClick={(e) => {
 						e.preventDefault();
 						onDelete(id);
@@ -86,7 +70,11 @@ function MetaInput({
 	);
 }
 
-export default function EditorDrawerCard() {
+export default function EditorDrawerCard({
+	enabled = false,
+}: {
+	enabled?: boolean;
+}) {
 	const tags = useSelector(appStore, (state) => state.file.tags);
 	const metas = useSelector(appStore, (state) => state.file.meta);
 
@@ -157,6 +145,7 @@ export default function EditorDrawerCard() {
 			<div className="flex flex-col gap-2">
 				<p className="text-xs text-muted-foreground">Tags</p>
 				<Textarea
+					disabled={!enabled}
 					placeholder="Type to enter, separated by commas (,)"
 					onChange={(e) => {
 						e.preventDefault();
@@ -186,6 +175,7 @@ export default function EditorDrawerCard() {
 					{metas.map(({ id, name, value }: Record<string, string>) => (
 						<li key={id}>
 							<MetaInput
+								enabled={enabled}
 								onDataChange={handleMetaUpdate}
 								id={id}
 								name={name}
@@ -201,6 +191,7 @@ export default function EditorDrawerCard() {
 
 			<Button
 				className="p-4 w-xs rounded-full mx-auto"
+				disabled={!enabled}
 				variant={"default"}
 				onClick={(e) => {
 					e.preventDefault();
