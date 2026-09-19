@@ -1,7 +1,13 @@
-export function StorageManager() {
-	if (window.__TAURI__) {
-		console.log("Tauri");
-	} else {
-		console.log("Tanstack");
+import { isTauri } from "./utils";
+import { BaseDirectory, readDir } from "@tauri-apps/plugin-fs";
+
+export async function StorageManager() {
+	if (isTauri()) {
+		const database = await readDir("./", {
+			baseDir: BaseDirectory.AppLocalData,
+		});
+
+		const Database = await import("better-sqlite3");
+		console.log(Database);
 	}
 }
