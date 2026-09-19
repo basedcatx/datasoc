@@ -17,6 +17,7 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
+import { StorageManager } from "#/lib/StorageManager";
 
 export const Route = createFileRoute("/_home/")({
 	component: RouteComponent,
@@ -42,6 +43,7 @@ function RecentlyViewedSection() {
 }
 
 function RouteComponent() {
+	StorageManager().then();
 	return (
 		<div className="w-full flex flex-col gap-8 overflow-y-auto h-screen scroll-fade p-4 scrollbar-thin">
 			<InfoCardSection />
