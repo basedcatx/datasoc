@@ -7,17 +7,7 @@ import { appStore } from "#/integrations/tanstack-query/store-provider";
 import PreviewCard from "#/components/PreviewCard";
 
 import { Button } from "@/components/ui/button";
-import {
-	Dialog,
-	DialogClose,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger,
-} from "@/components/ui/dialog";
-import { StorageManager } from "#/lib/StorageManager";
+import { generateVector} from "#/lib/libs";
 
 export const Route = createFileRoute("/_home/")({
 	component: RouteComponent,
@@ -43,7 +33,6 @@ function RecentlyViewedSection() {
 }
 
 function RouteComponent() {
-	StorageManager().then();
 	return (
 		<div className="w-full flex flex-col gap-8 overflow-y-auto h-screen scroll-fade p-4 scrollbar-thin">
 			<InfoCardSection />
