@@ -8,7 +8,7 @@ pub struct AppState {
 }
 
 use commands::*;
-use tauri::{App, Manager};
+use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -34,6 +34,7 @@ pub fn run() {
                 .expect("Cannot access app's local app dir");
 
             let engine = embedding::init(model_path).expect("Could not load embedding engine");
+
             let conn =
                 db::init(&mut app_data_path).expect("Could not establish database connection");
 
@@ -44,7 +45,7 @@ pub fn run() {
 
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![get_embedding])
+        .invoke_handler(tauri::generate_handler![get_embedding, create_record])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

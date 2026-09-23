@@ -1,8 +1,29 @@
+use std::collections::HashMap;
+
 use crate::embedding::normalize;
 use crate::AppState;
 use llama_cpp_2::context::params::LlamaContextParams;
 use llama_cpp_2::llama_batch::LlamaBatch;
+use rusqlite::params;
+use serde::{Deserialize, Serialize};
 use tauri::State;
+use zerocopy::IntoBytes as AsBytes;
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Record {
+    name: String,
+    content: String,
+    tags: Tags,
+    flags: u32,
+    meta: Meta,
+    embedding: Vec<f32>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Tags(Vec<String>);
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Meta(HashMap<String, String>);
 
 #[tauri::command]
 pub async fn get_embedding(input: String, state: State<'_, AppState>) -> Result<Vec<f32>, String> {
@@ -41,4 +62,42 @@ pub async fn get_embedding(input: String, state: State<'_, AppState>) -> Result<
         .map_err(|_| "Failed to extract embedding vector".to_string())?;
 
     Ok(normalize(raw_embedding))
+}
+
+#[tauri::command]
+pub async fn create_record(input: Record, state: State<'_, AppState>) -> Result<bool, String> {
+    let db = state.db.lock().map_err(|_| "Failed to get db lock")?;
+
+    let Record {
+        name,
+        content,
+        tags,
+        flags,
+        meta,
+        embedding,
+        ..
+    } = &input;
+
+    let tags_string =
+        serde_json::to_string(&tags).map_err(|_| "Failed to convert tags too string")?;
+    let meta_string =
+        serde_json::to_string(&meta).map_err(|_| "Failed to convert meta to string")?;
+
+    let res = db
+        .execute(
+            "INSERT INTO Records(name, content, tags, flags, meta ) VALUES(?1, ?2, ?3, ?4, ?5)",
+            rusqlite::params![&name, &content, &tags_string, &flags, &meta_string],
+        )
+        .map_err(|e| format!("An error occurred while executing query: {}", e.to_string()))?;
+
+    let id = db.last_insert_rowid();
+
+    let vec_res = db
+        .execute(
+            "INSERT INTO RecordEmbedding VALUES(?1, ?2)",
+            rusqlite::params![&id, &embedding.as_bytes()],
+        )
+        .map_err(|e| format!("An error occurred while executing query: {}", e.to_string()))?;
+
+    Ok(res > 0 && vec_res > 0)
 }

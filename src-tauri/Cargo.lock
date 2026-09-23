@@ -19,6 +19,7 @@ dependencies = [
  "tauri-plugin-fs",
  "tauri-plugin-log",
  "tauri-plugin-store",
+ "tokio",
  "zerocopy",
 ]
 
