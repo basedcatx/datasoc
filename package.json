@@ -78,6 +78,7 @@
     "@tanstack/devtools-vite": "latest",
     "@tanstack/router-cli": "^1.132.0",
     "@tauri-apps/cli": "^2.11.4",
+    "@types/bun": "^1.4.2",
     "@types/lodash.throttle": "^4.1.9",
     "@types/node": "^22.10.2",
     "@types/react": "^19.2.0",
