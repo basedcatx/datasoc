@@ -10,11 +10,10 @@
   "permissions": [
     "core:default",
     "store:default",
-    "fs:allow-applocaldata-read",
     "fs:allow-read-dir",
     "fs:allow-applocaldata-read-recursive",
     "fs:allow-app-write-recursive",
-    "fs:allow-localdata-write-recursive"
+    "fs:allow-applocaldata-write-recursive"
   ]
  
 }
