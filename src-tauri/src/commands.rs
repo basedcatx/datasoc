@@ -12,6 +12,7 @@ use zerocopy::IntoBytes as AsBytes;
 pub struct RecordSearch {
     name: String,
     content: String,
+    content_html: String,
     tags: Tags,
     flags: u32,
     meta: Meta,
@@ -21,6 +22,7 @@ pub struct RecordSearch {
 pub struct RecordInsert {
     name: String,
     content: String,
+    content_html: String,
     tags: Tags,
     flags: u32,
     meta: Meta,
@@ -32,6 +34,7 @@ pub struct RecordUpdate {
     id: u32,
     name: String,
     content: String,
+    content_html: String,
     tags: Tags,
     flags: u32,
     meta: Meta,
@@ -99,7 +102,7 @@ pub async fn create_record(
         flags,
         meta,
         embedding,
-        ..
+        content_html,
     } = &input;
 
     let tags_string =
@@ -109,8 +112,8 @@ pub async fn create_record(
 
     let res = db
         .execute(
-            "INSERT INTO Records(name, content, tags, flags, meta ) VALUES(?1, ?2, ?3, ?4, ?5)",
-            rusqlite::params![&name, &content, &tags_string, &flags, &meta_string],
+            "INSERT INTO Records(name, content, tags, flags, meta, content_html ) VALUES(?1, ?2, ?3, ?4, ?5, ?6)",
+            rusqlite::params![&name, &content, &tags_string, &flags, &meta_string, &content_html],
         )
         .map_err(|e| format!("An error occurred while executing query: {e}"))?;
 
@@ -134,7 +137,7 @@ pub async fn read_records(state: State<'_, AppState>) -> Result<Vec<RecordSearch
         .map_err(|e| format!("db lock poisoned {e}"))?;
 
     let mut stmt = db
-        .prepare("SELECT name, content, tags, flags, meta FROM Records")
+        .prepare("SELECT name, content, tags, flags, meta, content_html FROM Records")
         .map_err(|e| e.to_string())?;
 
     let record_iter = stmt
@@ -164,7 +167,7 @@ pub async fn read_records(state: State<'_, AppState>) -> Result<Vec<RecordSearch
                 tags,
                 flags: row.get(3)?,
                 meta,
-                // left as a placeholder
+                content_html: row.get(5)?, // left as a placeholder
             })
         })
         .map_err(|e| e.to_string())?;
@@ -190,6 +193,7 @@ pub async fn update_record(
         tags,
         flags,
         meta,
+        content_html,
         embedding,
     } = &input;
 
@@ -200,8 +204,8 @@ pub async fn update_record(
 
     let res = db
         .execute(
-            "UPDATE Records SET name = ?1, content = ?2, tags = ?3, flags = ?4, meta = ?5 WHERE id = ?6",
-            rusqlite::params![&name, &content, &tags_string, &flags, &meta_string, &id],
+            "UPDATE Records SET name = ?1, content = ?2, tags = ?3, flags = ?4, meta = ?5, content_html = ?7 WHERE id = ?6",
+            rusqlite::params![&name, &content, &tags_string, &flags, &meta_string, &id, &content_html],
         )
         .map_err(|e| format!("An error occurred while executing query: {e}"))?;
 

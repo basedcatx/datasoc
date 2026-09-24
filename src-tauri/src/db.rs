@@ -52,7 +52,10 @@ pub fn init(db_path: &mut PathBuf) -> anyhow::Result<Connection> {
             INSERT INTO FullSearch(rowid, content) VALUES (new.id, new.content);
         END;"),
 
-        M::up("CREATE VIRTUAL TABLE IF NOT EXISTS RecordEmbedding USING vec0(embedding float[384])")]);
+        M::up("CREATE VIRTUAL TABLE IF NOT EXISTS RecordEmbedding USING vec0(embedding float[384])"),
+
+        M::up("ALTER TABLE Records ADD content_html")
+    ]);
 
     migrations
         .to_latest(&mut conn)

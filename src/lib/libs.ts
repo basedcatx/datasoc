@@ -5,16 +5,17 @@ export const FLAGS = {
 	IS_FAVORITE: 1 << 2,
 };
 
-interface R {
+export interface R {
 	name: string;
 	content: string;
+	contentHtml: string;
 	flags: number;
 	tags: string[];
 	meta: Record<string, string>;
 	embedding?: number[];
 }
 
-interface RUpdate extends R {
+export interface RUpdate extends R {
 	id: number;
 }
 
