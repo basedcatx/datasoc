@@ -11,7 +11,7 @@ interface R {
 	flags: number;
 	tags: string[];
 	meta: Record<string, string>;
-	embedding: Number[];
+	embedding: [];
 }
 
 export async function generateVector(text: string) {
@@ -34,5 +34,14 @@ export async function createRecord(input: R) {
 	} catch (e) {
 		console.error("createRecord error", e);
 		return false;
+	}
+}
+
+export async function getAllRecords() {
+	try {
+		return await invoke<R[]>("read_records");
+	} catch (e) {
+		console.error(e);
+		return [];
 	}
 }

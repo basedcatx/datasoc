@@ -51,6 +51,7 @@ pub fn init(db_path: &mut PathBuf) -> anyhow::Result<Connection> {
             INSERT INTO FullSearch(FullSearch, rowid, content) VALUES('delete', old.id, old.content);
             INSERT INTO FullSearch(rowid, content) VALUES (new.id, new.content);
         END;"),
+
         M::up("CREATE VIRTUAL TABLE IF NOT EXISTS RecordEmbedding USING vec0(record_id integer primary key, embedding float[384])")]);
 
     migrations

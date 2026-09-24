@@ -7,6 +7,7 @@ name = "Datasoc"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "anyhow-tauri",
  "llama-cpp-2",
  "log",
  "rusqlite",
@@ -96,6 +97,16 @@ name = "anyhow"
 version = "1.0.104"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
+
+[[package]]
+name = "anyhow-tauri"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0eb1a218a519655b31367deb769bb00d42151f9eaa27f703001f213ad00b66db"
+dependencies = [
+ "anyhow",
+ "serde",
+]
 
 [[package]]
 name = "atk"

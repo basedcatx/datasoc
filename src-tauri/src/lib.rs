@@ -45,7 +45,11 @@ pub fn run() {
 
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![get_embedding, create_record])
+        .invoke_handler(tauri::generate_handler![
+            get_embedding,
+            create_record,
+            read_records
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
