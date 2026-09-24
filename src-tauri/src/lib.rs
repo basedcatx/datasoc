@@ -48,7 +48,9 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             get_embedding,
             create_record,
-            read_records
+            read_records,
+            update_record,
+            delete_record
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

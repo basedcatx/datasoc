@@ -118,7 +118,7 @@ pub async fn create_record(
 
     let vec_res = db
         .execute(
-            "INSERT INTO RecordEmbedding VALUES(?1, ?2)",
+            "INSERT INTO RecordEmbedding(rowid, embedding) VALUES(?1, ?2)",
             rusqlite::params![&id, &embedding.as_bytes()],
         )
         .map_err(|e| format!("An error occurred while executing query {e}"))?;
@@ -181,51 +181,57 @@ pub async fn update_record(
     input: RecordUpdate,
     state: State<'_, AppState>,
 ) -> Result<bool, String> {
-    let db = state
-        .db
-        .lock()
-        .map_err(|e| format!("db lock poisoned {e}"))?;
+    let db = state.db.lock().map_err(|_| "Failed to get db lock")?;
 
-    let mut stmt = db
-        .prepare("SELECT name, content, tags, flags, meta FROM Records")
-        .map_err(|e| e.to_string())?;
+    let RecordUpdate {
+        id,
+        name,
+        content,
+        tags,
+        flags,
+        meta,
+        embedding,
+    } = &input;
 
-    let record_iter = stmt
-        .query_map([], |row| {
-            let tags_str: String = row.get(2)?;
-            let meta_str: String = row.get(4)?;
+    let tags_string =
+        serde_json::to_string(&tags).map_err(|_| "Failed to convert tags too string")?;
+    let meta_string =
+        serde_json::to_string(&meta).map_err(|_| "Failed to convert meta to string")?;
 
-            let tags: Tags = serde_json::from_str(&tags_str).map_err(|e| {
-                rusqlite::Error::FromSqlConversionFailure(
-                    2,
-                    rusqlite::types::Type::Text,
-                    Box::new(e),
-                )
-            })?;
+    let res = db
+        .execute(
+            "UPDATE Records SET name = ?1, content = ?2, tags = ?3, flags = ?4, meta = ?5 WHERE id = ?6",
+            rusqlite::params![&name, &content, &tags_string, &flags, &meta_string, &id],
+        )
+        .map_err(|e| format!("An error occurred while executing query: {e}"))?;
 
-            let meta: Meta = serde_json::from_str(&meta_str).map_err(|e| {
-                rusqlite::Error::FromSqlConversionFailure(
-                    5,
-                    rusqlite::types::Type::Text,
-                    Box::new(e),
-                )
-            })?;
+    let vec_res = db
+        .execute(
+            "UPDATE RecordEmbedding SET embedding = ?2 WHERE rowid = ?1",
+            rusqlite::params![&id, &embedding.as_bytes()],
+        )
+        .map_err(|e| format!("An error occurred while executing query {e}"))?;
 
-            Ok(Record {
-                name: row.get(0)?,
-                content: row.get(1)?,
-                tags,
-                flags: row.get(3)?,
-                meta,
-                // left as a placeholder
-                embedding: vec![0.0],
-            })
-        })
-        .map_err(|e| e.to_string())?;
+    Ok(res > 0 && vec_res > 0)
+}
 
-    let records = record_iter
-        .collect::<rusqlite::Result<Vec<_>>>()
-        .map_err(|e| e.to_string())?;
+#[tauri::command]
+pub async fn delete_record(input: u32, state: State<'_, AppState>) -> Result<bool, String> {
+    let db = state.db.lock().map_err(|_| "Failed to get db lock")?;
 
-    Ok(records)
+    let res = db
+        .execute(
+            "DELETE FROM Records WHERE id = ?1",
+            rusqlite::params![&input],
+        )
+        .map_err(|e| format!("An error occurred while executing query: {e}"))?;
+
+    let vec_res = db
+        .execute(
+            "DELETE FROM RecordEmbedding WHERE rowid = ?1",
+            rusqlite::params![input],
+        )
+        .map_err(|e| format!("Failed to execute embedding query: {e}"))?;
+
+    Ok(res > 0 && vec_res > 0)
 }

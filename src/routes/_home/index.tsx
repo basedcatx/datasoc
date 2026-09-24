@@ -2,9 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import HomeInfoCard from "#/components/home-infocard";
 import RecentlyCreatedCard from "#/components/recently-created-card";
 import RecentlyViewedCard from "#/components/recently-viewed-card";
-import { createRecord, getAllRecords } from "#/lib/libs";
+import { createRecord, deleteRecord, getAllRecords } from "#/lib/libs";
 import { useEffect } from "react";
 import PreviewCard from "#/components/PreviewCard";
+import { mockRecords } from "#/lib/mockdata";
 
 export const Route = createFileRoute("/_home/")({
 	component: RouteComponent,
