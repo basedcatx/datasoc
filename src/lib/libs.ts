@@ -11,10 +11,14 @@ interface R {
 	flags: number;
 	tags: string[];
 	meta: Record<string, string>;
-	embedding: [];
+	embedding?: number[];
 }
 
-export async function generateVector(text: string) {
+interface RUpdate extends R {
+	id: number;
+}
+
+async function generateVector(text: string) {
 	try {
 		const vector: number[] = await invoke("get_embedding", { input: text });
 		return vector;
@@ -24,12 +28,18 @@ export async function generateVector(text: string) {
 	}
 }
 
-export async function generateContentEmbedding(name: string, content: string) {
+async function generateContentEmbedding(
+	name: string,
+	content: string,
+): Promise<number[]> {
 	return await generateVector(`${name}\n${content}`);
 }
 
 export async function createRecord(input: R) {
 	try {
+		const { name, content } = input;
+		const vec = await generateContentEmbedding(name, content);
+		input.embedding = [...vec];
 		return await invoke<boolean>("create_record", { input });
 	} catch (e) {
 		console.error("createRecord error", e);
@@ -43,5 +53,23 @@ export async function getAllRecords() {
 	} catch (e) {
 		console.error(e);
 		return [];
+	}
+}
+
+export async function updateRecord(input: RUpdate) {
+	try {
+		return await invoke<boolean>("update_record", { input });
+	} catch (e) {
+		console.error(e);
+		return false;
+	}
+}
+
+export async function deleteRecord(id: number) {
+	try {
+		return await invoke<boolean>("delete_record", { input: id });
+	} catch (e) {
+		console.error(e);
+		return false;
 	}
 }
