@@ -55,7 +55,9 @@ pub fn init(db_path: &mut PathBuf) -> anyhow::Result<Connection> {
         CREATE TRIGGER IF NOT EXISTS records_au AFTER UPDATE ON Records BEGIN
             INSERT INTO FullSearch(FullSearch, rowid, content) VALUES('delete', old.id, old.content);
             INSERT INTO FullSearch(rowid, content) VALUES (new.id, new.content);
+            UPDATE Records SET updatedAt = (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')) WHERE id = new.id; 
         END;"),
+
 
         M::up("CREATE VIRTUAL TABLE IF NOT EXISTS RecordEmbedding USING vec0(embedding float[384])"),
 

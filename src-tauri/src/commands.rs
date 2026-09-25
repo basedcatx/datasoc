@@ -19,6 +19,8 @@ pub struct RecordSearch {
     tags: Tags,
     flags: u32,
     meta: Meta,
+    created_at: String,
+    updated_at: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -147,7 +149,7 @@ pub async fn read_records(state: State<'_, AppState>) -> Result<Vec<RecordSearch
         .map_err(|e| format!("db lock poisoned {e}"))?;
 
     let mut stmt = db
-        .prepare("SELECT name, content, tags, flags, meta, content_html FROM Records")
+        .prepare("SELECT name, content, tags, flags, meta, content_html, createdAt, updatedAt FROM Records")
         .map_err(|e| e.to_string())?;
 
     let record_iter = stmt
@@ -178,6 +180,8 @@ pub async fn read_records(state: State<'_, AppState>) -> Result<Vec<RecordSearch
                 flags: row.get(3)?,
                 meta,
                 content_html: row.get(5)?, // left as a placeholder
+                created_at: row.get(6)?,
+                updated_at: row.get(7)?,
             })
         })
         .map_err(|e| e.to_string())?;
@@ -214,8 +218,8 @@ pub async fn update_record(
 
     let res = db
         .execute(
-            "UPDATE Records SET name = ?1, content = ?2, tags = ?3, flags = ?4, meta = ?5, content_html = ?7 WHERE id = ?6",
-            rusqlite::params![&name, &content, &tags_string, &flags, &meta_string, &id, &content_html],
+            "UPDATE Records SET name = ?1, content = ?2, tags = ?3, flags = ?4, meta = ?5, content_html = ?7  WHERE id = ?6",
+            rusqlite::params![&name, &content, &tags_string, &flags, &meta_string, &id, &content_html ],
         )
         .map_err(|e| format!("An error occurred while executing query: {e}"))?;
 
@@ -263,7 +267,7 @@ pub async fn hybrid_search(
     let fused = rrf_fuse(&bm25_res, &vec_res, K_RRF);
 
     let mut stmt = conn
-        .prepare("SELECT name, content, tags, flags, meta, content_html FROM Records WHERE id = ?1")
+        .prepare("SELECT name, content, tags, flags, meta, content_html, createdAt, updatedAt FROM Records WHERE id = ?1")
         .map_err(|e| e.to_string())?;
 
     let mut res: Vec<RecordSearch> = Vec::new();
@@ -295,6 +299,8 @@ pub async fn hybrid_search(
                 flags: row.get(3)?,
                 meta,
                 content_html: row.get(5)?,
+                created_at: row.get(6)?,
+                updated_at: row.get(7)?,
             });
 
             Ok(())
