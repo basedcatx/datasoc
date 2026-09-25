@@ -50,7 +50,8 @@ pub fn run() {
             create_record,
             read_records,
             update_record,
-            delete_record
+            delete_record,
+            hybrid_search
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

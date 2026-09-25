@@ -19,6 +19,11 @@ export interface RUpdate extends R {
 	id: number;
 }
 
+export interface RSearch {
+	text: string;
+	limit?: number;
+}
+
 async function generateVector(text: string) {
 	try {
 		const vector: number[] = await invoke("get_embedding", { input: text });
@@ -69,6 +74,20 @@ export async function updateRecord(input: RUpdate) {
 export async function deleteRecord(id: number) {
 	try {
 		return await invoke<boolean>("delete_record", { input: id });
+	} catch (e) {
+		console.error(e);
+		return false;
+	}
+}
+
+export async function hybridSearch(input: RSearch) {
+	const embedding = await generateVector(input.text);
+	const limit = input.limit || 50;
+
+	try {
+		return await invoke<R[]>("hybrid_search", {
+			input: { ...input, embedding, limit },
+		});
 	} catch (e) {
 		console.error(e);
 		return false;

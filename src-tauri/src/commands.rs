@@ -1,5 +1,6 @@
 use std::{collections::HashMap, vec};
 
+use crate::db::{bm25_search, rrf_fuse, vector_search};
 use crate::embedding::normalize;
 use crate::AppState;
 use llama_cpp_2::context::params::LlamaContextParams;
@@ -7,6 +8,8 @@ use llama_cpp_2::llama_batch::LlamaBatch;
 use serde::{Deserialize, Serialize};
 use tauri::State;
 use zerocopy::IntoBytes as AsBytes;
+
+const K_RRF: u32 = 60;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct RecordSearch {
@@ -39,6 +42,13 @@ pub struct RecordUpdate {
     flags: u32,
     meta: Meta,
     embedding: Vec<f32>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct SearchInput {
+    text: String,
+    embedding: Vec<f32>,
+    limit: u32,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -121,7 +131,7 @@ pub async fn create_record(
 
     let vec_res = db
         .execute(
-            "INSERT INTO RecordEmbedding(rowid, embedding) VALUES(?1, ?2)",
+            "INSERT OR REPLACE INTO RecordEmbedding(rowid, embedding) VALUES(?1, ?2)",
             rusqlite::params![&id, &embedding.as_bytes()],
         )
         .map_err(|e| format!("An error occurred while executing query {e}"))?;
@@ -238,4 +248,59 @@ pub async fn delete_record(input: u32, state: State<'_, AppState>) -> Result<boo
         .map_err(|e| format!("Failed to execute embedding query: {e}"))?;
 
     Ok(res > 0 && vec_res > 0)
+}
+
+#[tauri::command]
+pub async fn hybrid_search(
+    input: SearchInput,
+    state: State<'_, AppState>,
+) -> Result<Vec<RecordSearch>, String> {
+    let conn = state.db.lock().map_err(|e| "Failed to acquire db lock")?;
+
+    let bm25_res = bm25_search(&conn, &input.text, input.limit).map_err(|e| e.to_string())?;
+    let vec_res = vector_search(&conn, &input.embedding, input.limit).map_err(|e| e.to_string())?;
+
+    let fused = rrf_fuse(&bm25_res, &vec_res, K_RRF);
+
+    let mut stmt = conn
+        .prepare("SELECT name, content, tags, flags, meta, content_html FROM Records WHERE id = ?1")
+        .map_err(|e| e.to_string())?;
+
+    let mut res: Vec<RecordSearch> = Vec::new();
+    for ((id, _)) in fused.into_iter() {
+        stmt.query_row([&id], |row| {
+            let tags_str: String = row.get(2)?;
+            let meta_str: String = row.get(4)?;
+
+            let tags: Tags = serde_json::from_str(&tags_str).map_err(|e| {
+                rusqlite::Error::FromSqlConversionFailure(
+                    2,
+                    rusqlite::types::Type::Text,
+                    Box::new(e),
+                )
+            })?;
+
+            let meta: Meta = serde_json::from_str(&meta_str).map_err(|e| {
+                rusqlite::Error::FromSqlConversionFailure(
+                    5,
+                    rusqlite::types::Type::Text,
+                    Box::new(e),
+                )
+            })?;
+
+            res.push(RecordSearch {
+                name: row.get(0)?,
+                content: row.get(1)?,
+                tags,
+                flags: row.get(3)?,
+                meta,
+                content_html: row.get(5)?,
+            });
+
+            Ok(())
+        })
+        .map_err(|e| e.to_string())?;
+    }
+
+    Ok(res)
 }
