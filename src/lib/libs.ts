@@ -1,12 +1,15 @@
 import { invoke } from "@tauri-apps/api/core";
 
 export interface R {
+	id?: number;
 	name: string;
 	content: string;
 	contentHtml: string;
 	flags: number;
 	tags: string[];
 	meta: Record<string, string>;
+	created_at?: string;
+	updated_at?: string;
 	embedding?: number[];
 }
 
@@ -48,21 +51,21 @@ export async function createRecord(input: R) {
 	}
 }
 
-export async function getAllRecords() {
+export async function getAllRecords(): Promise<R[]> {
 	try {
 		return await invoke<R[]>("read_records");
 	} catch (e) {
 		console.log(e);
-		return e;
+		return [];
 	}
 }
 
-export async function getRecord(id: number) {
+export async function getRecord(id: number): Promise<R | string> {
 	try {
 		return await invoke<R>("read_record", { input: id });
 	} catch (e) {
 		console.error(e);
-		return e;
+		return e as string;
 	}
 }
 
@@ -94,6 +97,6 @@ export async function hybridSearch(input: RSearch) {
 		});
 	} catch (e) {
 		console.error(e);
-		return e;
+		return [];
 	}
 }
