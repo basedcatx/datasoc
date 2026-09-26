@@ -2,16 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import HomeInfoCard from "#/components/home-infocard";
 import RecentlyCreatedCard from "#/components/recently-created-card";
 import RecentlyViewedCard from "#/components/recently-viewed-card";
-import {
-	createRecord,
-	deleteRecord,
-	getAllRecords,
-	hybridSearch,
-} from "#/lib/libs";
-import { useEffect } from "react";
 import PreviewCard from "#/components/PreviewCard";
-import { mockRecords } from "#/lib/mockdata";
-
 export const Route = createFileRoute("/_home/")({
 	component: RouteComponent,
 });
@@ -36,9 +27,6 @@ function RecentlyViewedSection() {
 }
 
 function RouteComponent() {
-	useEffect(() => {
-		hybridSearch({ text: "rust" }).then((r) => console.log(r));
-	}, []);
 	return (
 		<div className="w-full flex flex-col gap-8 overflow-y-auto h-screen scroll-fade p-4 scrollbar-thin">
 			<InfoCardSection />
