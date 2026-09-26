@@ -57,8 +57,8 @@ export async function getAllRecords() {
 	try {
 		return await invoke<R[]>("read_records");
 	} catch (e) {
-		console.error(e);
-		return [];
+		console.log(e);
+		return e;
 	}
 }
 
@@ -76,7 +76,7 @@ export async function updateRecord(input: RUpdate) {
 		return await invoke<boolean>("update_record", { input });
 	} catch (e) {
 		console.error(e);
-		return false;
+		return e;
 	}
 }
 
@@ -85,7 +85,7 @@ export async function deleteRecord(id: number) {
 		return await invoke<boolean>("delete_record", { input: id });
 	} catch (e) {
 		console.error(e);
-		return false;
+		return e;
 	}
 }
 
@@ -99,6 +99,6 @@ export async function hybridSearch(input: RSearch) {
 		});
 	} catch (e) {
 		console.error(e);
-		return false;
+		return e;
 	}
 }
