@@ -14,8 +14,24 @@ import {
 	AlertDialogTitle,
 	AlertDialogTrigger,
 } from "./ui/alert-dialog";
+import { useQuery } from "@tanstack/react-query";
+import { recordQueries } from "#/lib/features/query";
 
 export default function TrashCard() {
+	let { data, isPending, isError, error } = useQuery(recordQueries.all());
+
+	if (isError || !data) {
+		return <div>An error occurred (Trash): {error?.message}</div>;
+	}
+
+	if (!data) {
+		return (
+			<div className="text-destructive">
+				Error: something went wrong invalid data in Library
+			</div>
+		);
+	}
+
 	return (
 		<div>
 			<Card className="flex flex-col gap-4 p-8 rounded-none h-screen overflow-y-auto bg-background">
@@ -24,7 +40,7 @@ export default function TrashCard() {
 						<h6 className="text-xl text-muted-foreground">Trash</h6>
 						<div className="flex gap-3">
 							<AlertDialog>
-								<AlertDialogTrigger>
+								<AlertDialogTrigger asChild>
 									<Button
 										variant={"default"}
 										className="flex p-6 cursor-pointer font-medium rounded-full bg-destructive hover:bg-destructive"
@@ -65,20 +81,20 @@ export default function TrashCard() {
 					</div>
 				</div>
 
-				{entryList.length > 0 ? (
+				{data.length > 0 ? (
 					<ul className="flex gap-4 flex-col">
-						{entryList.slice(0, 5).map((e) => (
-							<li key={e.title}>
+						{data.slice(0, 5).map((e) => (
+							<li key={e.id}>
 								<TrashEntryCard {...e} />
 							</li>
 						))}
 					</ul>
 				) : (
 					<div className="flex flex-col justify-center h-screen items-center gap-4">
-						<Ghost className="size-22 stroke-muted-foreground" />
+						<Ghost className="size-30 stroke-muted-foreground" />
 
-						<p className="text-muted-foreground text-lg">
-							No record found. Click on new to create one
+						<p className="text-muted-foreground shimmer text-lg">
+							No record found in the trash. Click on new to create one
 						</p>
 
 						<Button className="flex items-center w-xs p-4 cursor-pointer rounded-full">
@@ -91,41 +107,3 @@ export default function TrashCard() {
 		</div>
 	);
 }
-
-const entryList = [
-	{
-		title: "Hydraulic Pump Noise Troubleshooting",
-		desc: "Step-by-step diagnostic process for identifying cavitation and air ingress in high-pressure hydraulic pumps.",
-		tags: ["pump", "maintenance", "hydraulics"],
-		state: "completed",
-		createdAt: new Date().toDateString(),
-	},
-	{
-		title: "Transmission Fluid Leak Inspection",
-		desc: "Guide to locating pinhole leaks around the transmission casing and replacing damaged torque converter seals. asdkjflasdjflasdjfkasdjflkajsdlfkajsdlfasfdddddddddddddddddddasdkfasdjfasdlfkajsldfkajsldkfjalsdkfjalsdjflasdjflasdjf",
-		tags: ["car", "transmission", "fluid"],
-		state: "in-progress",
-		createdAt: new Date().toDateString(),
-	},
-	{
-		title: "Brake Caliper Piston Overhaul",
-		desc: "Procedure for disassembling sticking brake calipers, replacing rubber dust boots, and bleeding the brake lines.",
-		tags: ["car", "brakes", "repair"],
-		state: "completed",
-		createdAt: new Date().toDateString(),
-	},
-	{
-		title: "Centrifugal Pump Impeller Alignment",
-		desc: "Instructions for verifying shaft runout, replacing worn bearings, and setting correct impeller clearance.",
-		tags: ["pump", "industrial", "alignment"],
-		state: "pending",
-		createdAt: new Date().toDateString(),
-	},
-	{
-		title: "Engine Overheating Diagnostic Flow",
-		desc: "Systematic check covering thermostat operation, radiator airflow restriction, and coolant flow rates.",
-		tags: ["car", "engine", "cooling"],
-		state: "in-progress",
-		createdAt: new Date().toDateString(),
-	},
-];
