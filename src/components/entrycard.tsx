@@ -1,12 +1,10 @@
-import {
-	ArrowUpRight,
-	Heart,
-	Pencil,
-	Search,
-	SquarePen,
-	Tags,
-	Trash,
-} from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { cn } from "cn";
+import { ArrowUpRight, Heart, Search, SquarePen, Trash } from "lucide-react";
+import { appStore } from "#/integrations/tanstack-query/store-provider";
+import type { R } from "#/lib/libs";
+import { createFlags, FLAGS } from "#/lib/utils";
+import { htmlContent } from "#/routes/view/$reportId";
 import { Badge } from "./ui/badge";
 import { Card } from "./ui/card";
 import {
@@ -16,12 +14,6 @@ import {
 	ContextMenuSeparator,
 	ContextMenuTrigger,
 } from "./ui/context-menu";
-import { Link } from "@tanstack/react-router";
-import { appStore } from "#/integrations/tanstack-query/store-provider";
-import { htmlContent } from "#/routes/view/$reportId";
-import type { R } from "#/lib/libs";
-import { createFlags, FLAGS } from "#/lib/utils";
-import { cn } from "cn";
 
 export default function EntryCard({
 	name,
@@ -31,7 +23,7 @@ export default function EntryCard({
 	created_at,
 	flags,
 }: R) {
-	const handlePreview = (id: string) => {
+	const handlePreview = (_id: string) => {
 		//Placeholder
 		appStore.setState((prev) => ({
 			...prev,

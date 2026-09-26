@@ -1,16 +1,16 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import HomeInfoCard from "#/components/home-infocard";
-import RecentlyCreatedCard from "#/components/recently-created-card";
-import PreviewCard from "#/components/PreviewCard";
 import {
 	DraftingCompass,
 	HeartIcon,
 	LibraryBig,
 	LucideCheck,
 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { recordQueries } from "#/lib/features/query";
+import HomeInfoCard from "#/components/home-infocard";
+import PreviewCard from "#/components/PreviewCard";
+import RecentlyCreatedCard from "#/components/recently-created-card";
 import { Skeleton } from "#/components/ui/skeleton";
+import { recordQueries } from "#/lib/features/query";
 import { createFlags, FLAGS } from "#/lib/utils";
 
 export const Route = createFileRoute("/_home/")({

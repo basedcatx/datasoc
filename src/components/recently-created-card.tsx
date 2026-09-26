@@ -1,21 +1,14 @@
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { Ghost, Plus } from "lucide-react";
+import { recordQueries } from "#/lib/features/query";
 import EntryCard from "./entrycard";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
-import { Link } from "@tanstack/react-router";
-import {
-	useQuery,
-	useQueryClient,
-	useSuspenseQuery,
-} from "@tanstack/react-query";
-import { recordKeys, recordQueries } from "#/lib/features/query";
 import { Skeleton } from "./ui/skeleton";
-import type { R } from "#/lib/libs";
 
 export default function RecentlyCreatedCard() {
-	const { data, isPending, isError, error } = useSuspenseQuery(
-		recordQueries.all(),
-	);
+	const { data, isPending } = useSuspenseQuery(recordQueries.all());
 
 	data.sort(
 		(a, b) =>
