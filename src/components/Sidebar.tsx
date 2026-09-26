@@ -101,7 +101,7 @@ export default function Sidebar() {
 */}
 		</nav>
 	) : (
-		<div className="p-1 bg-card flex flex-col gap-12">
+		<div className="p-3 bg-card flex flex-col gap-12">
 			<Button variant={"ghost"} onClick={toggleDrawer}>
 				<PanelLeft className="size-6" />
 			</Button>
@@ -126,7 +126,7 @@ export default function Sidebar() {
 			</ul>
 
 			<SearchComponent>
-				<Button variant={"secondary"} className="rounded-full">
+				<Button className="rounded-full">
 					<Search className="size-6" />
 				</Button>
 			</SearchComponent>
