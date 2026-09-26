@@ -1,38 +1,73 @@
 import { createFileRoute } from "@tanstack/react-router";
 import HomeInfoCard from "#/components/home-infocard";
 import RecentlyCreatedCard from "#/components/recently-created-card";
-import RecentlyViewedCard from "#/components/recently-viewed-card";
 import PreviewCard from "#/components/PreviewCard";
+import {
+	DraftingCompass,
+	HeartIcon,
+	LibraryBig,
+	LucideCheck,
+} from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { recordQueries } from "#/lib/features/query";
+import { Skeleton } from "#/components/ui/skeleton";
+import { createFlags, FLAGS } from "#/lib/utils";
+
 export const Route = createFileRoute("/_home/")({
-	ssr: false,
 	component: RouteComponent,
 });
 
 function InfoCardSection() {
+	const { data, isFetching } = useQuery(recordQueries.all());
+
+	if (isFetching) {
+		return (
+			<section className="grid grid-cols-4 px-8 gap-3 w-full">
+				<Skeleton className="w-full h-40" />
+				<Skeleton className="w-full h-40" />
+				<Skeleton className="w-full h-40" />
+				<Skeleton className="w-full h-40" />
+			</section>
+		);
+	}
+
 	return (
-		<section className="grid grid-cols-4 gap-3 w-full">
-			<HomeInfoCard type="Saved Records" value="30"></HomeInfoCard>
-			<HomeInfoCard type="Draft" value="30"></HomeInfoCard>
-			<HomeInfoCard type="Completed" value="30"></HomeInfoCard>
-			<HomeInfoCard type="Starred" value="30"></HomeInfoCard>
+		<section className="grid grid-cols-4 gap-3">
+			<HomeInfoCard
+				type="Saved Records"
+				value={data!.length.toString()}
+				icon={<LibraryBig />}
+			></HomeInfoCard>
+			<HomeInfoCard
+				type="Draft"
+				value={data!
+					.filter((d) => !createFlags(d.flags).check(FLAGS.IS_COMPLETED))
+					.length.toString()}
+				icon={<DraftingCompass />}
+			></HomeInfoCard>
+			<HomeInfoCard
+				type="Completed"
+				value={data!
+					.filter((d) => createFlags(d.flags).check(FLAGS.IS_COMPLETED))
+					.length.toString()}
+				icon={<LucideCheck />}
+			></HomeInfoCard>
+			<HomeInfoCard
+				type="Starred"
+				value={data!
+					.filter((d) => createFlags(d.flags).check(FLAGS.IS_FAVORITE))
+					.length.toString()}
+				icon={<HeartIcon className="fill-red-200" />}
+			></HomeInfoCard>
 		</section>
 	);
 }
 
-function RecentlyCreatedSection() {
-	return <RecentlyCreatedCard />;
-}
-
-function RecentlyViewedSection() {
-	return <RecentlyViewedCard />;
-}
-
 function RouteComponent() {
 	return (
-		<div className="w-full flex flex-col gap-8 overflow-y-auto h-screen scroll-fade p-4 scrollbar-thin">
+		<div className="w-full flex flex-col gap-8 overflow-y-auto h-screen px-8 scroll-fade scrollbar-thin">
 			<InfoCardSection />
-			<RecentlyCreatedSection />
-			<RecentlyViewedSection />
+			<RecentlyCreatedCard />
 			<PreviewCard />
 		</div>
 	);

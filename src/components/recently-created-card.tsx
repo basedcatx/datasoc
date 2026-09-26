@@ -3,41 +3,64 @@ import EntryCard from "./entrycard";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Link } from "@tanstack/react-router";
-import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
-import { recordQueries } from "#/lib/features/query";
+import {
+	useQuery,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
+import { recordKeys, recordQueries } from "#/lib/features/query";
+import { Skeleton } from "./ui/skeleton";
+import type { R } from "#/lib/libs";
 
 export default function RecentlyCreatedCard() {
-	const { data } = useSuspenseQuery(recordQueries.all());
-	console.log(data);
-	return (
-		<div>
-			<Card className="flex flex-col gap-4 p-8 rounded-none">
-				<div className="flex justify-between items-center my-2">
-					<h6 className="text-sm text-muted-foreground">Recently created</h6>
-					<Button
-						size={"lg"}
-						asChild
-						className="flex gap-4 rounded-full p-4 cursor-pointer"
-					>
-						<Link to={"/editor"}>
-							<Plus className="size-6" />
-							<p className="text-xl">New</p>
-						</Link>
-					</Button>
-				</div>
+	const { data, isPending, isError, error } = useSuspenseQuery(
+		recordQueries.all(),
+	);
 
-				{entryList.length > 0 ? (
+	data.sort(
+		(a, b) =>
+			new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime(),
+	);
+
+	if (isPending) {
+		return (
+			<div>
+				<Card className="flex flex-col gap-4 p-8 rounded-none ring-0">
+					<Skeleton className="w-full h-30" />
+					<Skeleton className="w-full h-30" />
+					<Skeleton className="w-full h-30" />
+				</Card>
+			</div>
+		);
+	}
+
+	return (
+		<div className="flex flex-col h-full">
+			<div className="flex justify-between flex-row-reverse items-center ">
+				<Button
+					size={"lg"}
+					asChild
+					className="flex gap-4 rounded-full cursor-pointer"
+				>
+					<Link to={"/editor"}>
+						<Plus className="size-6" />
+						<p className="text-xl">New</p>
+					</Link>
+				</Button>
+			</div>
+			<Card className="flex flex-col grow-1 h-full gap-4 rounded-none shadow-none ring-0">
+				{data.length > 0 ? (
 					<ul className="flex gap-4 flex-col">
-						{entryList.slice(0, 5).map((e) => (
-							<li key={e.title}>
+						{data.slice(0, 5).map((e) => (
+							<li key={e.name}>
 								<EntryCard {...e} />
 							</li>
 						))}
 					</ul>
 				) : (
-					<div className="flex flex-col justify-center items-center gap-4 my-8">
-						<Ghost className="size-18 stroke-muted-foreground" />
-						<p className="text-muted-foreground">
+					<div className="flex flex-col h-full justify-center items-center shadow-none gap-4 h-full ">
+						<Ghost className="size-30 stroke-muted-foreground" />
+						<p className="text-muted-foreground text-lg shimmer">
 							No entry found. Click on new to populate
 						</p>
 					</div>
@@ -46,42 +69,3 @@ export default function RecentlyCreatedCard() {
 		</div>
 	);
 }
-
-const entryList = [
-	{
-		title: "Hydraulic Pump Noise Troubleshooting",
-		slug: "sdf",
-		desc: "Step-by-step diagnostic process for identifying cavitation and air ingress in high-pressure hydraulic pumps.",
-		tags: ["pump", "maintenance", "hydraulics"],
-		state: "completed",
-		createdAt: new Date().toDateString(),
-	},
-	{
-		title: "Transmission Fluid Leak Inspection",
-		desc: "Guide to locating pinhole leaks around the transmission casing and replacing damaged torque converter seals. asdkjflasdjflasdjfkasdjflkajsdlfkajsdlfasfdddddddddddddddddddasdkfasdjfasdlfkajsldfkajsldkfjalsdkfjalsdjflasdjflasdjf",
-		tags: ["car", "transmission", "fluid"],
-		state: "in-progress",
-		createdAt: new Date().toDateString(),
-	},
-	{
-		title: "Brake Caliper Piston Overhaul",
-		desc: "Procedure for disassembling sticking brake calipers, replacing rubber dust boots, and bleeding the brake lines.",
-		tags: ["car", "brakes", "repair"],
-		state: "completed",
-		createdAt: new Date().toDateString(),
-	},
-	{
-		title: "Centrifugal Pump Impeller Alignment",
-		desc: "Instructions for verifying shaft runout, replacing worn bearings, and setting correct impeller clearance.",
-		tags: ["pump", "industrial", "alignment"],
-		state: "pending",
-		createdAt: new Date().toDateString(),
-	},
-	{
-		title: "Engine Overheating Diagnostic Flow",
-		desc: "Systematic check covering thermostat operation, radiator airflow restriction, and coolant flow rates.",
-		tags: ["car", "engine", "cooling"],
-		state: "in-progress",
-		createdAt: new Date().toDateString(),
-	},
-];
