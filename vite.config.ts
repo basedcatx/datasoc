@@ -19,7 +19,17 @@ const config = defineConfig({
 		devtools(),
 		nitro({ rollupConfig: { external: [/^@sentry\//] } }),
 		tailwindcss(),
-		tanstackStart(),
+		tanstackStart({
+			spa: { enabled: true },
+			prerender: {
+				enabled: true,
+				concurrency: 14,
+				crawlLinks: false,
+				retryCount: 3,
+				retryDelay: 1000,
+				maxRedirects: 5,
+			},
+		}),
 		viteReact(),
 		babel({ presets: [reactCompilerPreset()] }),
 	],
