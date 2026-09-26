@@ -13,6 +13,7 @@ const K_RRF: u32 = 60;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct RecordSearch {
+    id: u32,
     name: String,
     content: String,
     content_html: String,
@@ -36,7 +37,7 @@ pub struct RecordInsert {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct RecordUpdate {
-    id: u32,
+    id: String,
     name: String,
     content: String,
     content_html: String,
@@ -149,7 +150,7 @@ pub async fn read_records(state: State<'_, AppState>) -> Result<Vec<RecordSearch
         .map_err(|e| format!("db lock poisoned {e}"))?;
 
     let mut stmt = db
-        .prepare("SELECT name, content, tags, flags, meta, content_html, createdAt, updatedAt FROM Records")
+        .prepare("SELECT name, content, tags, flags, meta, content_html, createdAt, updatedAt, id FROM Records")
         .map_err(|e| e.to_string())?;
 
     let record_iter = stmt
@@ -174,6 +175,7 @@ pub async fn read_records(state: State<'_, AppState>) -> Result<Vec<RecordSearch
             })?;
 
             Ok(RecordSearch {
+                id: row.get(8)?,
                 name: row.get(0)?,
                 content: row.get(1)?,
                 tags,
@@ -201,7 +203,7 @@ pub async fn read_record(input: u32, state: State<'_, AppState>) -> Result<Recor
         .map_err(|e| format!("db lock poisoned {e}"))?;
 
     let mut stmt = db
-        .prepare("SELECT name, content, tags, flags, meta, content_html, createdAt, updatedAt FROM Records WHERE id = ?1")
+        .prepare("SELECT name, content, tags, flags, meta, content_html, createdAt, updatedAt, id FROM Records WHERE id = ?1")
         .map_err(|e| e.to_string())?;
 
     let record = stmt
@@ -210,20 +212,29 @@ pub async fn read_record(input: u32, state: State<'_, AppState>) -> Result<Recor
             let meta_str: String = row.get(4)?;
 
             let tags: Tags = serde_json::from_str(&tags_str).map_err(|e| {
-                rusqlite::Error::FromSqlConversionFailure(2, rusqlite::types::Type::Text, Box::new(e))
+                rusqlite::Error::FromSqlConversionFailure(
+                    2,
+                    rusqlite::types::Type::Text,
+                    Box::new(e),
+                )
             })?;
 
             let meta: Meta = serde_json::from_str(&meta_str).map_err(|e| {
-                rusqlite::Error::FromSqlConversionFailure(5, rusqlite::types::Type::Text, Box::new(e))
+                rusqlite::Error::FromSqlConversionFailure(
+                    5,
+                    rusqlite::types::Type::Text,
+                    Box::new(e),
+                )
             })?;
 
             Ok(RecordSearch {
+                id: row.get(8)?,
                 name: row.get(0)?,
                 content: row.get(1)?,
                 tags,
                 flags: row.get(3)?,
                 meta,
-                content_html: row.get(5)?, // left as a placeholder
+                content_html: row.get(5)?,
                 created_at: row.get(6)?,
                 updated_at: row.get(7)?,
             })
@@ -307,11 +318,11 @@ pub async fn hybrid_search(
     let fused = rrf_fuse(&bm25_res, &vec_res, K_RRF);
 
     let mut stmt = conn
-        .prepare("SELECT name, content, tags, flags, meta, content_html, createdAt, updatedAt FROM Records WHERE id = ?1")
+        .prepare("SELECT name, content, tags, flags, meta, content_html, createdAt, updatedAt, id FROM Records WHERE id = ?1")
         .map_err(|e| e.to_string())?;
 
     let mut res: Vec<RecordSearch> = Vec::new();
-    for ((id, _)) in fused.into_iter() {
+    for (id, _) in fused.into_iter() {
         stmt.query_row([&id], |row| {
             let tags_str: String = row.get(2)?;
             let meta_str: String = row.get(4)?;
@@ -333,6 +344,7 @@ pub async fn hybrid_search(
             })?;
 
             res.push(RecordSearch {
+                id: row.get(8)?,
                 name: row.get(0)?,
                 content: row.get(1)?,
                 tags,
