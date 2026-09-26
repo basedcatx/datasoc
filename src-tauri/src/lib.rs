@@ -49,6 +49,7 @@ pub fn run() {
             get_embedding,
             create_record,
             read_records,
+            read_record,
             update_record,
             delete_record,
             hybrid_search

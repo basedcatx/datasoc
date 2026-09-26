@@ -62,6 +62,15 @@ export async function getAllRecords() {
 	}
 }
 
+export async function getRecord(id: number) {
+	try {
+		return await invoke<R>("read_record", { input: id });
+	} catch (e) {
+		console.error(e);
+		return e;
+	}
+}
+
 export async function updateRecord(input: RUpdate) {
 	try {
 		return await invoke<boolean>("update_record", { input });
