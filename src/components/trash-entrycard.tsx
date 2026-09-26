@@ -8,20 +8,9 @@ import {
 	ContextMenuSeparator,
 	ContextMenuTrigger,
 } from "./ui/context-menu";
+import type { R } from "#/lib/libs";
 
-export default function TrashEntryCard({
-	title,
-	desc,
-	state,
-	tags,
-	createdAt,
-}: {
-	title: string;
-	desc: string;
-	state: string;
-	tags: string[];
-	createdAt: string;
-}) {
+export default function TrashEntryCard({ name, content, tags, created_at }: R) {
 	return (
 		<ContextMenu>
 			<ContextMenuTrigger>
@@ -29,14 +18,13 @@ export default function TrashEntryCard({
 					<div className="flex justify-between items-center">
 						<div>
 							<p className="text-nowrap w-md text-ellipsis font-bold text-lg">
-								{title}
+								{name}
 							</p>
-							<p className="text-nowrap truncate w-sm md:w-2xl">{desc}</p>
+							<p className="text-nowrap truncate w-sm md:w-2xl">{content}</p>
 						</div>
 					</div>
 					<div className="flex justify-between items-center">
 						<div className="flex gap-3">
-							<Badge className="p-2">{state}</Badge>
 							<ul className="flex gap-1">
 								{tags.slice(0, 3).map((tag) => (
 									<li key={tag}>
@@ -47,7 +35,7 @@ export default function TrashEntryCard({
 								))}
 							</ul>
 						</div>
-						<p className="text-muted-foreground">Created {createdAt}</p>
+						<p className="text-muted-foreground">created @ {created_at}</p>
 					</div>
 				</Card>
 			</ContextMenuTrigger>
