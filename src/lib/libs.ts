@@ -1,10 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
 
-export const FLAGS = {
-	IS_DELETED: 1 << 1,
-	IS_FAVORITE: 1 << 2,
-};
-
 export interface R {
 	name: string;
 	content: string;
