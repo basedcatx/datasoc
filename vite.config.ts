@@ -9,7 +9,7 @@ import { readFileSync } from "fs";
 import { resolve } from "path";
 
 const pkg = JSON.parse(
-	readFileSync(resolve(__dirname, "package.json"), "utf-8"),
+	readFileSync(resolve(import.meta.dirname, "package.json"), "utf-8"),
 );
 
 const config = defineConfig({
