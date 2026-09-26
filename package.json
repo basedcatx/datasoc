@@ -1,6 +1,7 @@
 {
   "name": "datasoc",
   "private": true,
+  "version": "1.0.0-beta",
   "type": "module",
   "imports": {
     "#/*": "./src/*"

@@ -24,3 +24,5 @@ declare module "@tanstack/react-router" {
 		router: ReturnType<typeof getRouter>;
 	}
 }
+
+declare const __APP_VERSION: string;
