@@ -16,20 +16,16 @@ import {
 	ContextMenuSeparator,
 	ContextMenuTrigger,
 } from "./ui/context-menu";
+import type { R } from "#/lib/libs";
+import { createFlags, FLAGS } from "#/lib/utils";
 
 export default function LibraryEntryCard({
-	title,
-	desc,
-	state,
+	name,
+	content,
 	tags,
-	createdAt,
-}: {
-	title: string;
-	desc: string;
-	state: string;
-	tags: string[];
-	createdAt: string;
-}) {
+	created_at,
+	flags,
+}: R) {
 	return (
 		<ContextMenu>
 			<ContextMenuTrigger>
@@ -37,14 +33,18 @@ export default function LibraryEntryCard({
 					<div className="flex justify-between items-center">
 						<div>
 							<p className="text-nowrap w-md text-ellipsis font-bold text-lg">
-								{title}
+								{name}
 							</p>
-							<p className="text-nowrap truncate w-sm md:w-2xl">{desc}</p>
+							<p className="text-nowrap truncate w-sm md:w-2xl">{content}</p>
 						</div>
 					</div>
 					<div className="flex justify-between items-center">
 						<div className="flex gap-3">
-							<Badge className="p-2">{state}</Badge>
+							<Badge className="p-2">
+								{createFlags(flags).check(FLAGS.IS_COMPLETED)
+									? "Completed"
+									: "Draft"}
+							</Badge>
 							<ul className="flex gap-1">
 								{tags.slice(0, 3).map((tag) => (
 									<li key={tag}>
@@ -55,7 +55,7 @@ export default function LibraryEntryCard({
 								))}
 							</ul>
 						</div>
-						<p className="text-muted-foreground">Created {createdAt}</p>
+						<p className="text-muted-foreground">created at {created_at}</p>
 					</div>
 				</Card>
 			</ContextMenuTrigger>
