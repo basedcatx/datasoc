@@ -4,6 +4,7 @@ import RecentlyCreatedCard from "#/components/recently-created-card";
 import RecentlyViewedCard from "#/components/recently-viewed-card";
 import PreviewCard from "#/components/PreviewCard";
 export const Route = createFileRoute("/_home/")({
+	ssr: false,
 	component: RouteComponent,
 });
 
