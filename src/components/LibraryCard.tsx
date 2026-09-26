@@ -22,39 +22,86 @@ import {
 	ComboboxList,
 } from "@/components/ui/combobox";
 import { InputGroupAddon } from "@/components/ui/input-group";
-import { useReducer } from "react";
+import { useState } from "react";
 import LibraryEntryCard from "./library-entrycard";
 import { Link } from "@tanstack/react-router";
-
-function handleStateReducer(state: any, action: any) {
-	switch (action.type) {
-		case "togglesort": {
-			if (state.sortby === "Ascending") {
-				return { ...state, sortby: "Descending" };
-			}
-			return { ...state, sortby: "Ascending" };
-		}
-
-		case "changefilter": {
-			return { ...state, filterby: action.filterby };
-		}
-
-		default:
-			throw new Error("Invalid action type");
-	}
-}
+import { useQuery } from "@tanstack/react-query";
+import { recordQueries } from "#/lib/features/query";
+import { Skeleton } from "./ui/skeleton";
+import type { R } from "#/lib/libs";
 
 export default function LibraryCard() {
-	const [state, dispatch] = useReducer(handleStateReducer, {
-		sortby: "Ascending",
-		filterby: "Name",
+	const [sortby, setSortby] = useState<"ASC" | "DESC">("ASC");
+	const [nameFilter, setNameFilter] = useState("");
+
+	let { data, isPending, isError, error } = useQuery(recordQueries.all());
+
+	if (isError || !data) {
+		return <div>An error occurred: {error?.message}</div>;
+	}
+
+	if (!data) {
+		return (
+			<div className="text-destructive">
+				Error: something went wrong invalid data in Library
+			</div>
+		);
+	}
+
+	const sortedData = data.sort((a, b) => {
+		if (!(a.updated_at && b.updated_at)) {
+			return (a.id ?? 0) - (b.id ?? 0);
+		}
+
+		if (sortby === "ASC") {
+			return (
+				new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime()
+			);
+		}
+		return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
 	});
+
+	const nameFiltered = sortedData.filter((d) => {
+		if (!nameFilter) {
+			return d;
+		}
+		return d.name.startsWith(nameFilter);
+	});
+
+	data = nameFiltered;
+
+	if (isPending) {
+		return (
+			<div>
+				<Card className="flex flex-col gap-4 p-8 rounded-none h-screen overflow-y-auto bg-background">
+					<div className="flex justify-between items-center my-2">
+						<div className="flex gap-4 items-center">
+							<h6 className="text-xl text-muted-foreground">Library</h6>
+							<Link to={"/editor"}>
+								<Button className="flex p-4 cursor-pointer rounded-full">
+									<Plus />
+									<p className="text-lg">New</p>
+								</Button>
+							</Link>
+						</div>
+					</div>
+
+					<Skeleton className="w-full h-30" />
+					<Skeleton className="w-full h-30" />
+					<Skeleton className="w-full h-30" />
+					<Skeleton className="w-full h-30" />
+					<Skeleton className="w-full h-30" />
+					<Skeleton className="w-full h-30" />
+				</Card>
+			</div>
+		);
+	}
 
 	return (
 		<div>
 			<Card className="flex flex-col gap-4 p-8 rounded-none h-screen overflow-y-auto bg-background">
 				<div className="flex justify-between items-center my-2">
-					<div className="flex gap-4 items-center">
+					<div className="flex gap-4 items-center mx-2">
 						<h6 className="text-xl text-muted-foreground">Library</h6>
 						<Link to={"/editor"}>
 							<Button className="flex p-4 cursor-pointer rounded-full">
@@ -65,35 +112,43 @@ export default function LibraryCard() {
 					</div>
 
 					<div className="flex gap-2">
-						<Input className="max-w-xs" placeholder="Type to filter..." />
-						<ComboxboxInputGroup dispatch={dispatch} />
+						<Input
+							className="max-w-xs"
+							placeholder="Type to filter..."
+							onChange={(e) => setNameFilter(e.target.value)}
+						/>
 						<Button
 							variant={"secondary"}
 							onClick={(e) => {
 								e.preventDefault();
-								dispatch({ type: "togglesort" });
+								setSortby((old) => {
+									if (old === "ASC") {
+										return "DESC";
+									}
+									return "ASC";
+								});
 							}}
 						>
 							<ArrowDownAz />
-							<p>Sort by: {state.sortby}</p>
-							{state.sortby === "Ascending" ? <ChevronUp /> : <ChevronDown />}
+							<p>Sort by: {sortby}</p>
+							{sortby === "ASC" ? <ChevronUp /> : <ChevronDown />}
 						</Button>
 					</div>
 				</div>
 
-				{entryList.length > 0 ? (
+				{data.length > 0 ? (
 					<ul className="flex gap-4 flex-col">
-						{entryList.slice(0, 5).map((e) => (
-							<li key={e.title}>
+						{data.map((e) => (
+							<li key={e.name}>
 								<LibraryEntryCard {...e} />
 							</li>
 						))}
 					</ul>
 				) : (
 					<div className="flex flex-col justify-center h-screen items-center gap-4">
-						<Ghost className="size-22 stroke-muted-foreground" />
+						<Ghost className="size-30 stroke-muted-foreground" />
 
-						<p className="text-muted-foreground text-lg">
+						<p className="text-muted-foreground shimmer text-lg">
 							No record found. Click on new to create one
 						</p>
 
@@ -112,10 +167,6 @@ const filters = [
 	{
 		value: "Status",
 		items: ["Completed", "Drafted"],
-	},
-	{
-		value: "Info",
-		items: ["Tags", "Name"],
 	},
 ] as const;
 
@@ -156,41 +207,3 @@ export function ComboxboxInputGroup({
 		</Combobox>
 	);
 }
-
-const entryList = [
-	{
-		title: "Hydraulic Pump Noise Troubleshooting",
-		desc: "Step-by-step diagnostic process for identifying cavitation and air ingress in high-pressure hydraulic pumps.",
-		tags: ["pump", "maintenance", "hydraulics"],
-		state: "completed",
-		createdAt: new Date().toDateString(),
-	},
-	{
-		title: "Transmission Fluid Leak Inspection",
-		desc: "Guide to locating pinhole leaks around the transmission casing and replacing damaged torque converter seals. asdkjflasdjflasdjfkasdjflkajsdlfkajsdlfasfdddddddddddddddddddasdkfasdjfasdlfkajsldfkajsldkfjalsdkfjalsdjflasdjflasdjf",
-		tags: ["car", "transmission", "fluid"],
-		state: "in-progress",
-		createdAt: new Date().toDateString(),
-	},
-	{
-		title: "Brake Caliper Piston Overhaul",
-		desc: "Procedure for disassembling sticking brake calipers, replacing rubber dust boots, and bleeding the brake lines.",
-		tags: ["car", "brakes", "repair"],
-		state: "completed",
-		createdAt: new Date().toDateString(),
-	},
-	{
-		title: "Centrifugal Pump Impeller Alignment",
-		desc: "Instructions for verifying shaft runout, replacing worn bearings, and setting correct impeller clearance.",
-		tags: ["pump", "industrial", "alignment"],
-		state: "pending",
-		createdAt: new Date().toDateString(),
-	},
-	{
-		title: "Engine Overheating Diagnostic Flow",
-		desc: "Systematic check covering thermostat operation, radiator airflow restriction, and coolant flow rates.",
-		tags: ["car", "engine", "cooling"],
-		state: "in-progress",
-		createdAt: new Date().toDateString(),
-	},
-];
