@@ -32,16 +32,16 @@ export default function RecentlyCreatedCard() {
 	}
 
 	return (
-		<div className="flex flex-col h-full">
+		<div className="flex flex-col h-full gap-3">
 			<div className="flex justify-between flex-row-reverse items-center ">
 				<Button
 					size={"lg"}
 					asChild
-					className="flex gap-4 rounded-full cursor-pointer"
+					className="flex gap-2 rounded-full cursor-pointer"
 				>
 					<Link to={"/editor"}>
-						<Plus className="size-6" />
-						<p className="text-xl">New</p>
+						<Plus className="size-4" />
+						<p className="text-lg">New</p>
 					</Link>
 				</Button>
 			</div>
