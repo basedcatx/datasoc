@@ -1,9 +1,8 @@
 import { Ghost } from "lucide-react";
 import EntryCard from "./entrycard";
 import { Card } from "./ui/card";
-import { Link } from "@tanstack/react-router";
 
-export default function RecentlyViewedCard({ id }: { id: string }) {
+export default function RecentlyViewedCard() {
 	return (
 		<div>
 			<Card className="flex flex-col gap-4 p-8 rounded-none">

@@ -3,8 +3,12 @@ import EntryCard from "./entrycard";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Link } from "@tanstack/react-router";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { recordQueries } from "#/lib/features/query";
 
-export default function RecentlyCreatedCard({ id }: { id: string }) {
+export default function RecentlyCreatedCard() {
+	const { data } = useSuspenseQuery(recordQueries.all());
+	console.log(data);
 	return (
 		<div>
 			<Card className="flex flex-col gap-4 p-8 rounded-none">
