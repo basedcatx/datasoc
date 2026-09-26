@@ -1,6 +1,6 @@
+import { useQuery } from "@tanstack/react-query";
 import { Ghost, LoaderIcon, LucideTrash, Plus, Trash2Icon } from "lucide-react";
-import { Button } from "./ui/button";
-import { Card } from "./ui/card";
+import { recordQueries } from "#/lib/features/query";
 
 import TrashEntryCard from "./trash-entrycard";
 import {
@@ -14,11 +14,11 @@ import {
 	AlertDialogTitle,
 	AlertDialogTrigger,
 } from "./ui/alert-dialog";
-import { useQuery } from "@tanstack/react-query";
-import { recordQueries } from "#/lib/features/query";
+import { Button } from "./ui/button";
+import { Card } from "./ui/card";
 
 export default function TrashCard() {
-	let { data, isPending, isError, error } = useQuery(recordQueries.all());
+	const { data, isError, error } = useQuery(recordQueries.all());
 
 	if (isError || !data) {
 		return <div>An error occurred (Trash): {error?.message}</div>;

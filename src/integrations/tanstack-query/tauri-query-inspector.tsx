@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
-import { useQueryClient, Query } from "@tanstack/react-query";
+import { type Query, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
 
 export function TauriQueryInspector() {
 	const queryClient = useQueryClient();
@@ -93,7 +93,7 @@ export function TauriQueryInspector() {
 			queryClient.setQueryData(selectedQuery.keyArray, parsed);
 			setShowMockEditor(false);
 			setMockInput("");
-		} catch (err) {
+		} catch {
 			alert("Invalid JSON! Check your syntax.");
 		}
 	};
@@ -118,6 +118,7 @@ export function TauriQueryInspector() {
 			}}
 		>
 			<button
+	type="button"
 				onClick={() => setIsOpen(!isOpen)}
 				style={{
 					padding: "10px 16px",
@@ -185,6 +186,7 @@ export function TauriQueryInspector() {
 						/>
 						<div style={{ display: "flex", gap: "8px" }}>
 							<button
+	type="button"
 								onClick={() => queryClient.clear()}
 								style={{
 									background: "#7f1d1d",
@@ -198,6 +200,7 @@ export function TauriQueryInspector() {
 								☢️ Nuke Cache
 							</button>
 							<button
+	type="button"
 								onClick={() => queryClient.invalidateQueries()}
 								style={{
 									background: "#27272A",
@@ -317,6 +320,7 @@ export function TauriQueryInspector() {
 									}}
 								>
 									<button
+	type="button"
 										onClick={() =>
 											queryClient.refetchQueries({
 												queryKey: selectedQuery.keyArray,
@@ -336,6 +340,7 @@ export function TauriQueryInspector() {
 									</button>
 
 									<button
+	type="button"
 										onClick={() =>
 											queryClient.invalidateQueries({
 												queryKey: selectedQuery.keyArray,
@@ -356,6 +361,7 @@ export function TauriQueryInspector() {
 
 									{/* Silent Stale: Marks it stale in the cache without triggering an immediate active refetch */}
 									<button
+	type="button"
 										onClick={() =>
 											queryClient.invalidateQueries({
 												queryKey: selectedQuery.keyArray,
@@ -376,6 +382,7 @@ export function TauriQueryInspector() {
 									</button>
 
 									<button
+	type="button"
 										onClick={() =>
 											queryClient.resetQueries({
 												queryKey: selectedQuery.keyArray,
@@ -395,6 +402,7 @@ export function TauriQueryInspector() {
 									</button>
 
 									<button
+	type="button"
 										onClick={() => {
 											setMockInput(
 												JSON.stringify(selectedQuery.data || {}, null, 2),
@@ -415,6 +423,7 @@ export function TauriQueryInspector() {
 									</button>
 
 									<button
+	type="button"
 										onClick={() =>
 											queryClient.removeQueries({
 												queryKey: selectedQuery.keyArray,
@@ -469,6 +478,7 @@ export function TauriQueryInspector() {
 											}}
 										/>
 										<button
+	type="button"
 											onClick={handleInjectMockData}
 											style={{
 												background: "#0284c7",
@@ -602,6 +612,7 @@ export function TauriQueryInspector() {
 											Cached Data Payload
 										</div>
 										<button
+	type="button"
 											onClick={() =>
 												copyToClipboard(
 													selectedQuery.data || selectedQuery.error,

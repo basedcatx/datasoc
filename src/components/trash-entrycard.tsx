@@ -1,4 +1,5 @@
 import { LucideArrowUpRight, LucideLoader, Trash } from "lucide-react";
+import type { R } from "#/lib/libs";
 import { Badge } from "./ui/badge";
 import { Card } from "./ui/card";
 import {
@@ -8,7 +9,6 @@ import {
 	ContextMenuSeparator,
 	ContextMenuTrigger,
 } from "./ui/context-menu";
-import type { R } from "#/lib/libs";
 
 export default function TrashEntryCard({ name, content, tags, created_at }: R) {
 	return (
