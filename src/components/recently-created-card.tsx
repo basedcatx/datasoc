@@ -8,9 +8,13 @@ import { Card } from "./ui/card";
 import { Skeleton } from "./ui/skeleton";
 
 export default function RecentlyCreatedCard() {
-	const { data, isPending } = useSuspenseQuery(recordQueries.all());
+	const { data, isPending, error } = useSuspenseQuery(recordQueries.all());
 
-	data.sort(
+	if (!data) {
+		return <div>Something went wrong, invalid data: {error?.message}</div>;
+	}
+
+	const sorted = data.sort(
 		(a, b) =>
 			new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime(),
 	);
@@ -42,9 +46,9 @@ export default function RecentlyCreatedCard() {
 				</Button>
 			</div>
 			<Card className="flex flex-col grow-1 h-full gap-4 rounded-none shadow-none ring-0">
-				{data.length > 0 ? (
+				{sorted.length > 0 ? (
 					<ul className="flex gap-4 flex-col">
-						{data.slice(0, 5).map((e) => (
+						{sorted.slice(0, 5).map((e) => (
 							<li key={e.name}>
 								<EntryCard {...e} />
 							</li>

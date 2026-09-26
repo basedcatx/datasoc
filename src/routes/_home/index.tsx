@@ -18,7 +18,7 @@ export const Route = createFileRoute("/_home/")({
 });
 
 function InfoCardSection() {
-	const { data, isFetching } = useQuery(recordQueries.all());
+	const { data, isFetching, error } = useQuery(recordQueries.all());
 
 	if (isFetching) {
 		return (
@@ -31,30 +31,36 @@ function InfoCardSection() {
 		);
 	}
 
+	if (!data) {
+		return (
+			<div>Something went wrong: Invalid data received: {error?.message}</div>
+		);
+	}
+
 	return (
 		<section className="grid grid-cols-4 gap-3">
 			<HomeInfoCard
 				type="Saved Records"
-				value={data!.length.toString()}
+				value={data.length.toString()}
 				icon={<LibraryBig />}
 			></HomeInfoCard>
 			<HomeInfoCard
 				type="Draft"
-				value={data!
+				value={data
 					.filter((d) => !createFlags(d.flags).check(FLAGS.IS_COMPLETED))
 					.length.toString()}
 				icon={<DraftingCompass />}
 			></HomeInfoCard>
 			<HomeInfoCard
 				type="Completed"
-				value={data!
+				value={data
 					.filter((d) => createFlags(d.flags).check(FLAGS.IS_COMPLETED))
 					.length.toString()}
 				icon={<LucideCheck />}
 			></HomeInfoCard>
 			<HomeInfoCard
 				type="Starred"
-				value={data!
+				value={data
 					.filter((d) => createFlags(d.flags).check(FLAGS.IS_FAVORITE))
 					.length.toString()}
 				icon={<HeartIcon className="fill-red-200" />}
