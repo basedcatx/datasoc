@@ -15,6 +15,7 @@ import appCss from "../styles.css?url";
 
 import { TooltipProvider } from "#/components/ui/tooltip";
 import type { QueryClient } from "@tanstack/react-query";
+import { TauriQueryInspector } from "#/integrations/tanstack-query/tauri-query-inspector";
 
 interface MyRouterContext {
 	queryClient: QueryClient;
@@ -64,6 +65,7 @@ function RootDocument() {
 					</div>
 				</div>
 				<Footer />
+				<TauriQueryInspector />
 				<TanStackDevtools
 					config={{
 						position: "bottom-right",
