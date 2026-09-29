@@ -74,21 +74,22 @@ export const recordMutations = (client: QueryClient) => ({
 
 			return { data };
 		},
+
 		onSettled: () => {
 			client.invalidateQueries({ queryKey: recordKeys.id(id) });
 			client.invalidateQueries({ queryKey: recordKeys.all });
 		},
+
 		mutationFn: async ({ flag, data }: { flag: number; data: RUpdate }) => {
 			const prev = data.flags;
 			const f = createFlags(prev);
+
 			if (f.check(flag)) {
 				f.clear(flag);
-				return updateRecord({ ...data, flags: f.value }).then((r) =>
-					console.log(r),
-				);
+			} else {
+				f.set(flag);
 			}
 
-			f.set(flag);
 			return updateRecord({ ...data, flags: f.value }).then((r) =>
 				console.log(r),
 			);
