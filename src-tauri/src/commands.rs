@@ -37,7 +37,7 @@ pub struct RecordInsert {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct RecordUpdate {
-    id: String,
+    id: u32,
     name: String,
     content: String,
     content_html: String,

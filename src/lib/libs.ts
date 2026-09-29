@@ -4,7 +4,7 @@ export interface R {
 	id?: number;
 	name: string;
 	content: string;
-	contentHtml: string;
+	content_html: string;
 	flags: number;
 	tags: string[];
 	meta: Record<string, string>;
@@ -69,12 +69,17 @@ export async function getRecord(id: number): Promise<R | string> {
 	}
 }
 
-export async function updateRecord(input: RUpdate) {
+export async function updateRecord(input: RUpdate): Promise<boolean> {
 	try {
-		return await invoke<boolean>("update_record", { input });
+		const embedding = await generateContentEmbedding(input.name, input.content);
+		input.embedding = embedding;
+		// console.log(input);
+		return await invoke<boolean>("update_record", {
+			input,
+		});
 	} catch (e) {
 		console.error(e);
-		return e;
+		return false;
 	}
 }
 
