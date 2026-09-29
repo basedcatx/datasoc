@@ -16,22 +16,12 @@ import {
 } from "./ui/alert-dialog";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
+import { readonly } from "zod";
+import { Skeleton } from "./ui/skeleton";
+import type { R } from "#/lib/libs";
+import { createFlags, FLAGS } from "#/lib/utils";
 
-export default function TrashCard() {
-	const { data, isError, error } = useQuery(recordQueries.all());
-
-	if (isError || !data) {
-		return <div>An error occurred (Trash): {error?.message}</div>;
-	}
-
-	if (!data) {
-		return (
-			<div className="text-destructive">
-				Error: something went wrong invalid data in Library
-			</div>
-		);
-	}
-
+function TrashComponent({ children }: { children: React.ReactNode }) {
 	return (
 		<div>
 			<Card className="flex flex-col gap-4 p-8 rounded-none h-screen overflow-y-auto bg-background">
@@ -81,29 +71,66 @@ export default function TrashCard() {
 					</div>
 				</div>
 
-				{data.length > 0 ? (
-					<ul className="flex gap-4 flex-col">
-						{data.slice(0, 5).map((e) => (
-							<li key={e.id}>
-								<TrashEntryCard {...e} />
-							</li>
-						))}
-					</ul>
-				) : (
-					<div className="flex flex-col justify-center h-screen items-center gap-4">
-						<Ghost className="size-30 stroke-muted-foreground" />
-
-						<p className="text-muted-foreground shimmer text-lg">
-							No record found in the trash. Click on new to create one
-						</p>
-
-						<Button className="flex items-center w-xs p-4 cursor-pointer rounded-full">
-							<Plus />
-							<p className="text-lg">New</p>
-						</Button>
-					</div>
-				)}
+				{children}
 			</Card>
 		</div>
+	);
+}
+
+export default function TrashCard() {
+	let { data, isError, error, isPending } = useQuery(recordQueries.all());
+
+	if (isError || !data) {
+		return <div>An error occurred (Trash): {error?.message}</div>;
+	}
+
+	if (isPending) {
+		return (
+			<TrashComponent>
+				<Skeleton className="w-full h-30" />
+				<Skeleton className="w-full h-30" />
+				<Skeleton className="w-full h-30" />
+				<Skeleton className="w-full h-30" />
+			</TrashComponent>
+		);
+	}
+
+	if (!data) {
+		return (
+			<div className="text-destructive">
+				Error: something went wrong invalid data in Library
+			</div>
+		);
+	}
+
+	data = (data as R[]).filter((d) =>
+		createFlags(d.flags).check(FLAGS.IS_DELETED),
+	);
+
+	return (
+		<TrashComponent>
+			{data.length > 0 ? (
+				<ul className="flex gap-4 flex-col">
+					{data.slice(0, 5).map((e) => (
+						<li key={e.id}>
+							<TrashEntryCard {...e} />
+						</li>
+					))}
+				</ul>
+			) : (
+				<div className="flex flex-col justify-center h-screen items-center gap-4">
+					<Ghost className="size-30 stroke-muted-foreground" />
+
+					<p className="text-muted-foreground shimmer text-lg">
+						No record found in the trash. Click on new to create one
+					</p>
+
+					<Button className="flex items-center w-xs p-4 cursor-pointer rounded-full">
+						<Plus />
+						<p className="text-lg">New</p>
+					</Button>
+				</div>
+			)}
+		</TrashComponent>
 	);
 }
