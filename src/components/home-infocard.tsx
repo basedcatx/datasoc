@@ -11,7 +11,7 @@ export default function HomeInfoCard({
 	type: string;
 }) {
 	return (
-		<Card className="flex flex-col gap-14 rounded-none w-full p-5">
+		<Card className="flex flex-col gap-14 rounded-xl w-full p-5">
 			{icon}
 			{/* TODO: Add real api */}
 			<div>
