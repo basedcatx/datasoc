@@ -210,4 +210,7 @@
   --sidebar-ring: oklch(0.55 0.02 285.93);
 }
 
-
+.cv-list-item {
+  content-visibility: auto;
+  contain-intrinsic-block-size: auto 80px;
+}
