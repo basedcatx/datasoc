@@ -58,6 +58,27 @@ export default function EntryCard({
 		});
 	};
 
+	const handleDelete = () => {
+		addToFavMutation.mutate({
+			flag: FLAGS.IS_DELETED,
+			data: {
+				name,
+				content,
+				tags,
+				id: id!,
+				flags,
+				created_at,
+				content_html,
+				meta,
+			},
+		});
+	};
+
+	const handleSearchSimilar = () => {
+		const search = { query: name };
+		nav({ to: "/search", search: { ...search } });
+	};
+
 	const flag = createFlags(flags);
 
 	return (
@@ -136,7 +157,7 @@ export default function EntryCard({
 					Edit
 				</ContextMenuItem>
 				<ContextMenuSeparator />
-				<ContextMenuItem variant="destructive">
+				<ContextMenuItem variant="destructive" onClick={handleDelete}>
 					<Trash />
 					Delete
 				</ContextMenuItem>
