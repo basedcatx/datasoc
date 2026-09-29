@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { cn } from "cn";
 import { ArrowUpRight, Heart, Search, SquarePen, Trash } from "lucide-react";
 import { appStore } from "#/integrations/tanstack-query/store-provider";
-import type { R } from "#/lib/libs";
+import { updateRecord, type R } from "#/lib/libs";
 import { createFlags, FLAGS } from "#/lib/utils";
 import { htmlContent } from "#/routes/view/$reportId";
 import { Badge } from "./ui/badge";
@@ -14,6 +14,9 @@ import {
 	ContextMenuSeparator,
 	ContextMenuTrigger,
 } from "./ui/context-menu";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { recordKeys, recordMutations } from "#/lib/features/query";
+import { Skeleton } from "./ui/skeleton";
 
 export default function EntryCard({
 	name,
@@ -22,13 +25,37 @@ export default function EntryCard({
 	id,
 	created_at,
 	flags,
+	meta,
+	content_html,
 }: R) {
+	const qc = useQueryClient();
+
+	const addToFavMutation = useMutation({
+		...recordMutations(qc).changeFlag(id!),
+	});
+
 	const handlePreview = (_id: string) => {
 		//Placeholder
 		appStore.setState((prev) => ({
 			...prev,
 			preview: { content: htmlContent },
 		}));
+	};
+
+	const handleAddOrRemoveFav = () => {
+		addToFavMutation.mutate({
+			flag: FLAGS.IS_FAVORITE,
+			data: {
+				name,
+				content,
+				tags,
+				id: id!,
+				flags,
+				created_at,
+				content_html,
+				meta,
+			},
+		});
 	};
 
 	const flag = createFlags(flags);
@@ -85,9 +112,23 @@ export default function EntryCard({
 					<Search />
 					Search similar
 				</ContextMenuItem>
-				<ContextMenuItem>
-					<Heart />
-					Add to favorite
+				<ContextMenuItem
+					onClick={(e) => {
+						e.preventDefault();
+						handleAddOrRemoveFav();
+					}}
+				>
+					{flag.check(FLAGS.IS_FAVORITE) ? (
+						<div className="flex gap-2">
+							<Heart className="fill-red-500" />
+							Remove from favorite
+						</div>
+					) : (
+						<div className="flex gap-2">
+							<Heart />
+							Add to favorite
+						</div>
+					)}
 				</ContextMenuItem>
 				<ContextMenuSeparator />
 				<ContextMenuItem>
