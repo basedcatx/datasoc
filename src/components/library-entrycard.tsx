@@ -18,6 +18,10 @@ import {
 	ContextMenuSeparator,
 	ContextMenuTrigger,
 } from "./ui/context-menu";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { recordMutations } from "#/lib/features/query";
+import { appStore } from "#/integrations/tanstack-query/store-provider";
+import { useNavigate } from "@tanstack/react-router";
 
 export default function LibraryEntryCard({
 	name,
@@ -25,7 +29,62 @@ export default function LibraryEntryCard({
 	tags,
 	created_at,
 	flags,
+	content_html,
+	id,
+	meta,
 }: R) {
+	const qc = useQueryClient();
+	const nav = useNavigate();
+
+	const addToFavMutation = useMutation({
+		...recordMutations(qc).changeFlag(id!),
+	});
+
+	const handlePreview = () => {
+		//Placeholder
+		appStore.setState((prev) => ({
+			...prev,
+			preview: { content: content_html },
+		}));
+	};
+
+	const handleSearchSimilar = () => {
+		const search = { query: name };
+		nav({ to: "/search", search: { ...search } });
+	};
+
+	const handleAddOrRemoveFav = () => {
+		addToFavMutation.mutate({
+			flag: FLAGS.IS_FAVORITE,
+			data: {
+				name,
+				content,
+				tags,
+				id: id!,
+				flags,
+				created_at,
+				content_html,
+				meta,
+			},
+		});
+	};
+
+	const handleDelete = () => {
+		addToFavMutation.mutate({
+			flag: FLAGS.IS_DELETED,
+			data: {
+				name,
+				content,
+				tags,
+				id: id!,
+				flags,
+				created_at,
+				content_html,
+				meta,
+			},
+		});
+	};
+
 	return (
 		<ContextMenu>
 			<ContextMenuTrigger>
@@ -60,16 +119,16 @@ export default function LibraryEntryCard({
 				</Card>
 			</ContextMenuTrigger>
 			<ContextMenuContent className="px-2 text-xl">
-				<ContextMenuItem>
+				<ContextMenuItem onClick={handlePreview}>
 					<LucideArrowUpRight />
 					Open in preview
 				</ContextMenuItem>
 
-				<ContextMenuItem>
+				<ContextMenuItem onClick={handleSearchSimilar}>
 					<Search />
 					Search similar
 				</ContextMenuItem>
-				<ContextMenuItem>
+				<ContextMenuItem onClick={handleAddOrRemoveFav}>
 					<Heart />
 					Add to favorite
 				</ContextMenuItem>
@@ -78,16 +137,8 @@ export default function LibraryEntryCard({
 					<SquarePen />
 					Edit
 				</ContextMenuItem>
-				<ContextMenuItem>
-					<Pencil />
-					Edit metadata
-				</ContextMenuItem>
-				<ContextMenuItem>
-					<Tags />
-					Edit tags
-				</ContextMenuItem>
 				<ContextMenuSeparator />
-				<ContextMenuItem variant="destructive">
+				<ContextMenuItem variant="destructive" onClick={handleDelete}>
 					<Trash />
 					Delete
 				</ContextMenuItem>
