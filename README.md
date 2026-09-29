@@ -39,6 +39,3 @@ React 19 + Compiler · TanStack Router / Query / Start · Tailwind v4 · Tauri 2
 | `preview`             | Preview the build |
 | `format`/`lint`/`check` | Biome           |
 
-## Project map
-
-`src/routes` — pages · `src/components` — UI · `src/lib/features` — queries + mutations · `src/lib/libs.ts` — Tauri bridge · `src-tauri` — commands, SQLite, embeddings
