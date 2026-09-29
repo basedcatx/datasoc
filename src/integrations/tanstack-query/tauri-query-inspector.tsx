@@ -214,7 +214,7 @@ export function TauriQueryInspector() {
 			>
 				{isOpen
 					? "✕ Close Inspector"
-					: `🛸 God-Mode Inspector (${queries.length}Q | ${mutations.length}M)`}
+					: `Custom Tanstack Query inspector (${queries.length}Q | ${mutations.length}M)`}
 			</button>
 
 			{/* Main Inspector Window */}
