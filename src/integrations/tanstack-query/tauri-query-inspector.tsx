@@ -1,21 +1,30 @@
-import { type Query, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useQueryClient, Query, Mutation } from "@tanstack/react-query";
 
 export function TauriQueryInspector() {
 	const queryClient = useQueryClient();
 	const [isOpen, setIsOpen] = useState(false);
+	const [activeTab, setActiveTab] = useState<"queries" | "mutations">(
+		"queries",
+	);
+
+	// Search & Cache State
 	const [search, setSearch] = useState("");
 	const [queries, setQueries] = useState<any[]>([]);
-	const [selectedKey, setSelectedKey] = useState<string | null>(null);
+	const [mutations, setMutations] = useState<any[]>([]);
 
-	// Advanced: Inline mock data overriding
+	// Selection & Modal States
+	const [selectedKey, setSelectedKey] = useState<string | null>(null);
+	const [selectedMutationId, setSelectedMutationId] = useState<number | null>(
+		null,
+	);
 	const [mockInput, setMockInput] = useState("");
 	const [showMockEditor, setShowMockEditor] = useState(false);
+	const [isOffline, setIsOffline] = useState(false);
 
-	// Real-time subscription to the Query Cache
+	// 1. Live Query Cache Listener
 	useEffect(() => {
 		const cache = queryClient.getQueryCache();
-
 		const updateQueries = () => {
 			setQueries(
 				cache.getAll().map((q: Query<any, any, any>) => {
@@ -64,7 +73,7 @@ export function TauriQueryInspector() {
 						fetchStatus: q.state.fetchStatus,
 						data: q.state.data,
 						error: q.state.error,
-						options: q.options, // Extracted meta options (staleTime, gcTime, etc.)
+						options: q.options,
 					};
 				}),
 			);
@@ -74,7 +83,30 @@ export function TauriQueryInspector() {
 		return cache.subscribe(updateQueries);
 	}, [queryClient]);
 
-	// Filter queries based on search
+	// 2. Live Mutation Cache Listener
+	useEffect(() => {
+		const mutationCache = queryClient.getMutationCache();
+		const updateMutations = () => {
+			setMutations(
+				mutationCache.getAll().map((m: Mutation<any, any, any>) => ({
+					mutationId: m.mutationId,
+					status: m.state.status,
+					isPaused: m.state.isPaused,
+					submittedAt: m.state.submittedAt
+						? new Date(m.state.submittedAt).toLocaleTimeString()
+						: "N/A",
+					variables: m.state.variables,
+					data: m.state.data,
+					error: m.state.error,
+				})),
+			);
+		};
+
+		updateMutations();
+		return mutationCache.subscribe(updateMutations);
+	}, [queryClient]);
+
+	// Key search filtering
 	const filteredQueries = useMemo(() => {
 		if (!search) return queries;
 		return queries.filter((q) =>
@@ -84,8 +116,11 @@ export function TauriQueryInspector() {
 
 	const selectedQuery =
 		queries.find((q) => q.keyStr === selectedKey) || filteredQueries[0];
+	const selectedMutation =
+		mutations.find((m) => m.mutationId === selectedMutationId) ||
+		mutations[mutations.length - 1];
 
-	// Advanced feature: Safely inject custom JSON data into the cache
+	// Feature: Inject custom JSON directly into Query Cache
 	const handleInjectMockData = () => {
 		if (!selectedQuery) return;
 		try {
@@ -93,12 +128,58 @@ export function TauriQueryInspector() {
 			queryClient.setQueryData(selectedQuery.keyArray, parsed);
 			setShowMockEditor(false);
 			setMockInput("");
-		} catch {
-			alert("Invalid JSON! Check your syntax.");
+		} catch (err) {
+			alert("Invalid JSON syntax!");
 		}
 	};
 
-	// Copy to clipboard helper
+	// Feature: Export entire cache snapshot to clipboard
+	const exportCacheSnapshot = () => {
+		const cacheData = queryClient
+			.getQueryCache()
+			.getAll()
+			.reduce(
+				(acc, q) => {
+					acc[q.queryHash] = q.state.data;
+					return acc;
+				},
+				{} as Record<string, any>,
+			);
+
+		navigator.clipboard
+			.writeText(JSON.stringify(cacheData, null, 2))
+			.then(() => alert("Full cache snapshot copied to clipboard!"));
+	};
+
+	// Feature: Import cache snapshot from JSON
+	const importCacheSnapshot = () => {
+		const input = prompt("Paste cache JSON snapshot here:");
+		if (!input) return;
+		try {
+			const parsed = JSON.parse(input);
+			Object.entries(parsed).forEach(([queryHash, data]) => {
+				const query = queryClient
+					.getQueryCache()
+					.getAll()
+					.find((q) => q.queryHash === queryHash);
+				if (query) {
+					queryClient.setQueryData(query.queryKey, data);
+				}
+			});
+			alert("Cache state hydrated!");
+		} catch (e) {
+			alert("Invalid JSON snapshot!");
+		}
+	};
+
+	// Feature: Toggle global offline simulation mode
+	const toggleOfflineMode = () => {
+		const nextState = !isOffline;
+		setIsOffline(nextState);
+		queryClient.getOnlineManager().setOnline(!nextState);
+	};
+
+	// Copy helper
 	const copyToClipboard = (data: any) => {
 		navigator.clipboard
 			.writeText(JSON.stringify(data, null, 2))
@@ -117,8 +198,8 @@ export function TauriQueryInspector() {
 				fontFamily: "monospace",
 			}}
 		>
+			{/* Floating Toggle Trigger */}
 			<button
-	type="button"
 				onClick={() => setIsOpen(!isOpen)}
 				style={{
 					padding: "10px 16px",
@@ -129,16 +210,14 @@ export function TauriQueryInspector() {
 					cursor: "pointer",
 					fontWeight: "bold",
 					boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
-					display: "flex",
-					alignItems: "center",
-					gap: "8px",
 				}}
 			>
 				{isOpen
-					? "✕ Close DevTools"
-					: `🛸 God-Mode Query Inspector (${queries.length})`}
+					? "✕ Close Inspector"
+					: `🛸 God-Mode Inspector (${queries.length}Q | ${mutations.length}M)`}
 			</button>
 
+			{/* Main Inspector Window */}
 			{isOpen && (
 				<div
 					style={{
@@ -146,15 +225,15 @@ export function TauriQueryInspector() {
 						bottom: 60,
 						left: 12,
 						width: "95vw",
-						maxWidth: "1000px",
-						height: "600px",
+						maxWidth: "1050px",
+						height: "620px",
 						background: "#0c0c0c",
 						color: "#E5E7EB",
 						border: "1px solid #27272A",
 						borderRadius: "12px",
 						display: "flex",
 						flexDirection: "column",
-						boxShadow: "0 16px 40px rgba(0,0,0,0.8)",
+						boxShadow: "0 16px 40px rgba(0,0,0,0.85)",
 						overflow: "hidden",
 					}}
 				>
@@ -169,56 +248,125 @@ export function TauriQueryInspector() {
 							alignItems: "center",
 						}}
 					>
-						<input
-							type="text"
-							placeholder="🔍 Filter keys..."
-							value={search}
-							onChange={(e) => setSearch(e.target.value)}
-							style={{
-								background: "#09090B",
-								border: "1px solid #3F3F46",
-								color: "#fff",
-								padding: "6px 12px",
-								borderRadius: "6px",
-								width: "250px",
-								fontFamily: "monospace",
-							}}
-						/>
+						{/* Tabs */}
 						<div style={{ display: "flex", gap: "8px" }}>
 							<button
-	type="button"
-								onClick={() => queryClient.clear()}
+								onClick={() => setActiveTab("queries")}
 								style={{
-									background: "#7f1d1d",
+									background: activeTab === "queries" ? "#0ea5e9" : "#27272A",
 									color: "#fff",
 									border: "none",
 									padding: "6px 12px",
 									borderRadius: "4px",
 									cursor: "pointer",
+									fontWeight: "bold",
+								}}
+							>
+								Queries ({queries.length})
+							</button>
+							<button
+								onClick={() => setActiveTab("mutations")}
+								style={{
+									background: activeTab === "mutations" ? "#d946ef" : "#27272A",
+									color: "#fff",
+									border: "none",
+									padding: "6px 12px",
+									borderRadius: "4px",
+									cursor: "pointer",
+									fontWeight: "bold",
+								}}
+							>
+								Mutations ({mutations.length})
+							</button>
+						</div>
+
+						{/* Filter */}
+						{activeTab === "queries" && (
+							<input
+								type="text"
+								placeholder="🔍 Search query keys..."
+								value={search}
+								onChange={(e) => setSearch(e.target.value)}
+								style={{
+									background: "#09090B",
+									border: "1px solid #3F3F46",
+									color: "#fff",
+									padding: "6px 12px",
+									borderRadius: "6px",
+									width: "200px",
+									fontFamily: "monospace",
+								}}
+							/>
+						)}
+
+						{/* Controls */}
+						<div style={{ display: "flex", gap: "6px" }}>
+							<button
+								onClick={toggleOfflineMode}
+								style={{
+									background: isOffline ? "#dc2626" : "#27272A",
+									color: "#fff",
+									border: "1px solid #3F3F46",
+									padding: "6px 10px",
+									borderRadius: "4px",
+									cursor: "pointer",
+									fontWeight: "bold",
+									fontSize: "11px",
+								}}
+							>
+								{isOffline ? "📡 Mode: OFFLINE" : "🌐 Mode: ONLINE"}
+							</button>
+							<button
+								onClick={exportCacheSnapshot}
+								style={{
+									background: "#0284c7",
+									color: "#fff",
+									border: "none",
+									padding: "6px 10px",
+									borderRadius: "4px",
+									cursor: "pointer",
+									fontSize: "11px",
+								}}
+							>
+								💾 Export
+							</button>
+							<button
+								onClick={importCacheSnapshot}
+								style={{
+									background: "#7c3aed",
+									color: "#fff",
+									border: "none",
+									padding: "6px 10px",
+									borderRadius: "4px",
+									cursor: "pointer",
+									fontSize: "11px",
+								}}
+							>
+								📥 Import
+							</button>
+							<button
+								onClick={() => {
+									queryClient.clear();
+									queryClient.getMutationCache().clear();
+								}}
+								style={{
+									background: "#7f1d1d",
+									color: "#fff",
+									border: "none",
+									padding: "6px 10px",
+									borderRadius: "4px",
+									cursor: "pointer",
+									fontSize: "11px",
 								}}
 							>
 								☢️ Nuke Cache
 							</button>
-							<button
-	type="button"
-								onClick={() => queryClient.invalidateQueries()}
-								style={{
-									background: "#27272A",
-									color: "#fff",
-									border: "1px solid #3F3F46",
-									padding: "6px 12px",
-									borderRadius: "4px",
-									cursor: "pointer",
-								}}
-							>
-								⚠️ Invalidate All
-							</button>
 						</div>
 					</div>
 
-					{/* Main Workspace */}
+					{/* Main Layout Workspace */}
 					<div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
-						{/* Left Sidebar: Query List */}
+						{/* Left Sidebar List */}
 						<div
 							style={{
 								width: "350px",
@@ -227,434 +375,477 @@ export function TauriQueryInspector() {
 								background: "#09090B",
 							}}
 						>
-							{filteredQueries.map((q) => {
-								const isSelected = selectedQuery?.keyStr === q.keyStr;
-								return (
-									<div
-										key={q.keyHash}
-										onClick={() => {
-											setSelectedKey(q.keyStr);
-											setShowMockEditor(false);
-										}}
-										style={{
-											padding: "12px",
-											borderBottom: "1px solid #18181B",
-											cursor: "pointer",
-											background: isSelected ? "#27272A" : "transparent",
-											borderLeft: `4px solid ${q.stateColor}`,
-										}}
-									>
+							{activeTab === "queries"
+								? filteredQueries.map((q) => (
 										<div
+											key={q.keyHash}
+											onClick={() => {
+												setSelectedKey(q.keyStr);
+												setShowMockEditor(false);
+											}}
 											style={{
-												fontSize: "12px",
-												fontWeight: "bold",
-												color: isSelected ? "#fff" : "#d4d4d8",
-												wordBreak: "break-all",
-												marginBottom: "6px",
+												padding: "12px",
+												borderBottom: "1px solid #18181B",
+												cursor: "pointer",
+												background:
+													selectedQuery?.keyStr === q.keyStr
+														? "#27272A"
+														: "transparent",
+												borderLeft: `4px solid ${q.stateColor}`,
 											}}
 										>
-											{q.keyStr}
-										</div>
-										<div
-											style={{ display: "flex", gap: "8px", fontSize: "10px" }}
-										>
-											<span
+											<div
 												style={{
-													background: q.stateColor,
-													color: "#000",
-													padding: "2px 6px",
-													borderRadius: "4px",
+													fontSize: "12px",
 													fontWeight: "bold",
-													textTransform: "uppercase",
+													color: "#fff",
+													wordBreak: "break-all",
+													marginBottom: "6px",
 												}}
 											>
-												{q.stateTag}
-											</span>
-											<span
+												{q.keyStr}
+											</div>
+											<div
 												style={{
-													color: "#71717A",
-													background: "#18181B",
-													padding: "2px 6px",
-													borderRadius: "4px",
+													display: "flex",
+													gap: "8px",
+													fontSize: "10px",
 												}}
 											>
-												👁️ {q.observerCount}
-											</span>
-											<span
-												style={{
-													color: "#71717A",
-													background: "#18181B",
-													padding: "2px 6px",
-													borderRadius: "4px",
-												}}
-											>
-												{q.status}
-											</span>
+												<span
+													style={{
+														background: q.stateColor,
+														color: "#000",
+														padding: "2px 6px",
+														borderRadius: "4px",
+														fontWeight: "bold",
+														textTransform: "uppercase",
+													}}
+												>
+													{q.stateTag}
+												</span>
+												<span
+													style={{
+														color: "#71717A",
+														background: "#18181B",
+														padding: "2px 6px",
+														borderRadius: "4px",
+													}}
+												>
+													👁️ {q.observerCount}
+												</span>
+											</div>
 										</div>
-									</div>
-								);
-							})}
+									))
+								: mutations.map((m) => (
+										<div
+											key={m.mutationId}
+											onClick={() => setSelectedMutationId(m.mutationId)}
+											style={{
+												padding: "12px",
+												borderBottom: "1px solid #18181B",
+												cursor: "pointer",
+												background:
+													selectedMutation?.mutationId === m.mutationId
+														? "#27272A"
+														: "transparent",
+												borderLeft: `4px solid ${m.status === "success" ? "#10B981" : m.status === "error" ? "#EF4444" : "#3B82F6"}`,
+											}}
+										>
+											<div
+												style={{
+													fontSize: "12px",
+													fontWeight: "bold",
+													color: "#d946ef",
+													marginBottom: "6px",
+												}}
+											>
+												Mutation #{m.mutationId}
+											</div>
+											<div style={{ fontSize: "10px", color: "#a1a1aa" }}>
+												Status: {m.status} | {m.submittedAt}
+											</div>
+										</div>
+									))}
 						</div>
 
-						{/* Right Panel: Detailed View */}
-						{selectedQuery ? (
-							<div
-								style={{
-									flex: 1,
-									padding: "20px",
-									overflowY: "auto",
-									background: "#121212",
-								}}
-							>
-								{/* Advanced Actions Toolbar */}
-								<div
-									style={{
-										display: "flex",
-										gap: "8px",
-										flexWrap: "wrap",
-										marginBottom: "20px",
-										background: "#18181B",
-										padding: "12px",
-										borderRadius: "8px",
-										border: "1px solid #27272A",
-									}}
-								>
-									<button
-	type="button"
-										onClick={() =>
-											queryClient.refetchQueries({
-												queryKey: selectedQuery.keyArray,
-											})
-										}
-										style={{
-											background: "#0284c7",
-											color: "#fff",
-											border: "none",
-											padding: "6px 12px",
-											borderRadius: "6px",
-											cursor: "pointer",
-											fontWeight: "bold",
-										}}
-									>
-										🔄 Refetch
-									</button>
-
-									<button
-	type="button"
-										onClick={() =>
-											queryClient.invalidateQueries({
-												queryKey: selectedQuery.keyArray,
-											})
-										}
-										style={{
-											background: "#d97706",
-											color: "#fff",
-											border: "none",
-											padding: "6px 12px",
-											borderRadius: "6px",
-											cursor: "pointer",
-											fontWeight: "bold",
-										}}
-									>
-										⚠️ Invalidate (Refetch)
-									</button>
-
-									{/* Silent Stale: Marks it stale in the cache without triggering an immediate active refetch */}
-									<button
-	type="button"
-										onClick={() =>
-											queryClient.invalidateQueries({
-												queryKey: selectedQuery.keyArray,
-												refetchType: "none",
-											})
-										}
-										style={{
-											background: "#854d0e",
-											color: "#fff",
-											border: "none",
-											padding: "6px 12px",
-											borderRadius: "6px",
-											cursor: "pointer",
-											fontWeight: "bold",
-										}}
-									>
-										🍂 Make Stale (Silent)
-									</button>
-
-									<button
-	type="button"
-										onClick={() =>
-											queryClient.resetQueries({
-												queryKey: selectedQuery.keyArray,
-											})
-										}
-										style={{
-											background: "#4b5563",
-											color: "#fff",
-											border: "none",
-											padding: "6px 12px",
-											borderRadius: "6px",
-											cursor: "pointer",
-											fontWeight: "bold",
-										}}
-									>
-										↺ Reset
-									</button>
-
-									<button
-	type="button"
-										onClick={() => {
-											setMockInput(
-												JSON.stringify(selectedQuery.data || {}, null, 2),
-											);
-											setShowMockEditor(!showMockEditor);
-										}}
-										style={{
-											background: "#10b981",
-											color: "#fff",
-											border: "none",
-											padding: "6px 12px",
-											borderRadius: "6px",
-											cursor: "pointer",
-											fontWeight: "bold",
-										}}
-									>
-										💉 Inject Data
-									</button>
-
-									<button
-	type="button"
-										onClick={() =>
-											queryClient.removeQueries({
-												queryKey: selectedQuery.keyArray,
-											})
-										}
-										style={{
-											background: "#dc2626",
-											color: "#fff",
-											border: "none",
-											padding: "6px 12px",
-											borderRadius: "6px",
-											cursor: "pointer",
-											fontWeight: "bold",
-										}}
-									>
-										🗑️ Remove
-									</button>
-								</div>
-
-								{/* Mock Data Injector */}
-								{showMockEditor && (
+						{/* Right Details Workspace */}
+						<div
+							style={{
+								flex: 1,
+								padding: "20px",
+								overflowY: "auto",
+								background: "#121212",
+							}}
+						>
+							{activeTab === "queries" && selectedQuery ? (
+								<>
+									{/* Action Toolbar */}
 									<div
 										style={{
-											background: "#0f172a",
+											display: "flex",
+											gap: "8px",
+											flexWrap: "wrap",
+											marginBottom: "16px",
+											background: "#18181B",
 											padding: "12px",
 											borderRadius: "8px",
-											border: "1px solid #1e293b",
-											marginBottom: "20px",
+											border: "1px solid #27272A",
 										}}
 									>
-										<div
-											style={{
-												color: "#38bdf8",
-												marginBottom: "8px",
-												fontWeight: "bold",
-											}}
-										>
-											Override Cache Data (JSON)
-										</div>
-										<textarea
-											value={mockInput}
-											onChange={(e) => setMockInput(e.target.value)}
-											style={{
-												width: "100%",
-												height: "150px",
-												background: "#020617",
-												color: "#a5f3fc",
-												border: "1px solid #334155",
-												padding: "12px",
-												borderRadius: "6px",
-												fontFamily: "monospace",
-											}}
-										/>
 										<button
-	type="button"
-											onClick={handleInjectMockData}
+											onClick={() =>
+												queryClient.refetchQueries({
+													queryKey: selectedQuery.keyArray,
+												})
+											}
 											style={{
 												background: "#0284c7",
 												color: "#fff",
 												border: "none",
-												padding: "6px 16px",
-												borderRadius: "4px",
-												marginTop: "8px",
+												padding: "6px 12px",
+												borderRadius: "6px",
 												cursor: "pointer",
-											}}
-										>
-											Save to Cache
-										</button>
-									</div>
-								)}
-
-								{/* Deep Configuration Grid */}
-								<div
-									style={{
-										display: "grid",
-										gridTemplateColumns: "repeat(3, 1fr)",
-										gap: "12px",
-										fontSize: "11px",
-										marginBottom: "20px",
-									}}
-								>
-									<div
-										style={{
-											background: "#18181B",
-											padding: "12px",
-											borderRadius: "6px",
-											border: "1px solid #27272A",
-										}}
-									>
-										<div style={{ color: "#71717A", marginBottom: "4px" }}>
-											staleTime
-										</div>
-										<div style={{ color: "#fff", fontWeight: "bold" }}>
-											{selectedQuery.options.staleTime === Infinity
-												? "Infinity"
-												: selectedQuery.options.staleTime || "0"}{" "}
-											ms
-										</div>
-									</div>
-									<div
-										style={{
-											background: "#18181B",
-											padding: "12px",
-											borderRadius: "6px",
-											border: "1px solid #27272A",
-										}}
-									>
-										<div style={{ color: "#71717A", marginBottom: "4px" }}>
-											gcTime (Cache Life)
-										</div>
-										<div style={{ color: "#fff", fontWeight: "bold" }}>
-											{selectedQuery.options.gcTime === Infinity
-												? "Infinity"
-												: selectedQuery.options.gcTime || "300000"}{" "}
-											ms
-										</div>
-									</div>
-									<div
-										style={{
-											background: "#18181B",
-											padding: "12px",
-											borderRadius: "6px",
-											border: "1px solid #27272A",
-										}}
-									>
-										<div style={{ color: "#71717A", marginBottom: "4px" }}>
-											Retry Logic
-										</div>
-										<div style={{ color: "#fff", fontWeight: "bold" }}>
-											{selectedQuery.options.retry === false
-												? "Disabled"
-												: (selectedQuery.options.retry ?? "Default (3)")}
-										</div>
-									</div>
-									<div
-										style={{
-											background: "#18181B",
-											padding: "12px",
-											borderRadius: "6px",
-											border: "1px solid #27272A",
-										}}
-									>
-										<div style={{ color: "#71717A", marginBottom: "4px" }}>
-											Data Updated
-										</div>
-										<div style={{ color: "#fff" }}>
-											{selectedQuery.dataUpdatedAt}
-										</div>
-									</div>
-									<div
-										style={{
-											background: "#18181B",
-											padding: "12px",
-											borderRadius: "6px",
-											border: "1px solid #27272A",
-										}}
-									>
-										<div style={{ color: "#71717A", marginBottom: "4px" }}>
-											Failures
-										</div>
-										<div
-											style={{
-												color:
-													selectedQuery.fetchFailureCount > 0
-														? "#ef4444"
-														: "#fff",
 												fontWeight: "bold",
 											}}
 										>
-											{selectedQuery.fetchFailureCount}
-										</div>
-									</div>
-								</div>
-
-								{/* Data Explorer */}
-								<div>
-									<div
-										style={{
-											display: "flex",
-											justifyContent: "space-between",
-											alignItems: "center",
-											marginBottom: "8px",
-										}}
-									>
-										<div style={{ fontWeight: "bold", color: "#a1a1aa" }}>
-											Cached Data Payload
-										</div>
+											🔄 Refetch
+										</button>
 										<button
-	type="button"
 											onClick={() =>
-												copyToClipboard(
-													selectedQuery.data || selectedQuery.error,
-												)
+												queryClient.invalidateQueries({
+													queryKey: selectedQuery.keyArray,
+												})
 											}
 											style={{
-												background: "transparent",
-												color: "#0ea5e9",
-												border: "1px solid #0ea5e9",
-												padding: "4px 8px",
-												borderRadius: "4px",
+												background: "#d97706",
+												color: "#fff",
+												border: "none",
+												padding: "6px 12px",
+												borderRadius: "6px",
 												cursor: "pointer",
-												fontSize: "10px",
+												fontWeight: "bold",
 											}}
 										>
-											📋 Copy JSON
+											⚠️ Invalidate
 										</button>
+										<button
+											onClick={() =>
+												queryClient.invalidateQueries({
+													queryKey: selectedQuery.keyArray,
+													refetchType: "none",
+												})
+											}
+											style={{
+												background: "#854d0e",
+												color: "#fff",
+												border: "none",
+												padding: "6px 12px",
+												borderRadius: "6px",
+												cursor: "pointer",
+												fontWeight: "bold",
+											}}
+										>
+											🍂 Make Stale (Silent)
+										</button>
+										<button
+											onClick={() =>
+												queryClient.resetQueries({
+													queryKey: selectedQuery.keyArray,
+												})
+											}
+											style={{
+												background: "#4b5563",
+												color: "#fff",
+												border: "none",
+												padding: "6px 12px",
+												borderRadius: "6px",
+												cursor: "pointer",
+												fontWeight: "bold",
+											}}
+										>
+											↺ Reset
+										</button>
+										<button
+											onClick={() => {
+												setMockInput(
+													JSON.stringify(selectedQuery.data || {}, null, 2),
+												);
+												setShowMockEditor(!showMockEditor);
+											}}
+											style={{
+												background: "#10b981",
+												color: "#fff",
+												border: "none",
+												padding: "6px 12px",
+												borderRadius: "6px",
+												cursor: "pointer",
+												fontWeight: "bold",
+											}}
+										>
+											💉 Inject Data
+										</button>
+										<button
+											onClick={() =>
+												queryClient.removeQueries({
+													queryKey: selectedQuery.keyArray,
+												})
+											}
+											style={{
+												background: "#dc2626",
+												color: "#fff",
+												border: "none",
+												padding: "6px 12px",
+												borderRadius: "6px",
+												cursor: "pointer",
+												fontWeight: "bold",
+											}}
+										>
+											🗑️ Remove
+										</button>
+									</div>
+
+									{/* Inject Editor */}
+									{showMockEditor && (
+										<div
+											style={{
+												background: "#0f172a",
+												padding: "12px",
+												borderRadius: "8px",
+												border: "1px solid #1e293b",
+												marginBottom: "20px",
+											}}
+										>
+											<div
+												style={{
+													color: "#38bdf8",
+													marginBottom: "8px",
+													fontWeight: "bold",
+												}}
+											>
+												Override Cache Data (JSON)
+											</div>
+											<textarea
+												value={mockInput}
+												onChange={(e) => setMockInput(e.target.value)}
+												style={{
+													width: "100%",
+													height: "140px",
+													background: "#020617",
+													color: "#a5f3fc",
+													border: "1px solid #334155",
+													padding: "12px",
+													borderRadius: "6px",
+													fontFamily: "monospace",
+												}}
+											/>
+											<button
+												onClick={handleInjectMockData}
+												style={{
+													background: "#0284c7",
+													color: "#fff",
+													border: "none",
+													padding: "6px 16px",
+													borderRadius: "4px",
+													marginTop: "8px",
+													cursor: "pointer",
+												}}
+											>
+												Save to Cache
+											</button>
+										</div>
+									)}
+
+									{/* Configuration Grid */}
+									<div
+										style={{
+											display: "grid",
+											gridTemplateColumns: "repeat(3, 1fr)",
+											gap: "10px",
+											fontSize: "11px",
+											marginBottom: "16px",
+										}}
+									>
+										<div
+											style={{
+												background: "#18181B",
+												padding: "10px",
+												borderRadius: "6px",
+												border: "1px solid #27272A",
+											}}
+										>
+											<div style={{ color: "#71717A", marginBottom: "2px" }}>
+												staleTime
+											</div>
+											<div style={{ color: "#fff", fontWeight: "bold" }}>
+												{selectedQuery.options.staleTime === Infinity
+													? "Infinity"
+													: selectedQuery.options.staleTime || "0"}{" "}
+												ms
+											</div>
+										</div>
+										<div
+											style={{
+												background: "#18181B",
+												padding: "10px",
+												borderRadius: "6px",
+												border: "1px solid #27272A",
+											}}
+										>
+											<div style={{ color: "#71717A", marginBottom: "2px" }}>
+												gcTime
+											</div>
+											<div style={{ color: "#fff", fontWeight: "bold" }}>
+												{selectedQuery.options.gcTime === Infinity
+													? "Infinity"
+													: selectedQuery.options.gcTime || "300000"}{" "}
+												ms
+											</div>
+										</div>
+										<div
+											style={{
+												background: "#18181B",
+												padding: "10px",
+												borderRadius: "6px",
+												border: "1px solid #27272A",
+											}}
+										>
+											<div style={{ color: "#71717A", marginBottom: "2px" }}>
+												Updated
+											</div>
+											<div style={{ color: "#fff" }}>
+												{selectedQuery.dataUpdatedAt}
+											</div>
+										</div>
+									</div>
+
+									{/* Cached Data Explorer */}
+									<div>
+										<div
+											style={{
+												display: "flex",
+												justifyContent: "space-between",
+												alignItems: "center",
+												marginBottom: "8px",
+											}}
+										>
+											<div style={{ fontWeight: "bold", color: "#a1a1aa" }}>
+												Cached Payload
+											</div>
+											<button
+												onClick={() =>
+													copyToClipboard(
+														selectedQuery.data || selectedQuery.error,
+													)
+												}
+												style={{
+													background: "transparent",
+													color: "#0ea5e9",
+													border: "1px solid #0ea5e9",
+													padding: "3px 8px",
+													borderRadius: "4px",
+													cursor: "pointer",
+													fontSize: "10px",
+												}}
+											>
+												📋 Copy JSON
+											</button>
+										</div>
+										<pre
+											style={{
+												background: "#09090B",
+												padding: "14px",
+												borderRadius: "8px",
+												border: "1px solid #27272A",
+												maxHeight: "260px",
+												overflow: "auto",
+												margin: 0,
+												color: selectedQuery.error ? "#f87171" : "#4ade80",
+												fontSize: "12px",
+											}}
+										>
+											{JSON.stringify(
+												selectedQuery.data ?? selectedQuery.error ?? "No Data",
+												null,
+												2,
+											)}
+										</pre>
+									</div>
+								</>
+							) : activeTab === "mutations" && selectedMutation ? (
+								<>
+									<div
+										style={{
+											fontSize: "15px",
+											fontWeight: "bold",
+											color: "#d946ef",
+											marginBottom: "16px",
+										}}
+									>
+										Mutation #{selectedMutation.mutationId} Payload
+									</div>
+
+									<div
+										style={{
+											fontWeight: "bold",
+											color: "#a1a1aa",
+											marginBottom: "6px",
+										}}
+									>
+										Variables Sent to IPC/Backend
 									</div>
 									<pre
 										style={{
 											background: "#09090B",
-											padding: "16px",
+											padding: "14px",
 											borderRadius: "8px",
 											border: "1px solid #27272A",
-											maxHeight: "300px",
-											overflow: "auto",
-											margin: 0,
-											color: selectedQuery.error ? "#f87171" : "#4ade80",
+											color: "#fcd34d",
 											fontSize: "12px",
+											marginBottom: "16px",
 										}}
 									>
 										{JSON.stringify(
-											selectedQuery.data ??
-												selectedQuery.error ??
-												"No Data / Error",
+											selectedMutation.variables ?? "No Variables",
 											null,
 											2,
 										)}
 									</pre>
+
+									<div
+										style={{
+											fontWeight: "bold",
+											color: "#a1a1aa",
+											marginBottom: "6px",
+										}}
+									>
+										Mutation Response / Error
+									</div>
+									<pre
+										style={{
+											background: "#09090B",
+											padding: "14px",
+											borderRadius: "8px",
+											border: "1px solid #27272A",
+											color: selectedMutation.error ? "#f87171" : "#4ade80",
+											fontSize: "12px",
+										}}
+									>
+										{JSON.stringify(
+											selectedMutation.data ??
+												selectedMutation.error ??
+												"Pending or Empty Response",
+											null,
+											2,
+										)}
+									</pre>
+								</>
+							) : (
+								<div style={{ color: "#71717a" }}>
+									Select an entry on the left to inspect.
 								</div>
-							</div>
-						) : null}
+							)}
+						</div>
 					</div>
 				</div>
 			)}
