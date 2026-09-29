@@ -19,8 +19,9 @@ No binaries yet — run from source:
 
 ```bash
 bun install
-bun --bun run dev      # web, localhost:3000
 bunx tauri dev         # desktop app (needs Rust toolchain)
+
+# Does not support web, maybe in future with an external db, sqlite-vec on web isn't really what I am looking for
 ```
 
 **Requirements:** Bun · Rust toolchain (Tauri only) · `src-tauri/res/minilm-l6.gguf`
