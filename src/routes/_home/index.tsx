@@ -18,9 +18,9 @@ export const Route = createFileRoute("/_home/")({
 });
 
 function InfoCardSection() {
-	const { data, isFetching, error } = useQuery(recordQueries.all());
+	const { data, isPending, error } = useQuery(recordQueries.all());
 
-	if (isFetching) {
+	if (isPending) {
 		return (
 			<section className="grid grid-cols-4 px-8 gap-3 w-full">
 				<Skeleton className="w-full h-40" />
@@ -71,7 +71,7 @@ function InfoCardSection() {
 
 function RouteComponent() {
 	return (
-		<div className="w-full flex flex-col gap-8 overflow-y-auto h-screen py-4 px-8 scroll-fade scrollbar-thin bg-background">
+		<div className="w-full flex flex-col gap-8 overflow-y-auto h-dvh py-4 px-8 scroll-fade scrollbar-thin bg-background">
 			<InfoCardSection />
 			<RecentlyCreatedCard />
 			<PreviewCard />
