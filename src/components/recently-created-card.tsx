@@ -1,32 +1,43 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { Ghost, Plus } from "lucide-react";
 import { recordQueries } from "#/lib/features/query";
 import EntryCard from "./entrycard";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Skeleton } from "./ui/skeleton";
+import { createFlags, FLAGS } from "#/lib/utils";
+import type { R } from "#/lib/libs";
+import { Ghost, Plus } from "lucide-react";
+
+function HomeFilter(data: R[]) {
+	return data
+		.toSorted(
+			(a: R, b: R) =>
+				new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime(),
+		)
+		.filter((d: R) => !createFlags(d.flags).check(FLAGS.IS_DELETED));
+}
 
 export default function RecentlyCreatedCard() {
-	const { data, isPending, error } = useSuspenseQuery(recordQueries.all());
+	const { data, isPending, error } = useQuery({
+		...recordQueries.all(),
+		select: HomeFilter,
+	});
 
 	if (!data) {
 		return <div>Something went wrong, invalid data: {error?.message}</div>;
 	}
 
-	const sorted = data.sort(
-		(a, b) =>
-			new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime(),
-	);
-
 	if (isPending) {
 		return (
 			<div>
-				<Card className="flex flex-col gap-4 p-8 rounded-none ring-0">
+				<div className="flex flex-col gap-4 rounded-xl">
 					<Skeleton className="w-full h-30" />
 					<Skeleton className="w-full h-30" />
 					<Skeleton className="w-full h-30" />
-				</Card>
+					<Skeleton className="w-full h-30" />
+					<Skeleton className="w-full h-30" />
+				</div>
 			</div>
 		);
 	}
@@ -45,10 +56,10 @@ export default function RecentlyCreatedCard() {
 					</Link>
 				</Button>
 			</div>
-			<Card className="flex flex-col grow-1 h-full gap-4 rounded-none shadow-none ring-0">
-				{sorted.length > 0 ? (
+			<div className="flex flex-col grow-1 h-full gap-4">
+				{data.length > 0 ? (
 					<ul className="flex gap-4 flex-col">
-						{sorted.slice(0, 5).map((e) => (
+						{data.slice(0, 5).map((e: R) => (
 							<li key={e.name}>
 								<EntryCard {...e} />
 							</li>
@@ -62,7 +73,7 @@ export default function RecentlyCreatedCard() {
 						</p>
 					</div>
 				)}
-			</Card>
+			</div>
 		</div>
 	);
 }
