@@ -8,13 +8,18 @@ import {
 	Search,
 	Trash,
 } from "lucide-react";
-import { useState } from "react";
 import NavButton from "./nav-button";
 import NavSection from "./nav-section";
 import { Button } from "./ui/button";
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { cn } from "cn";
 import SearchComponent from "./SearchComponent";
+import { useQuery } from "@tanstack/react-query";
+import { recordQueries } from "#/lib/features/query";
+import type { R } from "#/lib/libs";
+import { Skeleton } from "./ui/skeleton";
+import { createFlags, FLAGS } from "../lib/utils";
+import React, { useState } from "react";
 
 const navLinks = [
 	{ text: "Home", path: "/", icon: Home },
@@ -22,7 +27,7 @@ const navLinks = [
 	{ text: "Trash", path: "/trash", icon: Trash },
 ];
 
-export default function Sidebar() {
+function SidebarComponent({ children }: { children: React.ReactNode }) {
 	const [isOpen, setIsOpen] = useState(false);
 	const location = useLocation();
 
@@ -56,36 +61,7 @@ export default function Sidebar() {
 				</SearchComponent>
 			</div>
 
-			<NavSection
-				sectionName="Recent"
-				icon={File}
-				items={[
-					{ name: "Water pump9", action: () => {} },
-					{ name: "Water pump22", action: () => {} },
-					{ name: "Water pump39", action: () => {} },
-				]}
-			/>
-
-			<NavSection
-				sectionName="Starred"
-				icon={File}
-				items={[
-					{ name: "Water pump", action: () => {} },
-					{ name: "Water pump2", action: () => {} },
-					{ name: "Water pump3", action: () => {} },
-				]}
-			/>
-
-			<NavSection
-				sectionName="Draft"
-				icon={File}
-				items={[
-					{ name: "Water pump", action: () => {} },
-					{ name: "Water pump2", action: () => {} },
-					{ name: "Water pump3", action: () => {} },
-				]}
-			/>
-
+			{children}
 			{/* TODO:: Later
 * <div className="flex justify-around items-center p-4">
 				<Button variant={"secondary"} size={"lg"} className="p-4 rounded-full">
@@ -137,5 +113,56 @@ export default function Sidebar() {
 				</Link>
 			</Button>
 		</div>
+	);
+}
+
+export default function Sidebar() {
+	const { data } = useQuery(recordQueries.all());
+	const navigate = useNavigate();
+	if (!data) {
+		return (
+			<SidebarComponent>
+				<>
+					<Skeleton className="w-full h-3 rounded-xs" />
+					<Skeleton className="w-full h-3 rounded-xs" />
+					<Skeleton className="w-full h-3 rounded-xs" />
+				</>
+			</SidebarComponent>
+		);
+	}
+
+	const recent = [...(data as R[])]
+		.sort(
+			(a, b) =>
+				new Date(a.created_at!).getTime() - new Date(b.created_at!).getTime(),
+		)
+		.slice(0, 3)
+		.map((r) => ({
+			name: r.name,
+			action: () => navigate({ to: `/view/${r.id}` }),
+		}));
+
+	const starred = [...(data as R[])]
+		.sort(
+			(a, b) =>
+				new Date(a.created_at!).getTime() - new Date(b.created_at!).getTime(),
+		)
+		.filter((r) => createFlags(r.flags).check(FLAGS.IS_FAVORITE))
+		.slice(0, 3)
+		.map((r) => ({
+			name: r.name,
+			action: () => navigate({ to: `/view/${r.id}` }),
+		}));
+
+	return (
+		<SidebarComponent>
+			{recent.length > 0 && (
+				<NavSection sectionName="Recent" icon={File} items={recent} />
+			)}
+
+			{starred.length > 0 && (
+				<NavSection sectionName="Starred" icon={File} items={starred} />
+			)}
+		</SidebarComponent>
 	);
 }
