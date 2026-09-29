@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { cn } from "cn";
 import { ArrowUpRight, Heart, Search, SquarePen, Trash } from "lucide-react";
 import { appStore } from "#/integrations/tanstack-query/store-provider";
@@ -16,7 +16,6 @@ import {
 } from "./ui/context-menu";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { recordKeys, recordMutations } from "#/lib/features/query";
-import { Skeleton } from "./ui/skeleton";
 
 export default function EntryCard({
 	name,
@@ -29,12 +28,13 @@ export default function EntryCard({
 	content_html,
 }: R) {
 	const qc = useQueryClient();
+	const nav = useNavigate();
 
 	const addToFavMutation = useMutation({
 		...recordMutations(qc).changeFlag(id!),
 	});
 
-	const handlePreview = (_id: string) => {
+	const handlePreview = () => {
 		//Placeholder
 		appStore.setState((prev) => ({
 			...prev,
@@ -123,22 +123,17 @@ export default function EntryCard({
 				</Link>
 			</ContextMenuTrigger>
 			<ContextMenuContent className="px-2 text-xl">
-				<ContextMenuItem onClick={() => handlePreview(id!.toString())}>
+				<ContextMenuItem onClick={handlePreview}>
 					<ArrowUpRight />
 					Open in preview window
 					{/* TODO: Open in preview Do some research and return and update our state
 					directly... could be a serverfn*/}
 				</ContextMenuItem>
-				<ContextMenuItem>
+				<ContextMenuItem onClick={handleSearchSimilar}>
 					<Search />
 					Search similar
 				</ContextMenuItem>
-				<ContextMenuItem
-					onClick={(e) => {
-						e.preventDefault();
-						handleAddOrRemoveFav();
-					}}
-				>
+				<ContextMenuItem onClick={handleAddOrRemoveFav}>
 					{flag.check(FLAGS.IS_FAVORITE) ? (
 						<div className="flex gap-2">
 							<Heart className="fill-red-500" />
