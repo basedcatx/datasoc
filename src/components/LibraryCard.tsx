@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import {
 	ArrowDownAz,
@@ -8,8 +7,7 @@ import {
 	Ghost,
 	Plus,
 } from "lucide-react";
-import { useState } from "react";
-import { recordQueries } from "#/lib/features/query";
+import { useDeferredValue, useState } from "react";
 import {
 	Combobox,
 	ComboboxCollection,
@@ -27,31 +25,18 @@ import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Input } from "./ui/input";
 import { Skeleton } from "./ui/skeleton";
+import type { R } from "#/lib/libs";
+import { useQuery } from "@tanstack/react-query";
+import { recordQueries } from "#/lib/features/query";
+import { createFlags, FLAGS } from "#/lib/utils";
 
-export default function LibraryCard() {
-	const [sortby, setSortby] = useState<"ASC" | "DESC">("ASC");
-	const [nameFilter, setNameFilter] = useState("");
-
-	let { data, isPending, isError, error } = useQuery(recordQueries.all());
-
-	if (isError || !data) {
-		return <div>An error occurred: {error?.message}</div>;
-	}
-
-	if (!data) {
-		return (
-			<div className="text-destructive">
-				Error: something went wrong invalid data in Library
-			</div>
-		);
-	}
-
-	const sortedData = data.sort((a, b) => {
+function LibraryFilter(data: R[], filter: string, sort: string) {
+	const sortedData = [...data].sort((a, b) => {
 		if (!(a.updated_at && b.updated_at)) {
 			return (a.id ?? 0) - (b.id ?? 0);
 		}
 
-		if (sortby === "ASC") {
+		if (sort === "ASC") {
 			return (
 				new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime()
 			);
@@ -59,45 +44,38 @@ export default function LibraryCard() {
 		return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
 	});
 
-	const nameFiltered = sortedData.filter((d) => {
-		if (!nameFilter) {
-			return d;
-		}
-		return d.name.startsWith(nameFilter);
+	return sortedData
+		.filter((d: R) => !createFlags(d.flags).check(FLAGS.IS_DELETED))
+		.filter((d: R) => {
+			if (!filter) {
+				return d;
+			}
+			return d.name.startsWith(filter);
+		}) as R[];
+}
+
+function LibraryComponent({
+	children,
+}: {
+	children: (data: R[], isPending: boolean) => React.ReactNode;
+}) {
+	const [sortby, setSortby] = useState<"ASC" | "DESC">("ASC");
+	const [nameFilter, setNameFilter] = useState("");
+	const deferredNameFilter = useDeferredValue(nameFilter);
+	const isStale = deferredNameFilter !== nameFilter;
+
+	const { data, isPending, isError, error } = useQuery({
+		...recordQueries.all(),
+		select: (data) => LibraryFilter(data, deferredNameFilter, sortby),
 	});
 
-	data = nameFiltered;
-
-	if (isPending) {
-		return (
-			<div>
-				<Card className="flex flex-col gap-4 p-8 rounded-none h-screen overflow-y-auto bg-background">
-					<div className="flex justify-between items-center my-2">
-						<div className="flex gap-4 items-center">
-							<h6 className="text-xl text-muted-foreground">Library</h6>
-							<Link to={"/editor"}>
-								<Button className="flex p-4 cursor-pointer rounded-full">
-									<Plus />
-									<p className="text-lg">New</p>
-								</Button>
-							</Link>
-						</div>
-					</div>
-
-					<Skeleton className="w-full h-30" />
-					<Skeleton className="w-full h-30" />
-					<Skeleton className="w-full h-30" />
-					<Skeleton className="w-full h-30" />
-					<Skeleton className="w-full h-30" />
-					<Skeleton className="w-full h-30" />
-				</Card>
-			</div>
-		);
+	if (isError || !data) {
+		return <div>An error occurred: {error?.message}</div>;
 	}
 
 	return (
 		<div>
-			<Card className="flex flex-col gap-4 p-8 rounded-none h-screen overflow-y-auto bg-background">
+			<Card className="flex flex-col gap-4 p-8 rounded-none h-dvh overflow-y-auto bg-background">
 				<div className="flex justify-between items-center my-2">
 					<div className="flex gap-4 items-center mx-2">
 						<h6 className="text-xl text-muted-foreground">Library</h6>
@@ -133,11 +111,44 @@ export default function LibraryCard() {
 						</Button>
 					</div>
 				</div>
+				{isStale ? (
+					<>
+						<Skeleton className="w-full h-30" />
+						<Skeleton className="w-full h-30" />
+						<Skeleton className="w-full h-30" />
+						<Skeleton className="w-full h-30" />
+						<Skeleton className="w-full h-30" />
+						<Skeleton className="w-full h-30" />
+					</>
+				) : (
+					children(data, isPending)
+				)}
+			</Card>
+		</div>
+	);
+}
 
-				{data.length > 0 ? (
+export default function LibraryCard() {
+	return (
+		<LibraryComponent>
+			{(data, isPending) => {
+				if (isPending) {
+					return (
+						<>
+							<Skeleton className="w-full h-30" />
+							<Skeleton className="w-full h-30" />
+							<Skeleton className="w-full h-30" />
+							<Skeleton className="w-full h-30" />
+							<Skeleton className="w-full h-30" />
+							<Skeleton className="w-full h-30" />
+						</>
+					);
+				}
+
+				return data.length > 0 ? (
 					<ul className="flex gap-4 flex-col">
 						{data.map((e) => (
-							<li key={e.name}>
+							<li key={e.name} className="cv-list-item">
 								<LibraryEntryCard {...e} />
 							</li>
 						))}
@@ -155,24 +166,24 @@ export default function LibraryCard() {
 							<p className="text-lg">New</p>
 						</Button>
 					</div>
-				)}
-			</Card>
-		</div>
+				);
+			}}
+		</LibraryComponent>
 	);
 }
-
-const filters = [
-	{
-		value: "Status",
-		items: ["Completed", "Drafted"],
-	},
-] as const;
 
 export function ComboxboxInputGroup({
 	dispatch,
 }: {
 	dispatch: (action: any) => void;
 }) {
+	const filters = [
+		{
+			value: "Status",
+			items: ["Completed", "Drafted"],
+		},
+	] as const;
+
 	return (
 		<Combobox
 			items={filters}
