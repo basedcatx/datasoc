@@ -26,7 +26,7 @@ bunx tauri dev         # desktop app (needs Rust toolchain)
 
 **Requirements:** Bun · Rust toolchain (Tauri only) · `src-tauri/res/minilm-l6.gguf`
 
-You can get huoxu/all-MiniLM-L6-v2-Q8_0 (8 bit quantized, better performance less accuracy, mostly unnoticable): ![Download link](https://huggingface.co/huoxu/all-MiniLM-L6-v2-Q8_0-GGUF/resolve/main/all-minilm-l6-v2-q8_0.gguf?download=true)
+You can get `huoxu/all-MiniLM-L6-v2-Q8_0` (8 bit quantized, better performance less accuracy, mostly unnoticable): [Download link](https://huggingface.co/huoxu/all-MiniLM-L6-v2-Q8_0-GGUF/resolve/main/all-minilm-l6-v2-q8_0.gguf?download=true)
 
 
 ## Scripts
