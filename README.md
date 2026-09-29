@@ -26,9 +26,6 @@ bunx tauri dev         # desktop app (needs Rust toolchain)
 
 **Requirements:** Bun · Rust toolchain (Tauri only) · `src-tauri/res/minilm-l6.gguf`
 
-## Stack
-
-React 19 + Compiler · TanStack Router / Query / Start · Tailwind v4 · Tauri 2 · SQLite (FTS5 + sqlite-vec) · MiniLM via llama.cpp
 
 ## Scripts
 
