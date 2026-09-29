@@ -7,6 +7,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { nitro } from "nitro/vite";
 import { readFileSync } from "fs";
 import { resolve } from "path";
+import tsconfigPaths from "vite-tsconfig-paths";
 
 const pkg = JSON.parse(
 	readFileSync(resolve(import.meta.dirname, "package.json"), "utf-8"),
@@ -19,6 +20,7 @@ const config = defineConfig({
 		devtools(),
 		nitro({ rollupConfig: { external: [/^@sentry\//] } }),
 		tailwindcss(),
+		tsconfigPaths(),
 		tanstackStart({
 			spa: { enabled: true },
 			prerender: {
