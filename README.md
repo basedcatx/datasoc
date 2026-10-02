@@ -42,3 +42,46 @@ You can get `huoxu/all-MiniLM-L6-v2-Q8_0` (8 bit quantized, better performance l
 | `preview`             | Preview the build |
 | `format`/`lint`/`check` | Biome           |
 
+
+## Building on Windows
+
+### Prerequisites
+
+1. **Rust:** Ensure you have Rust installed via [rustup](https://rustup.rs/).
+2. **CMake:** Required for compiling native dependencies like `llama-cpp`.
+   ```powershell
+   winget install Kitware.CMake
+   ```
+
+### C++ Build Environment:
+
+Native dependencies require C++ compilation tools. You can set this up using either method below:
+
+Option A: Standalone C++ Build Tools (Recommended)
+
+Download the Visual Studio Build Tools Installer.
+
+```powershell
+# Windows 10
+# Source - https://stackoverflow.com/a/55053709
+
+winget install Microsoft.VisualStudio.BuildTools --force --override "--wait --passive --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.Windows10SDK"
+
+```
+```powershell
+# Windows 11
+# Source - https://stackoverflow.com/a/55053709
+
+winget install Microsoft.VisualStudio.BuildTools --force --override "--wait --passive --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.Windows11SDK.26100"
+
+```
+
+### LLVM
+
+Download and install [LLVM](https://github.com/llvm/llvm-project/releases)
+
+Ensure you download the embedding model and save it to src-tauri/res/
+
+```powershell
+bun tauri dev
+```
