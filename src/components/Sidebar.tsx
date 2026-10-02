@@ -89,8 +89,7 @@ function SidebarComponent({ children }: { children: React.ReactNode }) {
 							asChild
 							variant={"ghost"}
 							className={cn(
-								location.pathname === l.path &&
-									"bg-secondary-foreground/5 p-2 rounded-full",
+								location.pathname === l.path && "bg-secondary-foreground/5 p-2",
 							)}
 						>
 							<Link to={l.path}>
