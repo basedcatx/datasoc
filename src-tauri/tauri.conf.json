@@ -1,13 +1,13 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "datasoc",
+  "productName": "Datasoc",
   "version": "0.1.0",
-  "identifier": "com.tauri.dev",
+  "identifier": "com.basedcatx.datasoc",
   "build": {
-    "frontendDist": "../dist",
+    "frontendDist": "../.output/public/",
     "devUrl": "http://localhost:3000",
     "beforeDevCommand": "bun dev",
-    "beforeBuildCommand": "bun build"
+    "beforeBuildCommand": "bun run build"
   },
   "app": {
     "windows": [
@@ -27,6 +27,11 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "windows": {
+        "webviewInstallMode": {
+        "type": "offlineInstaller"
+      }
+    },
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
