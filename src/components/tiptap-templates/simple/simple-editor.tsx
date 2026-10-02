@@ -216,7 +216,7 @@ const MainToolbarContent = ({
 				<UndoRedoButton action="undo" editor={editor} />
 				<UndoRedoButton action="redo" editor={editor} />
 			</ToolbarGroup>
-			<ToolbarSeparator />
+			<ToolbarSeparator orientation={bp ? "horizontal" : "vertical"} />
 			<ToolbarGroup className="max-xl:flex max-xl:flex-col">
 				<HeadingDropdownMenu modal={false} levels={[1, 2, 3, 4, 5, 6]} />
 				<ListDropdownMenu
@@ -225,6 +225,7 @@ const MainToolbarContent = ({
 				/>
 				<BlockquoteButton />
 			</ToolbarGroup>
+			<ToolbarSeparator orientation={bp ? "horizontal" : "vertical"} />
 			<ToolbarGroup className="max-xl:flex max-xl:flex-col">
 				<MarkButton type="bold" />
 				<MarkButton type="italic" />
@@ -237,6 +238,7 @@ const MainToolbarContent = ({
 				)}
 				{!isMobile ? <LinkPopover /> : <LinkButton onClick={onLinkClick} />}
 			</ToolbarGroup>
+			<ToolbarSeparator orientation={bp ? "horizontal" : "vertical"} />
 			<ToolbarGroup className="max-xl:flex max-xl:flex-col">
 				<MarkButton type="superscript" />
 				<MarkButton type="subscript" />
