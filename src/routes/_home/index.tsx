@@ -12,6 +12,9 @@ import RecentlyCreatedCard from "#/components/recently-created-card";
 import { Skeleton } from "#/components/ui/skeleton";
 import { recordQueries } from "#/lib/features/query";
 import { createFlags, FLAGS } from "#/lib/utils";
+import { useEffect } from "react";
+import { mockRecords } from "#/lib/mockdata";
+import { insertRecord, type R } from "#/lib/libs";
 
 export const Route = createFileRoute("/_home/")({
 	component: RouteComponent,
@@ -47,21 +50,21 @@ function InfoCardSection() {
 			<HomeInfoCard
 				type="Draft"
 				value={data
-					.filter((d) => !createFlags(d.flags).check(FLAGS.IS_COMPLETED))
+					.filter((d: R) => !createFlags(d.flags).check(FLAGS.IS_COMPLETED))
 					.length.toString()}
 				icon={<DraftingCompass />}
 			></HomeInfoCard>
 			<HomeInfoCard
 				type="Completed"
 				value={data
-					.filter((d) => createFlags(d.flags).check(FLAGS.IS_COMPLETED))
+					.filter((d: R) => createFlags(d.flags).check(FLAGS.IS_COMPLETED))
 					.length.toString()}
 				icon={<LucideCheck />}
 			></HomeInfoCard>
 			<HomeInfoCard
 				type="Starred"
 				value={data
-					.filter((d) => createFlags(d.flags).check(FLAGS.IS_FAVORITE))
+					.filter((d: R) => createFlags(d.flags).check(FLAGS.IS_FAVORITE))
 					.length.toString()}
 				icon={<HeartIcon className="fill-red-200" />}
 			></HomeInfoCard>
