@@ -7,15 +7,13 @@ use sqlite_vec::sqlite3_vec_init;
 use std::collections::HashMap;
 use zerocopy::IntoBytes as AsBytes;
 
-pub fn init(db_path: &mut PathBuf) -> anyhow::Result<Connection> {
+pub fn init(db_path: PathBuf) -> anyhow::Result<Connection> {
     unsafe {
         sqlite3_auto_extension(Some(std::mem::transmute(sqlite3_vec_init as *const ())));
     }
 
     std::fs::create_dir_all(&db_path)
         .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
-
-    db_path.push("db/appdata.db");
 
     let mut conn = Connection::open(db_path).context("Failed to open db")?;
 

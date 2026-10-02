@@ -31,15 +31,13 @@ pub fn run() {
                 .path()
                 .resolve("res/minilm-l6.gguf", tauri::path::BaseDirectory::Resource)?;
 
-            let mut app_data_path = app
+            let db_path = app
                 .path()
-                .app_local_data_dir()
-                .expect("Cannot access app's local app dir");
+                .resolve("db/appdata.db", tauri::path::BaseDirectory::Resource)?;
 
             let engine = embedding::init(model_path).expect("Could not load embedding engine");
 
-            let conn =
-                db::init(&mut app_data_path).expect("Could not establish database connection");
+            let conn = db::init(db_path).expect("Could not establish database connection");
 
             app.manage(AppState {
                 engine,
