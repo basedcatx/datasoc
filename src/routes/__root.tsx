@@ -55,10 +55,10 @@ function RootDocument() {
 				<script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
 				<HeadContent />
 			</head>
-			<body className="font-sans antialiased wrap:anywhere] selection:bg-[rgba(79,184,178,0.24)] overflow-y-hidden">
-				<div className="min-h-screen flex">
+			<body className="font-sans antialiased wrap:anywhere h-full w-full selection:bg-[rgba(79,184,178,0.24)] overflow-hidden">
+				<div className="h-full w-full flex">
 					<Sidebar />
-					<div className="w-full">
+					<div className="flex-1 min-w-0">
 						<TooltipProvider>
 							<Outlet />
 						</TooltipProvider>
