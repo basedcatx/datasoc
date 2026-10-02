@@ -22,9 +22,6 @@ pub fn run() {
                         .level(log::LevelFilter::Info)
                         .build(),
                 )?;
-
-                let window = app.get_webview_window("main").unwrap();
-                window.open_devtools();
             }
 
             let model_path = app
