@@ -1,5 +1,5 @@
 use anyhow::Context;
-use llama_cpp_2::{
+use llama_cpp::sys::{
     llama_backend::LlamaBackend,
     model::{params::LlamaModelParams, LlamaModel},
 };

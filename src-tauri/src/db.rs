@@ -1,11 +1,11 @@
-use std::{cmp::Ordering, path::PathBuf, sync::MutexGuard};
-
 use anyhow::Context;
-use rusqlite::{ffi::sqlite3_auto_extension, Connection};
-use rusqlite_migration::{Migrations, M};
-use sqlite_vec::sqlite3_vec_init;
+use sql::rusqlite;
+use sql::rusqlite::{ffi::sqlite3_auto_extension, Connection};
+use sql::rusqlite_migration::{Migrations, M};
+use sql::sqlite_vec::sqlite3_vec_init;
+use sql::zerocopy::IntoBytes as AsBytes;
 use std::collections::HashMap;
-use zerocopy::IntoBytes as AsBytes;
+use std::{cmp::Ordering, path::PathBuf, sync::MutexGuard};
 
 pub fn init(db_path: &PathBuf) -> anyhow::Result<Connection> {
     unsafe {

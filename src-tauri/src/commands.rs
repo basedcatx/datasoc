@@ -3,11 +3,12 @@ use std::{collections::HashMap, vec};
 use crate::db::{bm25_search, rrf_fuse, vector_search};
 use crate::embedding::normalize;
 use crate::AppState;
-use llama_cpp_2::context::params::LlamaContextParams;
-use llama_cpp_2::llama_batch::LlamaBatch;
+use llama_cpp::sys::context::params::LlamaContextParams;
+use llama_cpp::sys::llama_batch::LlamaBatch;
 use serde::{Deserialize, Serialize};
+use sql::rusqlite;
+use sql::zerocopy::IntoBytes as AsBytes;
 use tauri::State;
-use zerocopy::IntoBytes as AsBytes;
 
 const K_RRF: u32 = 60;
 
@@ -68,7 +69,7 @@ pub async fn get_embedding(input: String, state: State<'_, AppState>) -> Result<
         .new_context(&state.engine.backend, ctx_params)
         .map_err(|_| "Failed to create llama context")?;
     let mut tokens = model
-        .str_to_token(&input, llama_cpp_2::model::AddBos::Always)
+        .str_to_token(&input, llama_cpp::sys::model::AddBos::Always)
         .map_err(|e| e.to_string())?;
 
     let n_ctx = ctx.n_ctx() as usize;

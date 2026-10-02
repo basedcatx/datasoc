@@ -4,7 +4,7 @@ mod embedding;
 
 pub struct AppState {
     engine: embedding::EmbeddingEngine,
-    db: std::sync::Mutex<rusqlite::Connection>,
+    db: std::sync::Mutex<sql::rusqlite::Connection>,
 }
 
 use commands::*;
