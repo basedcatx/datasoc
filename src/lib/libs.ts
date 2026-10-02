@@ -39,7 +39,7 @@ async function generateContentEmbedding(
 	return await generateVector(`${name}\n${content}`);
 }
 
-export async function createRecord(input: R) {
+export async function insertRecord(input: R) {
 	try {
 		const { name, content } = input;
 		const vec = await generateContentEmbedding(name, content);
@@ -51,7 +51,7 @@ export async function createRecord(input: R) {
 	}
 }
 
-export async function getAllRecords(): Promise<R[]> {
+export async function fetchRecords(): Promise<R[]> {
 	try {
 		return await invoke<R[]>("read_records");
 	} catch (e) {
@@ -60,7 +60,7 @@ export async function getAllRecords(): Promise<R[]> {
 	}
 }
 
-export async function getRecord(id: number): Promise<R | string> {
+export async function fetchRecord(id: number): Promise<R | string> {
 	try {
 		return await invoke<R>("read_record", { input: id });
 	} catch (e) {
@@ -92,7 +92,7 @@ export async function deleteRecord(id: number) {
 	}
 }
 
-export async function hybridSearch(input: RSearch) {
+export async function hybridSearchRecords(input: RSearch) {
 	const embedding = await generateVector(input.text);
 	const limit = input.limit || 50;
 

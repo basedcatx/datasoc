@@ -4,9 +4,9 @@ import {
 	queryOptions,
 } from "@tanstack/react-query";
 import {
-	getAllRecords,
-	getRecord,
-	hybridSearch,
+	fetchRecord,
+	fetchRecords,
+	hybridSearchRecords,
 	updateRecord,
 	type R,
 	type RUpdate,
@@ -23,20 +23,20 @@ export const recordQueries = {
 	all: () =>
 		queryOptions({
 			queryKey: recordKeys.all,
-			queryFn: () => getAllRecords(),
+			queryFn: () => fetchRecords(),
 			staleTime: 5 * 60 * 1000,
 		}),
 	search: (query: string) =>
 		queryOptions({
 			queryKey: [...recordKeys.search(query)],
-			queryFn: () => hybridSearch({ text: query }),
+			queryFn: () => hybridSearchRecords({ text: query }),
 			staleTime: 10 * 60 * 1000,
 		}),
 	id: (id: number) =>
 		queryOptions({
 			queryKey: recordKeys.id(id),
 			staleTime: 5 * 60 * 1000,
-			queryFn: () => getRecord(id),
+			queryFn: () => fetchRecord(id),
 		}),
 };
 
