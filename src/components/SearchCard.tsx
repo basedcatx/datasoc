@@ -77,7 +77,7 @@ function Component({
 			<Card className="flex flex-col gap-4 p-8 rounded-none h-dvh overflow-y-auto bg-background">
 				<div className="flex justify-between items-center my-2">
 					<div className="flex gap-4 items-center mx-2">
-						<h6 className="text-xl text-muted-foreground max-w-xs max-md:text-md truncate text-nowrap">
+						<h6 className="text-xl text-muted-foreground max-w-xs max-md:text-md truncate text-nowrap shimmer shimmer-color-secondary">
 							Search: {query}
 						</h6>
 					</div>
