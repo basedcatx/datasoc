@@ -18,7 +18,6 @@ import { appStore } from "#/integrations/tanstack-query/store-provider";
 
 export default function PreviewCard() {
 	const content = useSelector(appStore, (state) => state.preview.content);
-	console.log("Preview", content);
 	return (
 		<Drawer
 			open={content.trim().length > 0}
