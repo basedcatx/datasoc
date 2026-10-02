@@ -374,35 +374,24 @@ export function SimpleEditor() {
 	return (
 		<div className="simple-editor-wrapper">
 			<EditorContext.Provider value={{ editor }}>
-				<div className="max-xl:flex bg">
-					<Toolbar
-						ref={toolbarRef}
-						style={{
-							...(isMobile
-								? {
-										bottom: `calc(100% - ${height - rect.y}px)`,
-									}
-								: {}),
-						}}
-					>
-						<MainToolbarContent
-							onHighlighterClick={() => setMobileView("highlighter")}
-							onLinkClick={() => setMobileView("link")}
-							onSearchAndReplaceClick={toggleSearchAndReplace}
-							isSearchAndReplaceOpen={isSearchAndReplaceOpen}
-							searchAndReplaceButtonRef={searchAndReplaceButtonRef}
-							isMobile={isMobile}
-							editor={editor}
-						/>
+				<div className="max-xl:flex">
+					<MainToolbarContent
+						onHighlighterClick={() => setMobileView("highlighter")}
+						onLinkClick={() => setMobileView("link")}
+						onSearchAndReplaceClick={toggleSearchAndReplace}
+						isSearchAndReplaceOpen={isSearchAndReplaceOpen}
+						searchAndReplaceButtonRef={searchAndReplaceButtonRef}
+						isMobile={isMobile}
+						editor={editor}
+					/>
 
-						<SearchAndReplace
-							className="simple-editor-search-and-replace"
-							open={isSearchAndReplaceOpen}
-							onOpen={openSearchAndReplace}
-							onClose={closeSearchAndReplace}
-							scrollIntoViewOptions={SEARCH_AND_REPLACE_SCROLL_OPTIONS}
-						/>
-					</Toolbar>
+					<SearchAndReplace
+						className="simple-editor-search-and-replace"
+						open={isSearchAndReplaceOpen}
+						onOpen={openSearchAndReplace}
+						onClose={closeSearchAndReplace}
+						scrollIntoViewOptions={SEARCH_AND_REPLACE_SCROLL_OPTIONS}
+					/>
 
 					<EditorContent
 						editor={editor}
