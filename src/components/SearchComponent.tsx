@@ -23,7 +23,7 @@ export default function SearchComponent({ children }: { children: ReactNode }) {
 
 	return (
 		<div className="flex flex-col gap-4">
-			<Button onClick={() => setOpen(true)} asChild>
+			<Button onClick={() => setOpen(true)} variant={"ghost"} asChild>
 				{children}
 			</Button>
 

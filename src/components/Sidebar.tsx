@@ -101,7 +101,7 @@ function SidebarComponent({ children }: { children: React.ReactNode }) {
 			</ul>
 
 			<SearchComponent>
-				<Button className="rounded-full">
+				<Button variant={"secondary"} className="rounded-full">
 					<Search className="size-6" />
 				</Button>
 			</SearchComponent>
