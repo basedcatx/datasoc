@@ -118,10 +118,10 @@ export default function TrashCard() {
 					))}
 				</ul>
 			) : (
-				<div className="flex flex-col justify-center h-screen items-center gap-4">
+				<div className="flex flex-col justify-center h-screen items-center gap-8">
 					<Ghost className="size-30 stroke-muted-foreground" />
 
-					<p className="text-muted-foreground shimmer text-lg">
+					<p className="text-muted-foreground shimmer text-lg text-wrap w-80 text-center">
 						No record found in the trash. Click on new to create one
 					</p>
 
