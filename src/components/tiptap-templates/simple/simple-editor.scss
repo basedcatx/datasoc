@@ -55,8 +55,8 @@ body,
 }
 
 .simple-editor-wrapper {
-  width: 100vw;
-  height: 100vh;
+  width: 100dvw;
+  height: 100dvh;
   overflow: auto;
 }
 
@@ -69,8 +69,8 @@ body,
 }
 
 .simple-editor-content {
-  max-width: 1200px;
-  height: 100%;
+  max-width: 80dvw;
+  height: 100dvw;
   display: flex;
   margin: 0 auto;
   flex-direction: column;
