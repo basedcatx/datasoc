@@ -12,9 +12,11 @@ pub fn init(db_path: &PathBuf) -> anyhow::Result<Connection> {
         sqlite3_auto_extension(Some(std::mem::transmute(sqlite3_vec_init as *const ())));
     }
 
-    // std::fs::create_dir_all(&db_path)
-      //  .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
-   // std::fs::File::create_new(db_path).map_err(|_| "Failed to create new file");
+    if let Some(parent) = db_path.parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
+
+    let _ = std::fs::File::create_new(db_path);
 
     let mut conn = Connection::open(db_path).context("Failed to open db")?;
 
