@@ -13,7 +13,14 @@ import { Typography } from "@tiptap/extension-typography";
 import { Placeholder, Selection, UndoRedo } from "@tiptap/extensions";
 import { EditorContent, EditorContext, useEditor } from "@tiptap/react";
 import { StarterKit } from "@tiptap/starter-kit";
-import { memo, useCallback, useEffect, useRef, useState } from "react";
+import {
+	memo,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+	useTransition,
+} from "react";
 import {
 	getHierarchicalIndexes,
 	TableOfContents,
@@ -79,7 +86,11 @@ import { handleImageUpload, MAX_FILE_SIZE } from "#/lib/tiptap-utils";
 import "#/components/tiptap-templates/simple/simple-editor.scss";
 
 import { Input } from "#/components/ui/input";
-import { LucideOption } from "lucide-react";
+import {
+	LucideFilePenLine,
+	LucideOption,
+	LucidePencilLine,
+} from "lucide-react";
 
 const SEARCH_AND_REPLACE_SCROLL_OPTIONS: ScrollIntoViewOptions = {
 	block: "center",
@@ -97,6 +108,22 @@ import EditorDrawerCard from "#/components/editor-drawer-card";
 import { Button as BTN } from "#/components/ui/button";
 import { appStore } from "#/integrations/tanstack-query/store-provider";
 import { useSelector } from "@tanstack/react-store";
+import {
+	AlertDialog,
+	AlertDialogTrigger,
+	AlertDialogContent,
+	AlertDialogMedia,
+	AlertDialogTitle,
+	AlertDialogFooter,
+	AlertDialogCancel,
+	AlertDialogAction,
+} from "#/components/ui/alert-dialog";
+import {
+	FieldGroup,
+	Field,
+	FieldDescription,
+	FieldLabel,
+} from "#/components/ui/field";
 
 const MainToolbarContent = ({
 	onHighlighterClick,
@@ -116,44 +143,89 @@ const MainToolbarContent = ({
 	editor: any;
 }) => {
 	const name = useSelector(appStore, (state) => state.file.name);
+	const [_, startTransition] = useTransition();
+	const bp = useIsBreakpoint("max", 1280);
+
+	const handleNameChange = (value: string) => {
+		startTransition(() => {
+			appStore.setState((s) => {
+				return {
+					...s,
+					file: { ...s.file, name: value },
+				};
+			});
+		});
+	};
 
 	return (
-		<div className="flex items-center gap-8 flex-row w-full">
-			<Input
-				className="ring-0 focus-visible:ring-0 bg-transparent focus-visible:bg-background focus-active:bg-background border-none w-sm rounded-none dark:bg-transparent"
-				placeholder="Name..."
-				value={name}
-				onChange={(e) => {
-					appStore.setState((s) => {
-						return {
-							...s,
-							editor: {
-								...s,
-								file: { ...s.file, name: e.target.value },
-							},
-						};
-					});
-				}}
-			/>
-			<ToolbarGroup>
+		<div className="flex items-center justify-between gap-5 flex-row max-xl:flex-col max-xl:fixed max-xl:top-0 xl:w-full p-4">
+			{bp ? (
+				<AlertDialog>
+					<AlertDialogTrigger asChild>
+						<Button
+							variant={"ghost"}
+							className="flex p-6 cursor-pointer font-medium rounded-full bg-destructive hover:bg-destructive"
+						>
+							<LucidePencilLine className="size-4" />
+						</Button>
+					</AlertDialogTrigger>
+					<AlertDialogContent size="sm">
+						<form
+							className="flex flex-col gap-6"
+							onSubmit={(e) => {
+								e.preventDefault();
+								//@ts-expect-error
+								const value = e.target.elements.name.value;
+								if (value) handleNameChange(value);
+							}}
+						>
+							<FieldGroup>
+								<Field>
+									<FieldLabel htmlFor="name-id">Name</FieldLabel>
+									<Input
+										className="ring-0 focus-visible:ring-0 bg-transparent focus-visible:bg-background focus-active:bg-background border-none rounded-none dark:bg-transparent"
+										placeholder="Name..."
+										defaultValue={name}
+										name="name"
+										id="name-id"
+									/>
+									<FieldDescription>
+										Change the document's name
+									</FieldDescription>
+								</Field>
+							</FieldGroup>
+							<AlertDialogFooter>
+								<AlertDialogCancel variant="outline">Cancel</AlertDialogCancel>
+								<AlertDialogAction type="submit">OK</AlertDialogAction>
+							</AlertDialogFooter>
+						</form>
+					</AlertDialogContent>
+				</AlertDialog>
+			) : (
+				<Input
+					className="ring-0 focus-visible:ring-0 shrink-1 bg-transparent focus-visible:bg-background focus-active:bg-background border-none rounded-none dark:bg-transparent"
+					placeholder="Name..."
+					value={name}
+					onChange={(e) => {
+						handleNameChange(e.target.value);
+					}}
+				/>
+			)}
+
+			<ToolbarGroup className="max-xl:flex max-xl:flex-col">
 				<UndoRedoButton action="undo" editor={editor} />
 				<UndoRedoButton action="redo" editor={editor} />
 			</ToolbarGroup>
-
 			<ToolbarSeparator />
-
-			<ToolbarGroup>
-				<HeadingDropdownMenu modal={false} levels={[1, 2, 3, 4]} />
+			<ToolbarGroup className="max-xl:flex max-xl:flex-col">
+				<HeadingDropdownMenu modal={false} levels={[1, 2, 3, 4, 5, 6]} />
 				<ListDropdownMenu
 					modal={false}
 					types={["bulletList", "orderedList", "taskList"]}
 				/>
 				<BlockquoteButton />
 			</ToolbarGroup>
-
-			<ToolbarSeparator />
-
-			<ToolbarGroup>
+			<ToolbarGroup className="max-xl:flex max-xl:flex-col">
 				<MarkButton type="bold" />
 				<MarkButton type="italic" />
 				<MarkButton type="strike" />
@@ -165,43 +237,30 @@ const MainToolbarContent = ({
 				)}
 				{!isMobile ? <LinkPopover /> : <LinkButton onClick={onLinkClick} />}
 			</ToolbarGroup>
-
-			<ToolbarSeparator />
-
-			<ToolbarGroup>
+			<ToolbarGroup className="max-xl:flex max-xl:flex-col">
 				<MarkButton type="superscript" />
 				<MarkButton type="subscript" />
 			</ToolbarGroup>
-
-			<ToolbarSeparator />
-
-			<ToolbarGroup>
+			<ToolbarGroup className="max-xl:flex max-xl:flex-col">
 				<TextAlignButton align="left" />
 				<TextAlignButton align="center" />
 				<TextAlignButton align="right" />
 				<TextAlignButton align="justify" />
 			</ToolbarGroup>
-
-			<ToolbarSeparator />
-
 			<ToolbarGroup>
-				<ImageUploadButton text="Add" />
+				<ImageUploadButton text={!bp ? "Add" : ""} />
 			</ToolbarGroup>
-
-			<ToolbarGroup>
+			<ToolbarGroup className="max-xl:flex max-xl:flex-col">
 				<SearchAndReplaceButton
 					ref={searchAndReplaceButtonRef}
 					aria-expanded={isSearchAndReplaceOpen}
 					data-active-state={isSearchAndReplaceOpen ? "on" : "off"}
 					onClick={onSearchAndReplaceClick}
 				/>
-			</ToolbarGroup>
-
-			<ToolbarGroup>
 				<Drawer swipeDirection="right" modal={true}>
 					<DrawerTrigger
 						render={
-							<BTN variant="outline" className="p-4">
+							<BTN variant="ghost" className="p-4">
 								<LucideOption className="size-4" />
 							</BTN>
 						}
@@ -214,35 +273,6 @@ const MainToolbarContent = ({
 		</div>
 	);
 };
-
-const MobileToolbarContent = ({
-	type,
-	onBack,
-}: {
-	type: "highlighter" | "link";
-	onBack: () => void;
-}) => (
-	<>
-		<ToolbarGroup>
-			<Button variant="ghost" onClick={onBack}>
-				<ArrowLeftIcon className="tiptap-button-icon" />
-				{type === "highlighter" ? (
-					<HighlighterIcon className="tiptap-button-icon" />
-				) : (
-					<LinkIcon className="tiptap-button-icon" />
-				)}
-			</Button>
-		</ToolbarGroup>
-
-		<ToolbarSeparator />
-
-		{type === "highlighter" ? (
-			<ColorHighlightPopoverContent />
-		) : (
-			<LinkContent />
-		)}
-	</>
-);
 
 export function SimpleEditor() {
 	const isMobile = useIsBreakpoint();
@@ -342,17 +372,17 @@ export function SimpleEditor() {
 	return (
 		<div className="simple-editor-wrapper">
 			<EditorContext.Provider value={{ editor }}>
-				<Toolbar
-					ref={toolbarRef}
-					style={{
-						...(isMobile
-							? {
-									bottom: `calc(100% - ${height - rect.y}px)`,
-								}
-							: {}),
-					}}
-				>
-					{mobileView === "main" ? (
+				<div className="max-xl:flex bg">
+					<Toolbar
+						ref={toolbarRef}
+						style={{
+							...(isMobile
+								? {
+										bottom: `calc(100% - ${height - rect.y}px)`,
+									}
+								: {}),
+						}}
+					>
 						<MainToolbarContent
 							onHighlighterClick={() => setMobileView("highlighter")}
 							onLinkClick={() => setMobileView("link")}
@@ -362,26 +392,22 @@ export function SimpleEditor() {
 							isMobile={isMobile}
 							editor={editor}
 						/>
-					) : (
-						<MobileToolbarContent
-							type={mobileView === "highlighter" ? "highlighter" : "link"}
-							onBack={() => setMobileView("main")}
-						/>
-					)}
-				</Toolbar>
 
-				<SearchAndReplace
-					className="simple-editor-search-and-replace"
-					open={isSearchAndReplaceOpen}
-					onOpen={openSearchAndReplace}
-					onClose={closeSearchAndReplace}
-					scrollIntoViewOptions={SEARCH_AND_REPLACE_SCROLL_OPTIONS}
-				/>
-				<EditorContent
-					editor={editor}
-					role="presentation"
-					className="simple-editor-content"
-				/>
+						<SearchAndReplace
+							className="simple-editor-search-and-replace"
+							open={isSearchAndReplaceOpen}
+							onOpen={openSearchAndReplace}
+							onClose={closeSearchAndReplace}
+							scrollIntoViewOptions={SEARCH_AND_REPLACE_SCROLL_OPTIONS}
+						/>
+					</Toolbar>
+
+					<EditorContent
+						editor={editor}
+						role="presentation"
+						className="simple-editor-content"
+					/>
+				</div>
 			</EditorContext.Provider>
 		</div>
 	);
