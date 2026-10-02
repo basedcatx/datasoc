@@ -11,6 +11,10 @@ interface ToolbarProps extends BaseProps {
 	variant?: "floating" | "fixed";
 }
 
+interface ToolbarSeparatorProps extends BaseProps {
+	orientation: "vertical" | "horizontal";
+}
+
 const useToolbarNavigation = (
 	toolbarRef: React.RefObject<HTMLDivElement | null>,
 ) => {
@@ -196,9 +200,8 @@ export const ToolbarGroup = forwardRef<HTMLDivElement, BaseProps>(
 );
 ToolbarGroup.displayName = "ToolbarGroup";
 
-export const ToolbarSeparator = forwardRef<HTMLDivElement, BaseProps>(
-	({ ...props }, ref) => (
-		<Separator ref={ref} orientation="vertical" decorative {...props} />
-	),
-);
+export const ToolbarSeparator = forwardRef<
+	HTMLDivElement,
+	BaseProps | ToolbarSeparatorProps
+>(({ ...props }, ref) => <Separator ref={ref} decorative {...props} />);
 ToolbarSeparator.displayName = "ToolbarSeparator";
