@@ -7,10 +7,10 @@
     "#/*": "./src/*"
   },
   "scripts": {
-    "dev": "vite dev --port 3000",
+    "dev": "bunx --bun vite dev --port 3000",
     "generate-routes": "tsr generate",
-    "build": "vite build",
-    "preview": "vite preview",
+    "build": "bunx --bun vite build",
+    "preview": "bunx --bun vite preview",
     "format": "biome format",
     "lint": "biome lint",
     "check": "biome check"
