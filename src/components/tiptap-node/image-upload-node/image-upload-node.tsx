@@ -314,7 +314,6 @@ const ImageUploadDragArea: React.FC<ImageUploadDragAreaProps> = ({
 
 	const handleDrop = (e: React.DragEvent) => {
 		e.preventDefault();
-		e.stopPropagation();
 		setIsDragActive(false);
 		setIsDragOver(false);
 
