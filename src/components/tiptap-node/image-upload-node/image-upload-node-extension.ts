@@ -104,6 +104,9 @@ export const ImageUploadNode = Node.create<ImageUploadNodeOptions>({
 			src: {},
 			alt: { default: null },
 			title: { default: null },
+			width: { default: "100%" },
+			align: { default: "center" },
+			caption: { default: "" },
 		};
 	},
 
