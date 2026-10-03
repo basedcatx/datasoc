@@ -169,6 +169,19 @@ export const ImageUploadNode = Node.create<ImageUploadNodeOptions>({
 		return [
 			new Plugin({
 				props: {
+					handlePaste(view, event) {
+						const items = Array.from(event.clipboardData?.items || []);
+						if (items.length === 0) return false;
+						const imageItem = items.find((i) => i.type.includes("image"));
+						const file = imageItem?.getAsFile();
+						if (!file) return false;
+						event.preventDefault();
+						const { from } = view.state.selection;
+						const node = view.state.schema.nodes.imageUpload.create();
+						const tr = view.state.tr.insert(from, node);
+						view.dispatch(tr);
+						return true;
+					},
 					handleDOMEvents: {
 						dragover(view, event) {
 							event.preventDefault();
