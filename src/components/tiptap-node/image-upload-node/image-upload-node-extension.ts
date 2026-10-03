@@ -141,13 +141,22 @@ export const ImageUploadNode = Node.create<ImageUploadNodeOptions>({
 		];
 	},
 
-	renderHTML(node) {
+	renderHTML({ HTMLAttributes }) {
 		return [
-			"img",
+			"div",
 			{
-				...node.HTMLAttributes,
-				style: "width: 100%; max-height: 200px; object-fit: cover;",
+				class: "tiptap-image-container",
+				style:
+					"width: 100%; max-height: 200px; overflow: hidden; border-radius: 0.5rem; margin: 1rem 0;",
 			},
+			[
+				"img",
+				{
+					...HTMLAttributes,
+					style:
+						"width: 100%; height: 100%; object-fit: cover; display: block;",
+				},
+			],
 		];
 	},
 
