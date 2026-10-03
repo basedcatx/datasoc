@@ -306,6 +306,8 @@ const ImageUploadDragArea: React.FC<ImageUploadDragAreaProps> = ({
 		}
 	};
 
+	const compressAndConvertBase64 = (): Promise<string> => {};
+
 	const handleDragOver = (e: React.DragEvent) => {
 		e.preventDefault();
 		e.stopPropagation();

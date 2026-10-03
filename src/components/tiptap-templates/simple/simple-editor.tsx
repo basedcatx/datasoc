@@ -124,6 +124,7 @@ import {
 	FieldDescription,
 	FieldLabel,
 } from "#/components/ui/field";
+import { compressAndConvertBase64 } from "#/components/tiptap-node/image-upload-node";
 
 const MainToolbarContent = ({
 	onHighlighterClick,
@@ -334,14 +335,7 @@ export function SimpleEditor() {
 				accept: "image/*",
 				maxSize: MAX_FILE_SIZE,
 				limit: 3,
-				upload: (file) => {
-					return new Promise((resolve, reject) => {
-						const reader = new FileReader();
-						reader.onload = (e) => resolve(e.target?.result as string);
-						reader.onerror = (e) => reject(e);
-						reader.readAsDataURL(file);
-					});
-				},
+				upload: (file) => compressAndConvertBase64(file),
 				onError: (error) => console.error("Upload failed:", error),
 			}),
 		],
