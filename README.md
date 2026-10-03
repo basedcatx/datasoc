@@ -10,7 +10,6 @@
 - **Hybrid search:** keyword (FTS5) + semantic vectors (MiniLM), fused with RRF ranking
 - **100% local:** SQLite + on-device embeddings. No account, no cloud, no telemetry
 - **Command palette:** global search and navigation from the keyboard
-- **Built-in query inspector:** watch every query and mutation live
 - **Offline-first:** no network, no problem
 
 ## Run it
