@@ -40,6 +40,7 @@
     "@tiptap/core": "^3.31.3",
     "@tiptap/extension-find-and-replace": "^3.31.3",
     "@tiptap/extension-highlight": "^3.31.3",
+    "@tiptap/extension-history": "^3.31.4",
     "@tiptap/extension-horizontal-rule": "^3.31.3",
     "@tiptap/extension-image": "^3.31.3",
     "@tiptap/extension-list": "^3.31.3",

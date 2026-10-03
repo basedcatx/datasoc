@@ -13,6 +13,7 @@ import { Typography } from "@tiptap/extension-typography";
 import { Placeholder, Selection, UndoRedo } from "@tiptap/extensions";
 import { EditorContent, EditorContext, useEditor } from "@tiptap/react";
 import { StarterKit } from "@tiptap/starter-kit";
+import History from "@tiptap/extension-history";
 import {
 	memo,
 	useCallback,
@@ -307,6 +308,7 @@ export function SimpleEditor() {
 				},
 			}),
 			HorizontalRule,
+			History.configure({ depth: 10 }),
 			TextAlign.configure({ types: ["heading", "paragraph"] }),
 			TaskList,
 			TaskItem.configure({ nested: true }),
