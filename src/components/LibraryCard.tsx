@@ -50,7 +50,7 @@ function LibraryFilter(data: R[], filter: string, sort: string) {
 			if (!filter) {
 				return d;
 			}
-			return d.name.startsWith(filter);
+			return d.name.toLowerCase().startsWith(filter.toLowerCase());
 		}) as R[];
 }
 
@@ -111,18 +111,7 @@ function LibraryComponent({
 						</Button>
 					</div>
 				</div>
-				{isStale ? (
-					<>
-						<Skeleton className="w-full h-30" />
-						<Skeleton className="w-full h-30" />
-						<Skeleton className="w-full h-30" />
-						<Skeleton className="w-full h-30" />
-						<Skeleton className="w-full h-30" />
-						<Skeleton className="w-full h-30" />
-					</>
-				) : (
-					children(data, isPending)
-				)}
+				{children(data, isPending)}
 			</Card>
 		</div>
 	);
