@@ -334,7 +334,14 @@ export function SimpleEditor() {
 				accept: "image/*",
 				maxSize: MAX_FILE_SIZE,
 				limit: 3,
-				upload: handleImageUpload,
+				upload: (file) => {
+					return new Promise((resolve, reject) => {
+						const reader = new FileReader();
+						reader.onload = (e) => resolve(e.target?.result as string);
+						reader.onerror = (e) => reject(e);
+						reader.readAsDataURL(file);
+					});
+				},
 				onError: (error) => console.error("Upload failed:", error),
 			}),
 		],
