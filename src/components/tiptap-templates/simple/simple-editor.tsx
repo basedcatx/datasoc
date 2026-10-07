@@ -307,8 +307,6 @@ export function SimpleEditor() {
 					enableClickSelection: true,
 				},
 			}),
-			HorizontalRule,
-			History.configure({ depth: 10 }),
 			TextAlign.configure({ types: ["heading", "paragraph"] }),
 			TaskList,
 			TaskItem.configure({ nested: true }),
