@@ -62,7 +62,6 @@ function LibraryComponent({
 	const [sortby, setSortby] = useState<"ASC" | "DESC">("ASC");
 	const [nameFilter, setNameFilter] = useState("");
 	const deferredNameFilter = useDeferredValue(nameFilter);
-	const isStale = deferredNameFilter !== nameFilter;
 
 	const { data, isPending, isError, error } = useQuery({
 		...recordQueries.all(),

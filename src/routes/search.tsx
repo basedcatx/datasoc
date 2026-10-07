@@ -1,5 +1,5 @@
 import SearchCard from "#/components/SearchCard";
-import { createFileRoute, useRouter, useSearch } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import z from "zod";
 
 const searchQuerySchema = z.object({

@@ -1,6 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Ghost, LoaderIcon, LucideTrash, Plus, Trash2Icon } from "lucide-react";
-import { recordQueries } from "#/lib/features/query";
+import { recordMutations, recordQueries } from "#/lib/features/query";
 
 import TrashEntryCard from "./trash-entrycard";
 import {
@@ -16,12 +16,39 @@ import {
 } from "./ui/alert-dialog";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
-import { readonly } from "zod";
 import { Skeleton } from "./ui/skeleton";
-import type { R } from "#/lib/libs";
+import type { R, RUpdate } from "#/lib/libs";
 import { createFlags, FLAGS } from "#/lib/utils";
 
-function TrashComponent({ children }: { children: React.ReactNode }) {
+function TrashComponent({
+	children,
+	data,
+}: {
+	children: React.ReactNode;
+	data?: RUpdate[];
+}) {
+	const qc = useQueryClient();
+	const ids = data?.map((d) => d.id);
+
+	const deleteAllMutation = useMutation(
+		recordMutations(qc).permanentDeleteAll(ids),
+	);
+
+	const restoreAllMutation = useMutation(recordMutations(qc).changeFlagAll());
+
+	const handleDeleteAll = () => {
+		deleteAllMutation.mutate();
+	};
+
+	// TODO: Refactor this entire codebase and create a new key for trash entries ["record", "trash"] and ["record", "trash", id]
+
+	const handleRestoreAll = () => {
+		restoreAllMutation.mutate({
+			flag: FLAGS.IS_DELETED,
+			data,
+		});
+	};
+
 	return (
 		<div>
 			<Card className="flex flex-col gap-4 p-8 rounded-none h-screen overflow-y-auto bg-background">
@@ -53,7 +80,10 @@ function TrashComponent({ children }: { children: React.ReactNode }) {
 										<AlertDialogCancel variant="outline">
 											Cancel
 										</AlertDialogCancel>
-										<AlertDialogAction variant="destructive">
+										<AlertDialogAction
+											variant="destructive"
+											onClick={handleDeleteAll}
+										>
 											Delete
 										</AlertDialogAction>
 									</AlertDialogFooter>
@@ -62,6 +92,8 @@ function TrashComponent({ children }: { children: React.ReactNode }) {
 
 							<Button
 								variant={"default"}
+								type="button"
+								onClick={handleRestoreAll}
 								className="flex p-6 cursor-pointer font-medium rounded-full"
 							>
 								<LoaderIcon />
@@ -108,7 +140,7 @@ export default function TrashCard() {
 	);
 
 	return (
-		<TrashComponent>
+		<TrashComponent data={data as RUpdate[]}>
 			{data.length > 0 ? (
 				<ul className="flex gap-4 flex-col">
 					{data.slice(0, 5).map((e) => (

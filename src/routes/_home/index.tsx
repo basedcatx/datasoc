@@ -1,3 +1,10 @@
+import HomeInfoCard from "#/components/home-infocard";
+import PreviewCard from "#/components/PreviewCard";
+import RecentlyCreatedCard from "#/components/recently-created-card";
+import { Skeleton } from "#/components/ui/skeleton";
+import { recordQueries } from "#/lib/features/query";
+import { type R } from "#/lib/libs";
+import { createFlags, FLAGS } from "#/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import {
@@ -6,15 +13,6 @@ import {
 	LibraryBig,
 	LucideCheck,
 } from "lucide-react";
-import HomeInfoCard from "#/components/home-infocard";
-import PreviewCard from "#/components/PreviewCard";
-import RecentlyCreatedCard from "#/components/recently-created-card";
-import { Skeleton } from "#/components/ui/skeleton";
-import { recordQueries } from "#/lib/features/query";
-import { createFlags, FLAGS } from "#/lib/utils";
-import { useEffect } from "react";
-import { mockRecords } from "#/lib/mockdata";
-import { insertRecord, type R } from "#/lib/libs";
 
 export const Route = createFileRoute("/_home/")({
 	component: RouteComponent,

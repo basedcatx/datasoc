@@ -1,5 +1,5 @@
 import { LucideArrowUpRight, LucideLoader, Trash } from "lucide-react";
-import type { R } from "#/lib/libs";
+import { deleteRecord, type R } from "#/lib/libs";
 import { Badge } from "./ui/badge";
 import { Card } from "./ui/card";
 import {
@@ -9,8 +9,59 @@ import {
 	ContextMenuSeparator,
 	ContextMenuTrigger,
 } from "./ui/context-menu";
+import { appStore } from "#/integrations/tanstack-query/store-provider";
+import { recordMutations } from "#/lib/features/query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { FLAGS } from "#/lib/utils";
 
-export default function TrashEntryCard({ name, content, tags, created_at }: R) {
+export default function TrashEntryCard({
+	name,
+	content,
+	content_html,
+	tags,
+	id,
+	flags,
+	created_at,
+	meta,
+}: R) {
+	const qc = useQueryClient();
+
+	const mutationFlags = useMutation({
+		...recordMutations(qc).changeFlag(id!),
+	});
+
+	const mutationDelete = useMutation({
+		...recordMutations(qc).permanentDelete(id!),
+	});
+
+	const handlePreview = () => {
+		//Placeholder
+		appStore.setState((prev) => ({
+			...prev,
+			preview: { content: content_html },
+		}));
+	};
+
+	const handleRestore = () => {
+		mutationFlags.mutate({
+			flag: FLAGS.IS_DELETED,
+			data: {
+				name,
+				content,
+				tags,
+				id: id!,
+				flags,
+				created_at,
+				content_html,
+				meta,
+			},
+		});
+	};
+
+	const handlePermaDel = () => {
+		mutationDelete.mutate();
+	};
+
 	return (
 		<ContextMenu>
 			<ContextMenuTrigger>
@@ -40,18 +91,18 @@ export default function TrashEntryCard({ name, content, tags, created_at }: R) {
 				</Card>
 			</ContextMenuTrigger>
 			<ContextMenuContent className="px-2 text-xl">
-				<ContextMenuItem>
+				<ContextMenuItem onClick={handlePreview}>
 					<LucideArrowUpRight />
 					Open in preview
 				</ContextMenuItem>
 
-				<ContextMenuItem variant="default">
+				<ContextMenuItem variant="default" onClick={handleRestore}>
 					<LucideLoader />
 					Restore
 				</ContextMenuItem>
 
 				<ContextMenuSeparator />
-				<ContextMenuItem variant="destructive">
+				<ContextMenuItem variant="destructive" onClick={handlePermaDel}>
 					<Trash />
 					Delete permanently
 				</ContextMenuItem>

@@ -2,6 +2,7 @@ export const isTauri = () =>
 	"__TAURI_INTERNALS__" in window || "__TAURI__" in window;
 
 export const FLAGS = {
+	NONE_CLEAR_ALL: 1,
 	IS_DELETED: 1 << 1,
 	IS_FAVORITE: 1 << 2,
 	IS_COMPLETED: 1 << 3,
@@ -11,7 +12,7 @@ export type FLAGS = (typeof FLAGS)[keyof typeof FLAGS];
 
 export const createFlags = (initial = 1) => {
 	let flags = initial;
-	if (flags < 1) flags = 1;
+	if (flags < 1) flags = FLAGS.NONE_CLEAR_ALL;
 
 	return {
 		get value() {

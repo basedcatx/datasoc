@@ -85,6 +85,8 @@ export default function LibraryEntryCard({
 		});
 	};
 
+	const flag = createFlags(flags);
+
 	return (
 		<ContextMenu>
 			<ContextMenuTrigger>
@@ -129,8 +131,17 @@ export default function LibraryEntryCard({
 					Search similar
 				</ContextMenuItem>
 				<ContextMenuItem onClick={handleAddOrRemoveFav}>
-					<Heart />
-					Add to favorite
+					{flag.check(FLAGS.IS_FAVORITE) ? (
+						<div className="flex gap-2">
+							<Heart className="fill-red-500" />
+							Remove from favorite
+						</div>
+					) : (
+						<div className="flex gap-2">
+							<Heart />
+							Add to favorite
+						</div>
+					)}
 				</ContextMenuItem>
 				<ContextMenuSeparator />
 				<ContextMenuItem>
