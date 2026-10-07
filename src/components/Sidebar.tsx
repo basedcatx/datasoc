@@ -77,7 +77,7 @@ function SidebarComponent({ children }: { children: React.ReactNode }) {
 */}
 		</nav>
 	) : (
-		<div className="p-3 bg-card flex flex-col gap-12">
+		<div className="p-3 bg-card flex flex-col gap-12 h-screen">
 			<Button variant={"ghost"} onClick={toggleDrawer}>
 				<PanelLeft className="size-6" />
 			</Button>
@@ -121,11 +121,9 @@ export default function Sidebar() {
 	if (!data) {
 		return (
 			<SidebarComponent>
-				<>
-					<Skeleton className="w-full h-3 rounded-xs" />
-					<Skeleton className="w-full h-3 rounded-xs" />
-					<Skeleton className="w-full h-3 rounded-xs" />
-				</>
+				<Skeleton className="w-full h-3 rounded-xs" />
+				<Skeleton className="w-full h-3 rounded-xs" />
+				<Skeleton className="w-full h-3 rounded-xs" />
 			</SidebarComponent>
 		);
 	}
