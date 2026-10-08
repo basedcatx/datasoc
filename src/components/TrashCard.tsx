@@ -34,7 +34,9 @@ function TrashComponent({
 		recordMutations(qc).permanentDeleteAll(ids),
 	);
 
-	const restoreAllMutation = useMutation(recordMutations(qc).changeFlagAll());
+	const restoreAllMutation = useMutation(
+		recordMutations(qc).restoreAllDeleted(),
+	);
 
 	const handleDeleteAll = () => {
 		deleteAllMutation.mutate();
@@ -43,10 +45,8 @@ function TrashComponent({
 	// TODO: Refactor this entire codebase and create a new key for trash entries ["record", "trash"] and ["record", "trash", id]
 
 	const handleRestoreAll = () => {
-		restoreAllMutation.mutate({
-			flag: FLAGS.IS_DELETED,
-			data,
-		});
+		if (!data) return {};
+		restoreAllMutation.mutate({ data });
 	};
 
 	return (
@@ -111,7 +111,6 @@ function TrashComponent({
 
 export default function TrashCard() {
 	let { data, isError, error, isPending } = useQuery(recordQueries.all());
-
 	if (isError || !data) {
 		return <div>An error occurred (Trash): {error?.message}</div>;
 	}

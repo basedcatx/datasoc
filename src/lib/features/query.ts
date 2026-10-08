@@ -111,7 +111,7 @@ export const recordMutations = (client: QueryClient) => ({
 
 			const prev = data.flags;
 			const f = createFlags(prev);
-			let newFlag = 1;
+			let newFlag = FLAGS.NONE_CLEAR_ALL;
 
 			if (f.check(flag)) {
 				newFlag = createFlags(f.value).clear(flag).value;
@@ -121,7 +121,7 @@ export const recordMutations = (client: QueryClient) => ({
 
 			client.setQueryData(recordKeys.id(id), () => ({
 				...data,
-				flag: newFlag,
+				flags: newFlag,
 			}));
 
 			client.setQueryData(recordKeys.all, (old: R[]) => {
@@ -154,39 +154,30 @@ export const recordMutations = (client: QueryClient) => ({
 		},
 	}),
 
-	changeFlagAll: () => ({
+	restoreAllDeleted: () => ({
 		mutationKey: recordKeys.all,
 
-		onMutate: ({ flag, data }: { flag: number; data?: RUpdate[] }) => {
-			client.cancelQueries({ queryKey: recordKeys.all });
-			if (!data) return {};
+		onMutate: ({ data }: { data: RUpdate[] }) => {
+			client.cancelQueries({ queryKey: [recordKeys.all] });
 
-			data.forEach(({ id, flags }) => {
-				const prev = flags;
-				const f = createFlags(prev);
+			for (const d of data) {
+				if (!d) continue;
 
-				//  Just to create a new flag obj with the default flag 1
-				//  Could also be let flag;
-				let newFlag = FLAGS.NONE_CLEAR_ALL;
+				const newFlag = createFlags(d.flags).clear(FLAGS.IS_DELETED).value;
 
-				// Checks  if a flag exists and toggles otherwise
-				if (f.check(flag)) {
-					newFlag = createFlags(f.value).clear(flag).value;
-				} else {
-					newFlag = createFlags(f.value).set(flag).value;
-				}
-
-				client.setQueryData(recordKeys.id(id), () => ({
-					...data,
-					flag: newFlag,
+				client.setQueryData(recordKeys.id(d.id), () => ({
+					...d,
+					flags: newFlag,
 				}));
 
+				d.flags = newFlag;
+
 				client.setQueryData(recordKeys.all, (old: R[]) => {
-					const record = old.find((r) => r.id === id);
-					if (record) record.flags = newFlag;
+					const record = old.find((r) => r.id === d.id);
+					if (record) record.flags = d.flags;
 					return old;
 				});
-			});
+			}
 
 			return { data };
 		},
@@ -195,23 +186,14 @@ export const recordMutations = (client: QueryClient) => ({
 			client.invalidateQueries({ queryKey: recordKeys.all });
 		},
 
-		mutationFn: async ({ flag, data }: { flag: number; data?: RUpdate[] }) => {
-			if (!data) return Promise.reject(false);
+		mutationFn: async ({ data }: { data: RUpdate[] }) => {
 			for (const d of data) {
-				const prev = d.flags;
-				const f = createFlags(prev);
-
-				if (f.check(flag)) {
-					f.clear(flag);
-				} else {
-					f.set(flag);
-				}
-
-				await updateRecord({ ...d, flags: f.value }).then((r) =>
-					console.log(r),
-				);
+				await updateRecord({
+					...d,
+					flags: createFlags(d.flags).clear(FLAGS.IS_DELETED).value,
+				});
 			}
-			return Promise.resolve(true);
+			return true;
 		},
 	}),
 });
