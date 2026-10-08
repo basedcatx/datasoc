@@ -10,21 +10,15 @@ import { Superscript } from "@tiptap/extension-superscript";
 import { TextAlign } from "@tiptap/extension-text-align";
 import { LineHeight, TextStyle } from "@tiptap/extension-text-style";
 import { Typography } from "@tiptap/extension-typography";
-import { Placeholder, Selection, UndoRedo } from "@tiptap/extensions";
+import { Placeholder, Selection } from "@tiptap/extensions";
 import { EditorContent, EditorContext, useEditor } from "@tiptap/react";
 import { StarterKit } from "@tiptap/starter-kit";
-import { memo, useCallback, useEffect, useRef, useState } from "react";
-import {
-	getHierarchicalIndexes,
-	TableOfContents,
-} from "@tiptap/extension-table-of-contents";
+import { useCallback, useEffect, useRef, useState } from "react";
 // --- UI Primitives ---
 
-import { Button } from "#/components/tiptap-ui-primitive/button";
 import {
 	Toolbar,
 	ToolbarGroup,
-	ToolbarSeparator,
 } from "#/components/tiptap-ui-primitive/toolbar";
 
 // --- Tiptap Node ---
@@ -39,31 +33,11 @@ import "#/components/tiptap-node/list-node/list-node.scss";
 import "#/components/tiptap-node/paragraph-node/paragraph-node.scss";
 
 // --- Icons ---
-import { ArrowLeftIcon } from "#/components/tiptap-icons/arrow-left-icon";
-import { HighlighterIcon } from "#/components/tiptap-icons/highlighter-icon";
-import { LinkIcon } from "#/components/tiptap-icons/link-icon";
 // --- Tiptap UI ---
-import { BlockquoteButton } from "#/components/tiptap-ui/blockquote-button";
-import {
-	ColorHighlightPopover,
-	ColorHighlightPopoverButton,
-	ColorHighlightPopoverContent,
-} from "#/components/tiptap-ui/color-highlight-popover";
-import { HeadingDropdownMenu } from "#/components/tiptap-ui/heading-dropdown-menu";
-import { ImageUploadButton } from "#/components/tiptap-ui/image-upload-button";
-import {
-	LinkButton,
-	LinkContent,
-	LinkPopover,
-} from "#/components/tiptap-ui/link-popover";
-import { ListDropdownMenu } from "#/components/tiptap-ui/list-dropdown-menu";
-import { MarkButton } from "#/components/tiptap-ui/mark-button";
 import {
 	SearchAndReplace,
 	SearchAndReplaceButton,
 } from "#/components/tiptap-ui/search-and-replace";
-import { TextAlignButton } from "#/components/tiptap-ui/text-align-button";
-import { UndoRedoButton } from "#/components/tiptap-ui/undo-redo-button";
 
 // --- Hooks ---
 import { useCursorVisibility } from "#/hooks/use-cursor-visibility";
@@ -85,26 +59,15 @@ const SEARCH_AND_REPLACE_SCROLL_OPTIONS: ScrollIntoViewOptions = {
 	block: "center",
 };
 
-import {
-	Drawer,
-	DrawerClose,
-	DrawerContent,
-	DrawerFooter,
-	DrawerTrigger,
-} from "#/components/ui/drawer";
+import { Drawer, DrawerContent, DrawerTrigger } from "#/components/ui/drawer";
 
 import EditorDrawerCard from "#/components/editor-drawer-card";
 import { Button as BTN } from "#/components/ui/button";
-import { appStore } from "#/integrations/tanstack-query/store-provider";
 
 const MainToolbarContent = ({
-	onHighlighterClick,
-	onLinkClick,
 	onSearchAndReplaceClick,
 	isSearchAndReplaceOpen,
 	searchAndReplaceButtonRef,
-	isMobile,
-	editor,
 	name,
 }: {
 	onHighlighterClick: () => void;
@@ -148,35 +111,6 @@ const MainToolbarContent = ({
 	);
 };
 
-const MobileToolbarContent = ({
-	type,
-	onBack,
-}: {
-	type: "highlighter" | "link";
-	onBack: () => void;
-}) => (
-	<>
-		<ToolbarGroup>
-			<Button variant="ghost" onClick={onBack}>
-				<ArrowLeftIcon className="tiptap-button-icon" />
-				{type === "highlighter" ? (
-					<HighlighterIcon className="tiptap-button-icon" />
-				) : (
-					<LinkIcon className="tiptap-button-icon" />
-				)}
-			</Button>
-		</ToolbarGroup>
-
-		<ToolbarSeparator />
-
-		{type === "highlighter" ? (
-			<ColorHighlightPopoverContent />
-		) : (
-			<LinkContent />
-		)}
-	</>
-);
-
 export function SimpleEditorView({
 	name,
 	content,
@@ -217,7 +151,7 @@ export function SimpleEditorView({
 			TaskList,
 			TaskItem.configure({ nested: true }),
 			Highlight.configure({ multicolor: true }),
-			Image,
+			Image.configure({ allowBase64: true }),
 			Typography,
 			TextStyle,
 			LineHeight,
@@ -227,22 +161,6 @@ export function SimpleEditorView({
 			FindAndReplace.configure({
 				searchDebounceMs: 500,
 				injectCSS: false,
-			}),
-			Placeholder.configure({
-				placeholder: ({ node }) => {
-					if (node.type.name === "heading") {
-						return "What's the title?";
-					}
-					return "Write something";
-				},
-			}),
-
-			ImageUploadNode.configure({
-				accept: "image/*",
-				maxSize: MAX_FILE_SIZE,
-				limit: 3,
-				upload: handleImageUpload,
-				onError: (error) => console.error("Upload failed:", error),
 			}),
 		],
 		content,
@@ -293,23 +211,16 @@ export function SimpleEditorView({
 							: {}),
 					}}
 				>
-					{mobileView === "main" ? (
-						<MainToolbarContent
-							onHighlighterClick={() => setMobileView("highlighter")}
-							onLinkClick={() => setMobileView("link")}
-							onSearchAndReplaceClick={toggleSearchAndReplace}
-							isSearchAndReplaceOpen={isSearchAndReplaceOpen}
-							searchAndReplaceButtonRef={searchAndReplaceButtonRef}
-							isMobile={isMobile}
-							editor={editor}
-							name={name}
-						/>
-					) : (
-						<MobileToolbarContent
-							type={mobileView === "highlighter" ? "highlighter" : "link"}
-							onBack={() => setMobileView("main")}
-						/>
-					)}
+					<MainToolbarContent
+						onHighlighterClick={() => setMobileView("highlighter")}
+						onLinkClick={() => setMobileView("link")}
+						onSearchAndReplaceClick={toggleSearchAndReplace}
+						isSearchAndReplaceOpen={isSearchAndReplaceOpen}
+						searchAndReplaceButtonRef={searchAndReplaceButtonRef}
+						isMobile={isMobile}
+						editor={editor}
+						name={name}
+					/>
 				</Toolbar>
 
 				<SearchAndReplace

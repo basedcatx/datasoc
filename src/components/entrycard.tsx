@@ -4,7 +4,6 @@ import { ArrowUpRight, Heart, Search, SquarePen, Trash } from "lucide-react";
 import { appStore } from "#/integrations/tanstack-query/store-provider";
 import { updateRecord, type R } from "#/lib/libs";
 import { createFlags, FLAGS } from "#/lib/utils";
-import { htmlContent } from "#/routes/view/$reportId";
 import { Badge } from "./ui/badge";
 import { Card } from "./ui/card";
 import {
@@ -15,7 +14,7 @@ import {
 	ContextMenuTrigger,
 } from "./ui/context-menu";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { recordKeys, recordMutations } from "#/lib/features/query";
+import { recordMutations } from "#/lib/features/query";
 
 export default function EntryCard({
 	name,
@@ -38,7 +37,7 @@ export default function EntryCard({
 		//Placeholder
 		appStore.setState((prev) => ({
 			...prev,
-			preview: { content: htmlContent },
+			preview: { content: content_html },
 		}));
 	};
 

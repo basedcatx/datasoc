@@ -22,19 +22,19 @@ export const recordKeys = {
 
 export const recordQueries = {
 	all: () =>
-		queryOptions({
+		queryOptions<R[]>({
 			queryKey: recordKeys.all,
 			queryFn: () => fetchRecords(),
 			staleTime: 5 * 60 * 1000,
 		}),
 	search: (query: string) =>
-		queryOptions({
+		queryOptions<R[]>({
 			queryKey: [...recordKeys.search(query)],
 			queryFn: () => hybridSearchRecords({ text: query }),
 			staleTime: 10 * 60 * 1000,
 		}),
 	id: (id: number) =>
-		queryOptions({
+		queryOptions<R>({
 			queryKey: recordKeys.id(id),
 			staleTime: 5 * 60 * 1000,
 			queryFn: () => fetchRecord(id),

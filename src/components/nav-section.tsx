@@ -7,10 +7,9 @@ import {
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
+import type { R } from "#/lib/libs";
 
 export default function NavSection({
-	queryStr,
 	sectionName,
 	icon,
 	items,
@@ -18,7 +17,7 @@ export default function NavSection({
 	queryStr?: string;
 	icon: LucideIcon;
 	sectionName: string;
-	items: { name: string; action: () => void }[];
+	items: { data: R[]; action: (id?: number) => void };
 }) {
 	const Icon = icon;
 
@@ -32,21 +31,22 @@ export default function NavSection({
 					<ChevronsUpDown className="stroke-muted-foreground size-4" />
 				</CollapsibleTrigger>
 			</div>
+
 			<CollapsibleContent className="w-full">
 				<ul className="flex flex-col gap-2 items-start my-2 w-full">
-					{items.map((i) => {
+					{items.data.map((i) => {
 						return (
 							<li key={i.name + String(Math.random() * 100)} className="w-full">
 								<Button
 									variant={"ghost"}
-									className="w-full justify-start cursor-pointer"
-									onClick={i.action}
+									className="w-full justify-start cursor-pointer transition-all duration-300 dark:hover:bg-input/30"
+									onClick={() => items.action(i.id)}
 									asChild
 								>
-									<Link to={"/view/$reportId"} params={{ reportId: i.id! }}>
+									<div>
 										<Icon />
 										<p>{i.name}</p>
-									</Link>
+									</div>
 								</Button>
 							</li>
 						);

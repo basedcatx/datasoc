@@ -60,12 +60,12 @@ export async function fetchRecords(): Promise<R[]> {
 	}
 }
 
-export async function fetchRecord(id: number): Promise<R | string> {
+export async function fetchRecord(id: number): Promise<R> {
 	try {
 		return await invoke<R>("read_record", { input: id });
 	} catch (e) {
 		console.error(e);
-		return e as string;
+		throw e;
 	}
 }
 

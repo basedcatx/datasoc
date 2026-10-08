@@ -19,7 +19,8 @@ import { recordQueries } from "#/lib/features/query";
 import type { R } from "#/lib/libs";
 import { Skeleton } from "./ui/skeleton";
 import { createFlags, FLAGS } from "../lib/utils";
-import React, { useState } from "react";
+import type React from "react";
+import { useState } from "react";
 
 const navLinks = [
 	{ text: "Home", path: "/", icon: Home },
@@ -128,16 +129,16 @@ export default function Sidebar() {
 		);
 	}
 
+	const handleNavigateAction = (id?: number) => {
+		if (id) return navigate({ to: `/view/${id}` });
+	};
+
 	const recent = [...(data as R[])]
 		.sort(
 			(a, b) =>
 				new Date(a.created_at!).getTime() - new Date(b.created_at!).getTime(),
 		)
-		.slice(0, 3)
-		.map((r) => ({
-			name: r.name,
-			action: () => navigate({ to: `/view/${r.id}` }),
-		}));
+		.slice(0, 3);
 
 	const starred = [...(data as R[])]
 		.sort(
@@ -145,20 +146,24 @@ export default function Sidebar() {
 				new Date(a.created_at!).getTime() - new Date(b.created_at!).getTime(),
 		)
 		.filter((r) => createFlags(r.flags).check(FLAGS.IS_FAVORITE))
-		.slice(0, 3)
-		.map((r) => ({
-			name: r.name,
-			action: () => navigate({ to: `/view/${r.id}` }),
-		}));
+		.slice(0, 3);
 
 	return (
 		<SidebarComponent>
 			{recent.length > 0 && (
-				<NavSection sectionName="Recent" icon={File} items={recent} />
+				<NavSection
+					sectionName="Recent"
+					icon={File}
+					items={{ data: recent, action: handleNavigateAction }}
+				/>
 			)}
 
 			{starred.length > 0 && (
-				<NavSection sectionName="Starred" icon={File} items={starred} />
+				<NavSection
+					sectionName="Starred"
+					icon={File}
+					items={{ data: starred, action: handleNavigateAction }}
+				/>
 			)}
 		</SidebarComponent>
 	);
