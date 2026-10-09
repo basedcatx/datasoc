@@ -1,3 +1,4 @@
+import PreviewCard from "#/components/PreviewCard";
 import TrashCard from "#/components/TrashCard";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -9,6 +10,7 @@ function RouteComponent() {
 	return (
 		<div>
 			<TrashCard />
+			<PreviewCard />
 		</div>
 	);
 }

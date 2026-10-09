@@ -137,7 +137,12 @@ export default function LibraryCard() {
 					<ul className="flex gap-4 flex-col">
 						{data.map((e) => (
 							<li key={e.name} className="cv-list-item">
-								<LibraryEntryCard {...e} />
+								<Link
+									to="/view/$reportId"
+									params={{ reportId: e.id!.toString() }}
+								>
+									<LibraryEntryCard {...e} />
+								</Link>
 							</li>
 						))}
 					</ul>
