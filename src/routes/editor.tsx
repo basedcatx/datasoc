@@ -7,11 +7,6 @@ export const Route = createFileRoute("/editor")({
 });
 
 function RouteComponent() {
-	const [fileName, setFileName] = useState("Unamed");
-	const [fileTags, setFileTags] = useState<string[]>([]);
-	const [meta, setFileMeta] = useState<Record<string, string>>({});
-	const [fileStatus, setFileStatus] = useState("Draft");
-
 	return (
 		<div>
 			<SimpleEditor />

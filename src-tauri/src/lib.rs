@@ -28,7 +28,7 @@ pub fn run() {
                 .path()
                 .resolve("res/minilm-l6.gguf", tauri::path::BaseDirectory::Resource)?;
 
-            let mut db_path = app
+            let db_path = app
                 .path()
                 .resolve("db/appdata.db", tauri::path::BaseDirectory::Resource)?;
 
@@ -46,8 +46,9 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             get_embedding,
             create_record,
-            read_records,
-            read_record,
+            fetch_records,
+            fetch_record_by_name,
+            fetch_record_by_id,
             update_record,
             delete_record,
             hybrid_search

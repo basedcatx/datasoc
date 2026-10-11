@@ -144,7 +144,7 @@ pub async fn create_record(
 }
 
 #[tauri::command]
-pub async fn read_records(state: State<'_, AppState>) -> Result<Vec<RecordSearch>, String> {
+pub async fn fetch_records(state: State<'_, AppState>) -> Result<Vec<RecordSearch>, String> {
     let db = state
         .db
         .lock()
@@ -197,7 +197,10 @@ pub async fn read_records(state: State<'_, AppState>) -> Result<Vec<RecordSearch
 }
 
 #[tauri::command]
-pub async fn read_record(input: u32, state: State<'_, AppState>) -> Result<RecordSearch, String> {
+pub async fn fetch_record_by_id(
+    input: u32,
+    state: State<'_, AppState>,
+) -> Result<RecordSearch, String> {
     let db = state
         .db
         .lock()
@@ -209,6 +212,58 @@ pub async fn read_record(input: u32, state: State<'_, AppState>) -> Result<Recor
 
     let record = stmt
         .query_row([&input], |row| {
+            let tags_str: String = row.get(2)?;
+            let meta_str: String = row.get(4)?;
+
+            let tags: Tags = serde_json::from_str(&tags_str).map_err(|e| {
+                rusqlite::Error::FromSqlConversionFailure(
+                    2,
+                    rusqlite::types::Type::Text,
+                    Box::new(e),
+                )
+            })?;
+
+            let meta: Meta = serde_json::from_str(&meta_str).map_err(|e| {
+                rusqlite::Error::FromSqlConversionFailure(
+                    5,
+                    rusqlite::types::Type::Text,
+                    Box::new(e),
+                )
+            })?;
+
+            Ok(RecordSearch {
+                id: row.get(8)?,
+                name: row.get(0)?,
+                content: row.get(1)?,
+                tags,
+                flags: row.get(3)?,
+                meta,
+                content_html: row.get(5)?,
+                created_at: row.get(6)?,
+                updated_at: row.get(7)?,
+            })
+        })
+        .map_err(|e| e.to_string())?;
+
+    Ok(record)
+}
+
+#[tauri::command]
+pub async fn fetch_record_by_name(
+    input: String,
+    state: State<'_, AppState>,
+) -> Result<RecordSearch, String> {
+    let db = state
+        .db
+        .lock()
+        .map_err(|e| format!("db lock poisoned {e}"))?;
+
+    let mut stmt = db
+        .prepare("SELECT name, content, tags, flags, meta, content_html, createdAt, updatedAt, id FROM Records WHERE name ILIKE ?1")
+        .map_err(|e| e.to_string())?;
+
+    let record = stmt
+        .query_row([&input.to_lowercase()], |row| {
             let tags_str: String = row.get(2)?;
             let meta_str: String = row.get(4)?;
 

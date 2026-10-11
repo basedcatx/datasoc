@@ -88,7 +88,6 @@ import {
 	AlertDialogFooter,
 	AlertDialogTrigger,
 } from "#/components/ui/alert-dialog";
-import { Button as BTN } from "#/components/ui/button";
 import {
 	Field,
 	FieldDescription,
@@ -115,9 +114,13 @@ const MainToolbarContent = ({
 	// biome-ignore lint/suspicious/noExplicitAny: This is unecessary
 	editor: any;
 }) => {
-	const name = useSelector(appStore, (state) => state.file.name);
+	const state = useSelector(appStore, (s) => s.file);
+	const name = state.name;
 	const [_, startTransition] = useTransition();
 	const bp = useIsBreakpoint("max", 1280);
+	const [saving, setSaving] = useState<boolean | undefined>(undefined);
+
+	const AUTOSAVE_INTERVAL_MS = 30 * 1000;
 
 	const handleNameChange = (value: string) => {
 		startTransition(() => {
@@ -129,6 +132,17 @@ const MainToolbarContent = ({
 			});
 		});
 	};
+
+	// TODO: Use mutations and query to avoid async headaches
+	// biome-ignore lint/correctness/useExhaustiveDependencies: This is an intended functionality. Without this every state change would cause a new interval to be schedule, which isn't what we want.
+	useEffect(() => {
+		const interval = setInterval(() => {
+			if (!state.name || !state.content) return;
+			try {
+			} catch (_) {}
+		}, AUTOSAVE_INTERVAL_MS);
+		return clearInterval(interval);
+	}, []);
 
 	return (
 		<div className="flex items-center justify-between gap-5 flex-row max-xl:flex-col max-xl:fixed max-xl:top-0 xl:w-full p-4">

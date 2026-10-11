@@ -3,7 +3,7 @@ import { useEffect, useState, useTransition, type ReactNode } from "react";
 import { Input } from "./ui/input";
 import { Popover, PopoverTrigger, PopoverContent } from "./ui/popover";
 import { Button } from "#/components/ui/button";
-import { LucideOption } from "lucide-react";
+import { LucideOption, SeparatorHorizontal } from "lucide-react";
 import {
 	FieldGroup,
 	FieldLegend,
@@ -18,7 +18,7 @@ import { appStore } from "#/integrations/tanstack-query/store-provider";
 import { useSelector } from "@tanstack/react-store";
 
 export default function MetadataDialog() {
-	const [open, setOpen] = useState(true);
+	const [open, setOpen] = useState(false);
 	const [isPending, startTransition] = useTransition();
 	const tags = useSelector(appStore, (s) => s.file.tags);
 	const meta = useSelector(appStore, (s) => s.file.meta);
@@ -68,7 +68,7 @@ export default function MetadataDialog() {
 				</Button>
 			</PopoverTrigger>
 			<PopoverContent
-				className="tiptap-card w-80 p-4"
+				className="tiptap-card w-80 p-4 gap-0"
 				onInteractOutside={(e) => e.preventDefault()}
 			>
 				<div className="flex flex-row-reverse w-full">
@@ -95,7 +95,7 @@ export default function MetadataDialog() {
 									onChange={(e) => {
 										handleTags(e.target.value);
 									}}
-									className="p-2 rounded-full"
+									className="p-2 rounded-md"
 									placeholder="eg water pump fixed..."
 								/>
 								{tags.length > 0 && (
@@ -117,7 +117,7 @@ export default function MetadataDialog() {
 									Fields/Meta (Separated by space)
 								</FieldLabel>
 								<Input
-									className="p-2 rounded-full"
+									className="p-2 rounded-md"
 									id="r-tags"
 									onChange={(e) => {
 										handleMeta(e.target.value);

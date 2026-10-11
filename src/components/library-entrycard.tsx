@@ -133,7 +133,7 @@ export default function LibraryEntryCard({
 				<ContextMenuItem onClick={handleAddOrRemoveFav}>
 					{flag.check(FLAGS.IS_FAVORITE) ? (
 						<div className="flex gap-2">
-							<Heart className="fill-red-500" />
+							<Heart className="fill-primary" />
 							Remove from favorite
 						</div>
 					) : (

@@ -53,16 +53,25 @@ export async function insertRecord(input: R) {
 
 export async function fetchRecords(): Promise<R[]> {
 	try {
-		return await invoke<R[]>("read_records");
+		return await invoke<R[]>("fetch_records");
 	} catch (e) {
-		console.log(e);
+		console.log("ERROR: ", e);
 		return [];
 	}
 }
 
-export async function fetchRecord(id: number): Promise<R> {
+export async function fetchRecordById(id: number): Promise<R> {
 	try {
-		return await invoke<R>("read_record", { input: id });
+		return await invoke<R>("fetch_record_by_id", { input: id });
+	} catch (e) {
+		console.error(e);
+		throw e;
+	}
+}
+
+export async function fetchRecordByName(name: string): Promise<R> {
+	try {
+		return await invoke<R>("fetch_record_by_name", { input: name });
 	} catch (e) {
 		console.error(e);
 		throw e;

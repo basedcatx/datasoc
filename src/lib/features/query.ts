@@ -5,7 +5,7 @@ import {
 } from "@tanstack/react-query";
 import {
 	deleteRecord,
-	fetchRecord,
+	fetchRecordById,
 	fetchRecords,
 	hybridSearchRecords,
 	updateRecord,
@@ -37,7 +37,7 @@ export const recordQueries = {
 		queryOptions<R>({
 			queryKey: recordKeys.id(id),
 			staleTime: 5 * 60 * 1000,
-			queryFn: () => fetchRecord(id),
+			queryFn: () => fetchRecordById(id),
 		}),
 };
 

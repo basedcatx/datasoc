@@ -1,10 +1,3 @@
-import HomeInfoCard from "#/components/home-infocard";
-import PreviewCard from "#/components/PreviewCard";
-import RecentlyCreatedCard from "#/components/recently-created-card";
-import { Skeleton } from "#/components/ui/skeleton";
-import { recordQueries } from "#/lib/features/query";
-import { type R } from "#/lib/libs";
-import { createFlags, FLAGS } from "#/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import {
@@ -13,6 +6,13 @@ import {
 	LibraryBig,
 	LucideCheck,
 } from "lucide-react";
+import HomeInfoCard from "#/components/home-infocard";
+import PreviewCard from "#/components/PreviewCard";
+import RecentlyCreatedCard from "#/components/recently-created-card";
+import { Skeleton } from "#/components/ui/skeleton";
+import { recordQueries } from "#/lib/features/query";
+import type { R } from "#/lib/libs";
+import { createFlags, FLAGS } from "#/lib/utils";
 
 export const Route = createFileRoute("/_home/")({
 	component: RouteComponent,
@@ -64,7 +64,7 @@ function InfoCardSection() {
 				value={data
 					.filter((d: R) => createFlags(d.flags).check(FLAGS.IS_FAVORITE))
 					.length.toString()}
-				icon={<HeartIcon className="fill-red-200" />}
+				icon={<HeartIcon className="fill-primary" />}
 			></HomeInfoCard>
 		</section>
 	);
@@ -73,6 +73,7 @@ function InfoCardSection() {
 function RouteComponent() {
 	return (
 		<div className="w-full flex flex-col gap-8 overflow-y-auto h-dvh py-4 px-8 scroll-fade scrollbar-thin bg-background">
+			asdfasdfasdf
 			<InfoCardSection />
 			<RecentlyCreatedCard />
 			<PreviewCard />
