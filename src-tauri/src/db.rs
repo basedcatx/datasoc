@@ -31,7 +31,7 @@ pub fn init(db_path: &PathBuf) -> anyhow::Result<Connection> {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             content TEXT NOT NULL,
-            meta TEXT DEFAULT '{}',
+            meta TEXT DEFAULT '[]',
             tags TEXT DEFAULT '[]',
             flags INTEGER DEFAULT 0,
             createdAt TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),

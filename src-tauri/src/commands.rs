@@ -59,7 +59,7 @@ pub struct SearchInput {
 struct Tags(Vec<String>);
 
 #[derive(Serialize, Deserialize, Debug)]
-struct Meta(HashMap<String, String>);
+struct Meta(Vec<String>);
 
 #[tauri::command]
 pub async fn get_embedding(input: String, state: State<'_, AppState>) -> Result<Vec<f32>, String> {

@@ -7,7 +7,7 @@ export interface R {
 	content_html: string;
 	flags: number;
 	tags: string[];
-	meta: Record<string, string>;
+	meta: string[];
 	created_at?: string;
 	updated_at?: string;
 	embedding?: number[];
