@@ -6,18 +6,22 @@ import {
 import {
 	deleteRecord,
 	fetchRecordById,
+	fetchRecordByName,
 	fetchRecords,
 	hybridSearchRecords,
+	insertRecord,
 	updateRecord,
 	type R,
 	type RUpdate,
 } from "../libs";
 import { createFlags, FLAGS } from "../utils";
+import { appStore } from "#/integrations/tanstack-query/store-provider";
 
 export const recordKeys = {
 	all: ["records"] as const,
 	search: (query: string) => [...recordKeys.all, "search", query] as const,
-	id: (id: number) => [...recordKeys.all, id] as const,
+	id: (id: number) => [...recordKeys.all, "id", id] as const,
+	name: (name: string) => [...recordKeys.all, "name", name] as const,
 };
 
 export const recordQueries = {
@@ -38,6 +42,12 @@ export const recordQueries = {
 			queryKey: recordKeys.id(id),
 			staleTime: 5 * 60 * 1000,
 			queryFn: () => fetchRecordById(id),
+		}),
+	name: (str: string) =>
+		queryOptions<R>({
+			queryKey: recordKeys.name(str),
+			staleTime: 5 * 60 * 1000,
+			queryFn: () => fetchRecordByName(str),
 		}),
 };
 
@@ -195,6 +205,52 @@ export const recordMutations = (client: QueryClient) => ({
 				});
 			}
 			return true;
+		},
+	}),
+
+	createNewRecord: () => ({
+		onMutate: ({ record }: { record: R }) => {
+			client.setQueryData(recordKeys.name(record.name), record);
+			return { record };
+		},
+
+		onSettled: (_, __, { record }: { record: R }) => {
+			client.invalidateQueries({ queryKey: recordKeys.name(record.name) });
+		},
+
+		onSuccess: (data: { record: R }) => {
+			appStore.setState((prev) => ({
+				...prev,
+				file: { ...prev.file, id: data.record.id ?? -1 },
+			}));
+		},
+
+		mutationFn: async ({ record }: { record: R }) => {
+			await insertRecord(record);
+			const temp = await fetchRecordByName(record.name);
+			// This is a very silly check btw. Temp would always have an id, thanks to ts
+			if (temp.id) client.setQueryData(recordKeys.id(temp.id), temp);
+			return { record: temp };
+		},
+	}),
+
+	updateRecord: () => ({
+		onMutate: ({ record }: { record: R }) => {
+			const { id } = record;
+			if (!id) {
+				console.log("Error(updateRecord): Invalid id");
+				return;
+			}
+			client.setQueryData(recordKeys.id(id), record);
+			client.setQueryData(recordKeys.name(record.name), record);
+			return { record };
+		},
+		mutationFn: async ({ record }: { record: R }) => {
+			const id = record.id;
+			if (!id) return undefined;
+			const rUpdate: RUpdate = { ...record, id };
+			await updateRecord(rUpdate);
+			return rUpdate;
 		},
 	}),
 });

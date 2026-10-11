@@ -90,6 +90,9 @@ import {
 	FieldLabel,
 } from "#/components/ui/field";
 import { appStore } from "#/integrations/tanstack-query/store-provider";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { recordMutations, recordQueries } from "#/lib/features/query";
+import { FLAGS } from "#/lib/utils";
 
 const MainToolbarContent = ({
 	onHighlighterClick,
@@ -243,6 +246,54 @@ export function SimpleEditor() {
 	const toolbarRef = useRef<HTMLDivElement>(null);
 	const searchAndReplaceButtonRef = useRef<HTMLButtonElement>(null);
 
+	const qc = useQueryClient();
+
+	const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const docId = useSelector(appStore, (s) => s.file.id);
+	const createNewRecordMutation = useMutation({
+		...recordMutations(qc).createNewRecord(),
+	});
+
+	const updateRecordMutation = useMutation({
+		...recordMutations(qc).updateRecord(),
+	});
+
+	const fetchRecordByNameQuery = useQuery({
+		...recordQueries.id(docId),
+		enabled: docId !== -1,
+	});
+
+	const AUTOSAVE_INTERVAL_MS = 30 * 1000;
+
+	const handleAutoSave = (state: any) => {
+		if (!state.name || !state.content || !state.content_html) {
+			return;
+		}
+
+		if (state.id === -1) {
+			createNewRecordMutation.mutate({
+				record: { ...state, id: undefined, flags: FLAGS.NONE_CLEAR_ALL },
+			});
+			return;
+		}
+
+		const uRecord = fetchRecordByNameQuery.data;
+
+		if (!uRecord) {
+			console.log(fetchRecordByNameQuery.error);
+			return;
+		}
+
+		updateRecordMutation.mutate({
+			record: {
+				...uRecord,
+				name: state.name,
+				content: state.content,
+				content_html: state.content_html,
+			},
+		});
+	};
+
 	const editor = useEditor({
 		immediatelyRender: true,
 		editorProps: {
@@ -294,6 +345,21 @@ export function SimpleEditor() {
 				onError: (error) => console.error("Upload failed:", error),
 			}),
 		],
+		onUpdate({ editor }) {
+			const plainText = editor.getText({ blockSeparator: "\n" });
+			const html = editor.getHTML();
+
+			appStore.setState((prev) => ({
+				...prev,
+				file: { ...prev.file, content_html: html, content: plainText },
+			}));
+
+			if (timerRef.current) clearTimeout(timerRef.current);
+
+			timerRef.current = setTimeout(() => {
+				handleAutoSave(appStore.state.file);
+			}, AUTOSAVE_INTERVAL_MS);
+		},
 	});
 
 	const rect = useCursorVisibility({
