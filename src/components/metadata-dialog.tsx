@@ -95,6 +95,7 @@ export default function MetadataDialog() {
 									onChange={(e) => {
 										handleTags(e.target.value);
 									}}
+									defaultValue={tags.join(" ")}
 									className="p-2 rounded-md"
 									placeholder="eg water pump fixed..."
 								/>
@@ -119,6 +120,7 @@ export default function MetadataDialog() {
 								<Input
 									className="p-2 rounded-md"
 									id="r-tags"
+									defaultValue={meta.join(" ")}
 									onChange={(e) => {
 										handleMeta(e.target.value);
 									}}
