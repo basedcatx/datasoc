@@ -198,7 +198,7 @@ pub async fn fetch_records(state: State<'_, AppState>) -> Result<Vec<RecordSearc
 
 #[tauri::command]
 pub async fn fetch_record_by_id(
-    input: u32,
+    input: i32,
     state: State<'_, AppState>,
 ) -> Result<RecordSearch, String> {
     let db = state
