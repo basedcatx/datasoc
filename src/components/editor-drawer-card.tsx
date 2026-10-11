@@ -13,6 +13,7 @@ import { useSelector } from "@tanstack/react-store";
 import { appStore } from "#/integrations/tanstack-query/store-provider";
 import { Badge } from "./ui/badge";
 import { Textarea } from "./ui/textarea";
+import { Card } from "./ui/card";
 
 function MetaInput({
 	name,
@@ -139,67 +140,4 @@ export default function EditorDrawerCard({
 			},
 		}));
 	};
-
-	return (
-		<div className="flex flex-col gap-8 overflow-y-hidden overflow-x-hidden h-full px-2">
-			<div className="flex flex-col gap-2">
-				<p className="text-xs text-muted-foreground">Tags</p>
-				<Textarea
-					disabled={!enabled}
-					placeholder="Type to enter, separated by commas (,)"
-					onChange={(e) => {
-						e.preventDefault();
-						handleTagChange(e.target.value);
-					}}
-				/>
-				{
-					<ul className="flex flex-wrap gap-2 mt-4">
-						{tags.map((tag) => {
-							return (
-								tag.trim() && (
-									<li key={tag}>
-										<Badge variant={"outline"} className="p-4">
-											<p className="text-nowrap truncate max-w-20">{tag}</p>
-										</Badge>
-									</li>
-								)
-							);
-						})}
-					</ul>
-				}
-			</div>
-
-			<div className="flex gap-1 flex-col overflow-y-auto">
-				<p className="text-xs text-muted-foreground">Metadata</p>
-				<ul>
-					{metas.map(({ id, name, value }: Record<string, string>) => (
-						<li key={id}>
-							<MetaInput
-								enabled={enabled}
-								onDataChange={handleMetaUpdate}
-								id={id}
-								name={name}
-								value={value}
-								onDelete={() => {
-									handleMetaDelete(id);
-								}}
-							/>
-						</li>
-					))}
-				</ul>
-			</div>
-
-			<Button
-				className="p-4 w-xs rounded-full mx-auto"
-				disabled={!enabled}
-				variant={"default"}
-				onClick={(e) => {
-					e.preventDefault();
-					handleAddMeta();
-				}}
-			>
-				<LucidePlus className="size-6" />
-			</Button>
-		</div>
-	);
 }
