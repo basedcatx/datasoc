@@ -79,6 +79,7 @@ export const recordMutations = (client: QueryClient) => ({
 
 			const data = client
 				.getQueryData<R[]>(recordKeys.all)
+				// biome-ignore lint/style/noNonNullAssertion: i.id wouldl always be defined from it's source
 				?.filter((i) => !ids.includes(i.id!));
 
 			if (!data) return {};

@@ -65,18 +65,13 @@ import { MAX_FILE_SIZE } from "#/lib/tiptap-utils";
 // --- Styles ---
 import "#/components/tiptap-templates/simple/simple-editor.scss";
 
-import { LucideOption, LucidePencilLine } from "lucide-react";
+import { LucidePencilLine } from "lucide-react";
 import { Input } from "#/components/ui/input";
 
 const SEARCH_AND_REPLACE_SCROLL_OPTIONS: ScrollIntoViewOptions = {
 	block: "center",
 };
 
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@radix-ui/react-popover";
 import { useSelector } from "@tanstack/react-store";
 import { compressAndConvertBase64 } from "#/components/tiptap-node/image-upload-node";
 
@@ -118,10 +113,6 @@ const MainToolbarContent = ({
 	const name = state.name;
 	const [_, startTransition] = useTransition();
 	const bp = useIsBreakpoint("max", 1280);
-	const [saving, setSaving] = useState<boolean | undefined>(undefined);
-
-	const AUTOSAVE_INTERVAL_MS = 30 * 1000;
-
 	const handleNameChange = (value: string) => {
 		startTransition(() => {
 			appStore.setState((s) => {
@@ -132,17 +123,6 @@ const MainToolbarContent = ({
 			});
 		});
 	};
-
-	// TODO: Use mutations and query to avoid async headaches
-	// biome-ignore lint/correctness/useExhaustiveDependencies: This is an intended functionality. Without this every state change would cause a new interval to be schedule, which isn't what we want.
-	useEffect(() => {
-		const interval = setInterval(() => {
-			if (!state.name || !state.content) return;
-			try {
-			} catch (_) {}
-		}, AUTOSAVE_INTERVAL_MS);
-		return clearInterval(interval);
-	}, []);
 
 	return (
 		<div className="flex items-center justify-between gap-5 flex-row max-xl:flex-col max-xl:fixed max-xl:top-0 xl:w-full p-4">
