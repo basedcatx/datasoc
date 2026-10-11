@@ -259,7 +259,7 @@ pub async fn fetch_record_by_name(
         .map_err(|e| format!("db lock poisoned {e}"))?;
 
     let mut stmt = db
-        .prepare("SELECT name, content, tags, flags, meta, content_html, createdAt, updatedAt, id FROM Records WHERE name ILIKE ?1")
+        .prepare("SELECT name, content, tags, flags, meta, content_html, createdAt, updatedAt, id FROM Records WHERE UPPER(name) LIKE UPPER(?1)")
         .map_err(|e| e.to_string())?;
 
     let record = stmt
