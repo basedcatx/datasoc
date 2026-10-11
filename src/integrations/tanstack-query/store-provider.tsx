@@ -4,7 +4,7 @@ export const appStore = createStore({
 	file: {
 		name: "",
 		content: "",
-		meta: [{}],
+		meta: [] as string[],
 		tags: [] as string[],
 	},
 	preview: {

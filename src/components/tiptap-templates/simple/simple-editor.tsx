@@ -10,27 +10,14 @@ import { Superscript } from "@tiptap/extension-superscript";
 import { TextAlign } from "@tiptap/extension-text-align";
 import { LineHeight, TextStyle } from "@tiptap/extension-text-style";
 import { Typography } from "@tiptap/extension-typography";
-import { Placeholder, Selection, UndoRedo } from "@tiptap/extensions";
+import { Placeholder, Selection } from "@tiptap/extensions";
 import { EditorContent, EditorContext, useEditor } from "@tiptap/react";
 import { StarterKit } from "@tiptap/starter-kit";
-import History from "@tiptap/extension-history";
-import {
-	memo,
-	useCallback,
-	useEffect,
-	useRef,
-	useState,
-	useTransition,
-} from "react";
-import {
-	getHierarchicalIndexes,
-	TableOfContents,
-} from "@tiptap/extension-table-of-contents";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 
 // --- UI Primitives ---
 import { Button } from "#/components/tiptap-ui-primitive/button";
 import {
-	Toolbar,
 	ToolbarGroup,
 	ToolbarSeparator,
 } from "#/components/tiptap-ui-primitive/toolbar";
@@ -39,31 +26,23 @@ import {
 import "#/components/tiptap-node/blockquote-node/blockquote-node.scss";
 import "#/components/tiptap-node/code-block-node/code-block-node.scss";
 import "#/components/tiptap-node/heading-node/heading-node.scss";
-import { HorizontalRule } from "#/components/tiptap-node/horizontal-rule-node/horizontal-rule-node-extension";
 import "#/components/tiptap-node/horizontal-rule-node/horizontal-rule-node.scss";
 import "#/components/tiptap-node/image-node/image-node.scss";
 import { ImageUploadNode } from "#/components/tiptap-node/image-upload-node/image-upload-node-extension";
 import "#/components/tiptap-node/list-node/list-node.scss";
 import "#/components/tiptap-node/paragraph-node/paragraph-node.scss";
+import MetadataDialog from "#/components/metadata-dialog";
 
 // --- Icons ---
-import { ArrowLeftIcon } from "#/components/tiptap-icons/arrow-left-icon";
-import { HighlighterIcon } from "#/components/tiptap-icons/highlighter-icon";
-import { LinkIcon } from "#/components/tiptap-icons/link-icon";
 // --- Tiptap UI ---
 import { BlockquoteButton } from "#/components/tiptap-ui/blockquote-button";
 import {
 	ColorHighlightPopover,
 	ColorHighlightPopoverButton,
-	ColorHighlightPopoverContent,
 } from "#/components/tiptap-ui/color-highlight-popover";
 import { HeadingDropdownMenu } from "#/components/tiptap-ui/heading-dropdown-menu";
 import { ImageUploadButton } from "#/components/tiptap-ui/image-upload-button";
-import {
-	LinkButton,
-	LinkContent,
-	LinkPopover,
-} from "#/components/tiptap-ui/link-popover";
+import { LinkButton, LinkPopover } from "#/components/tiptap-ui/link-popover";
 import { ListDropdownMenu } from "#/components/tiptap-ui/list-dropdown-menu";
 import { MarkButton } from "#/components/tiptap-ui/mark-button";
 import {
@@ -81,51 +60,42 @@ import { useWindowSize } from "#/hooks/use-window-size";
 // --- Components ---
 
 // --- Lib ---
-import { handleImageUpload, MAX_FILE_SIZE } from "#/lib/tiptap-utils";
+import { MAX_FILE_SIZE } from "#/lib/tiptap-utils";
 
 // --- Styles ---
 import "#/components/tiptap-templates/simple/simple-editor.scss";
 
+import { LucideOption, LucidePencilLine } from "lucide-react";
 import { Input } from "#/components/ui/input";
-import {
-	LucideFilePenLine,
-	LucideOption,
-	LucidePencilLine,
-} from "lucide-react";
 
 const SEARCH_AND_REPLACE_SCROLL_OPTIONS: ScrollIntoViewOptions = {
 	block: "center",
 };
 
 import {
-	Drawer,
-	DrawerClose,
-	DrawerContent,
-	DrawerFooter,
-	DrawerTrigger,
-} from "#/components/ui/drawer";
-
-import EditorDrawerCard from "#/components/editor-drawer-card";
-import { Button as BTN } from "#/components/ui/button";
-import { appStore } from "#/integrations/tanstack-query/store-provider";
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@radix-ui/react-popover";
 import { useSelector } from "@tanstack/react-store";
+import { compressAndConvertBase64 } from "#/components/tiptap-node/image-upload-node";
+
 import {
 	AlertDialog,
-	AlertDialogTrigger,
-	AlertDialogContent,
-	AlertDialogMedia,
-	AlertDialogTitle,
-	AlertDialogFooter,
-	AlertDialogCancel,
 	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogFooter,
+	AlertDialogTrigger,
 } from "#/components/ui/alert-dialog";
+import { Button as BTN } from "#/components/ui/button";
 import {
-	FieldGroup,
 	Field,
 	FieldDescription,
+	FieldGroup,
 	FieldLabel,
 } from "#/components/ui/field";
-import { compressAndConvertBase64 } from "#/components/tiptap-node/image-upload-node";
+import { appStore } from "#/integrations/tanstack-query/store-provider";
 
 const MainToolbarContent = ({
 	onHighlighterClick,
@@ -142,6 +112,7 @@ const MainToolbarContent = ({
 	isSearchAndReplaceOpen: boolean;
 	searchAndReplaceButtonRef: React.RefObject<HTMLButtonElement | null>;
 	isMobile: boolean;
+	// biome-ignore lint/suspicious/noExplicitAny: This is unecessary
 	editor: any;
 }) => {
 	const name = useSelector(appStore, (state) => state.file.name);
@@ -205,7 +176,7 @@ const MainToolbarContent = ({
 				</AlertDialog>
 			) : (
 				<Input
-					className="ring-0 focus-visible:ring-0 shrink-1 bg-transparent focus-visible:bg-background focus-active:bg-background border-none rounded-none dark:bg-transparent"
+					className="ring-0 focus-visible:ring-0 shrink bg-transparent focus-visible:bg-background focus-active:bg-background border-none rounded-none dark:bg-transparent"
 					placeholder="Name..."
 					value={name}
 					onChange={(e) => {
@@ -261,18 +232,8 @@ const MainToolbarContent = ({
 					data-active-state={isSearchAndReplaceOpen ? "on" : "off"}
 					onClick={onSearchAndReplaceClick}
 				/>
-				<Drawer swipeDirection="right" modal={true}>
-					<DrawerTrigger
-						render={
-							<BTN variant="ghost" className="p-4">
-								<LucideOption className="size-4" />
-							</BTN>
-						}
-					></DrawerTrigger>
-					<DrawerContent className={"rounded-sm"}>
-						<div className="p-6 h-full">{<EditorDrawerCard />}</div>
-					</DrawerContent>
-				</Drawer>
+
+				<MetadataDialog />
 			</ToolbarGroup>
 		</div>
 	);
