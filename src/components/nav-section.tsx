@@ -1,5 +1,12 @@
 import type { LucideIcon } from "lucide-react";
-import { ChevronsUpDown } from "lucide-react";
+import {
+	ChevronDown,
+	ChevronRight,
+	ChevronsRight,
+	ChevronsUp,
+	ChevronsUpDown,
+	ChevronUp,
+} from "lucide-react";
 import { Button } from "./ui/button";
 import {
 	Collapsible,
@@ -28,11 +35,15 @@ export default function NavSection({
 			<div className="flex items-center">
 				<h3 className="text-sm text-muted-foreground">{sectionName}</h3>
 				<CollapsibleTrigger className="ml-1.5 cursor-pointer">
-					<ChevronsUpDown className="stroke-muted-foreground size-4" />
+					{isOpen ? (
+						<ChevronDown className="stroke-muted-foreground size-4" />
+					) : (
+						<ChevronRight className="stroke-muted-foreground size-4" />
+					)}
 				</CollapsibleTrigger>
 			</div>
 
-			<CollapsibleContent className="w-full">
+			<CollapsibleContent className="w-full radix-collapsibleContent">
 				<ul className="flex flex-col gap-2 items-start my-2 w-full">
 					{items.data.map((i) => {
 						return (
