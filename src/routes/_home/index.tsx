@@ -73,7 +73,6 @@ function InfoCardSection() {
 function RouteComponent() {
 	return (
 		<div className="w-full flex flex-col gap-8 overflow-y-auto h-dvh py-4 px-8 scroll-fade scrollbar-thin bg-background">
-			asdfasdfasdf
 			<InfoCardSection />
 			<RecentlyCreatedCard />
 			<PreviewCard />
