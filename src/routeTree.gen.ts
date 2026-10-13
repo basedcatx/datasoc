@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as EditorRouteImport } from './routes/editor'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as SplashscreenRouteImport } from './routes/splashscreen'
 import { Route as HomeIndexRouteImport } from './routes/_home/index'
 import { Route as LibraryIndexRouteImport } from './routes/library/index'
 import { Route as TrashIndexRouteImport } from './routes/trash/index'
@@ -30,6 +31,11 @@ const SearchRoute = SearchRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SplashscreenRoute = SplashscreenRouteImport.update({
+  id: '/splashscreen',
+  path: '/splashscreen',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HomeIndexRoute = HomeIndexRouteImport.update({
@@ -57,6 +63,7 @@ export interface FileRoutesByFullPath {
   '/editor': typeof EditorRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
+  '/splashscreen': typeof SplashscreenRoute
   '/view/$reportId': typeof ViewReportIdRoute
   '/': typeof HomeIndexRoute
   '/library/': typeof LibraryIndexRoute
@@ -66,6 +73,7 @@ export interface FileRoutesByTo {
   '/editor': typeof EditorRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
+  '/splashscreen': typeof SplashscreenRoute
   '/view/$reportId': typeof ViewReportIdRoute
   '/': typeof HomeIndexRoute
   '/library': typeof LibraryIndexRoute
@@ -76,6 +84,7 @@ export interface FileRoutesById {
   '/editor': typeof EditorRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
+  '/splashscreen': typeof SplashscreenRoute
   '/view/$reportId': typeof ViewReportIdRoute
   '/_home/': typeof HomeIndexRoute
   '/library/': typeof LibraryIndexRoute
@@ -87,6 +96,7 @@ export interface FileRouteTypes {
     | '/editor'
     | '/search'
     | '/settings'
+    | '/splashscreen'
     | '/view/$reportId'
     | '/'
     | '/library/'
@@ -96,6 +106,7 @@ export interface FileRouteTypes {
     | '/editor'
     | '/search'
     | '/settings'
+    | '/splashscreen'
     | '/view/$reportId'
     | '/'
     | '/library'
@@ -105,6 +116,7 @@ export interface FileRouteTypes {
     | '/editor'
     | '/search'
     | '/settings'
+    | '/splashscreen'
     | '/view/$reportId'
     | '/_home/'
     | '/library/'
@@ -115,6 +127,7 @@ export interface RootRouteChildren {
   EditorRoute: typeof EditorRoute
   SearchRoute: typeof SearchRoute
   SettingsRoute: typeof SettingsRoute
+  SplashscreenRoute: typeof SplashscreenRoute
   ViewReportIdRoute: typeof ViewReportIdRoute
   HomeIndexRoute: typeof HomeIndexRoute
   LibraryIndexRoute: typeof LibraryIndexRoute
@@ -142,6 +155,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/splashscreen': {
+      id: '/splashscreen'
+      path: '/splashscreen'
+      fullPath: '/splashscreen'
+      preLoaderRoute: typeof SplashscreenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_home/': {
@@ -179,6 +199,7 @@ const rootRouteChildren: RootRouteChildren = {
   EditorRoute: EditorRoute,
   SearchRoute: SearchRoute,
   SettingsRoute: SettingsRoute,
+  SplashscreenRoute: SplashscreenRoute,
   ViewReportIdRoute: ViewReportIdRoute,
   HomeIndexRoute: HomeIndexRoute,
   LibraryIndexRoute: LibraryIndexRoute,
