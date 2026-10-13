@@ -67,6 +67,7 @@ import "#/components/tiptap-templates/simple/simple-editor.scss";
 
 import { LucidePencilLine } from "lucide-react";
 import { Input } from "#/components/ui/input";
+import { Badge } from "#/components/ui/badge";
 
 const SEARCH_AND_REPLACE_SCROLL_OPTIONS: ScrollIntoViewOptions = {
 	block: "center",
@@ -93,6 +94,7 @@ import { appStore } from "#/integrations/tanstack-query/store-provider";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { recordMutations, recordQueries } from "#/lib/features/query";
 import { FLAGS } from "#/lib/utils";
+import { Spinner } from "#/components/ui/spinner";
 
 const MainToolbarContent = ({
 	onHighlighterClick,
@@ -247,9 +249,11 @@ export function SimpleEditor() {
 	const searchAndReplaceButtonRef = useRef<HTMLButtonElement>(null);
 
 	const qc = useQueryClient();
-
+	const [s, setS] = useState({ loading: false, msg: "" });
 	const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-	const docId = useSelector(appStore, (s) => s.file.id);
+
+	const docId = useSelector(appStore, (store) => store.file.id);
+
 	const createNewRecordMutation = useMutation({
 		...recordMutations(qc).createNewRecord(),
 	});
@@ -263,7 +267,7 @@ export function SimpleEditor() {
 		enabled: docId !== -1,
 	});
 
-	const AUTOSAVE_INTERVAL_MS = 30 * 1000;
+	const AUTOSAVE_INTERVAL_MS = 3000;
 
 	const handleAutoSave = (state: any) => {
 		if (!state.name || !state.content || !state.content_html) {
@@ -271,9 +275,13 @@ export function SimpleEditor() {
 		}
 
 		if (state.id === -1) {
+			setS({ loading: true, msg: "Creating new record..." });
+
 			createNewRecordMutation.mutate({
 				record: { ...state, id: undefined, flags: FLAGS.NONE_CLEAR_ALL },
 			});
+
+			setS({ loading: false, msg: "Idling..." });
 			return;
 		}
 
@@ -281,6 +289,7 @@ export function SimpleEditor() {
 
 		if (!uRecord) {
 			console.log(fetchRecordByNameQuery.error);
+			setS({ loading: false, msg: "Idling..." });
 			return;
 		}
 
@@ -292,6 +301,8 @@ export function SimpleEditor() {
 				content_html: state.content_html,
 			},
 		});
+
+		setS({ loading: false, msg: "Auto saving..." });
 	};
 
 	const editor = useEditor({
@@ -354,7 +365,11 @@ export function SimpleEditor() {
 				file: { ...prev.file, content_html: html, content: plainText },
 			}));
 
-			if (timerRef.current) clearTimeout(timerRef.current);
+			if (timerRef.current) {
+				clearTimeout(timerRef.current);
+			}
+
+			setS({ loading: true, msg: "Auto saving..." });
 
 			timerRef.current = setTimeout(() => {
 				handleAutoSave(appStore.state.file);
@@ -420,6 +435,19 @@ export function SimpleEditor() {
 						role="presentation"
 						className="simple-editor-content"
 					/>
+
+					<div
+						className="absolute bottom-1 right-1 autosave-badge"
+						data-state={s.loading ? "open" : "closed"}
+					>
+						<Badge
+							className="flex items-center gap-3 p-2 [--radius:1.2rem]"
+							variant="secondary"
+						>
+							<Spinner data-icon="inline-start" />
+							{s.msg}
+						</Badge>
+					</div>
 				</div>
 			</EditorContext.Provider>
 		</div>
