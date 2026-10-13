@@ -153,9 +153,9 @@ export default function Sidebar() {
 	if (!data) {
 		return (
 			<SidebarComponent>
-				<Skeleton className="w-full h-3 rounded-xs" />
-				<Skeleton className="w-full h-3 rounded-xs" />
-				<Skeleton className="w-full h-3 rounded-xs" />
+				<Skeleton className="w-full h-3 rounded-xl p-4" />
+				<Skeleton className="w-full h-3 rounded-xl p-4" />
+				<Skeleton className="w-full h-3 rounded-xl p-4" />
 			</SidebarComponent>
 		);
 	}
