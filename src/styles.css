@@ -233,3 +233,51 @@
 .autosave-badge[data-state="closed"] {
   transform: translateY(20px) scale(0.97);
 }
+
+
+.radix-collapsibleContent {
+  overflow: hidden;
+}
+
+.radix-collapsibleContent[data-state="open"] {
+  animation: slideDown 300ms ease-out;
+}
+
+
+.radix-collapsibleContent[data-state="closed"] {
+  animation: slideUp 300ms ease-out;
+}
+
+.sidebar[data-state="open"] {
+  animation: growOut 300ms ease-out;
+}
+.sidebar[data-state="closed"] {
+  animation: growIn 300ms ease-out forwards;
+}
+
+@keyframes growOut  {
+  from {width: 80px ;}
+  to {width: 400px;}
+}
+
+@keyframes growIn  {
+  to {width: 80px ;}
+  from {width: 400px;}
+}
+
+@keyframes slideDown {
+  from {height: 0;}
+  to {height: var(--radix-collapsible-content-height);}
+}
+
+@keyframes slideUp {
+  from {height: var(--radix-collapsible-content-height);}
+  to {height: 0;}
+}
+
+
+
+
+@media (prefers-reduced-motion: reduce) {
+  .radix-collapsibleContent {animation: none !important;}
+}
