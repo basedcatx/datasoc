@@ -3,7 +3,6 @@ import { Link } from "@tanstack/react-router";
 import { recordQueries } from "#/lib/features/query";
 import EntryCard from "./entrycard";
 import { Button } from "./ui/button";
-import { Card } from "./ui/card";
 import { Skeleton } from "./ui/skeleton";
 import { createFlags, FLAGS } from "#/lib/utils";
 import type { R } from "#/lib/libs";
