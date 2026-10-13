@@ -214,3 +214,22 @@
   content-visibility: auto;
   contain-intrinsic-block-size: auto 80px;
 }
+
+
+.autosave-badge {
+  transition: transform 0.2s cubic-bezier(0.98, 0.53, 0.26, 0.99);
+  transition-delay: 1s
+}
+
+.autosave-badge:hover {
+  transform: translateY(0px) scale(1);
+}
+
+.autosave-badge[data-state="open"] {
+  transform: translateY(0px) scale(1);
+}
+
+
+.autosave-badge[data-state="closed"] {
+  transform: translateY(20px) scale(0.97);
+}
