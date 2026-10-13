@@ -8,7 +8,9 @@ pub struct AppState {
 }
 
 use commands::*;
-use tauri::Manager;
+#[cfg(target_os = "macos")]
+use tauri::TitleBarStyle;
+use tauri::{Manager, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -17,30 +19,43 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::new().build())
         .setup(|app| {
             if cfg!(debug_assertions) {
-                app.handle().plugin(
-                    tauri_plugin_log::Builder::default()
-                        .level(log::LevelFilter::Info)
-                        .build(),
-                )?;
+                app.handle()
+                    .plugin(
+                        tauri_plugin_log::Builder::default()
+                            .level(log::LevelFilter::Info)
+                            .build(),
+                    )
+                    .expect("Failed to initialize app");
             }
 
-            let model_path = app
-                .path()
-                .resolve("res/minilm-l6.gguf", tauri::path::BaseDirectory::Resource)?;
+            let handle = app.handle().clone();
 
-            let db_path = app
-                .path()
-                .resolve("db/appdata.db", tauri::path::BaseDirectory::Resource)?;
+            tauri::async_runtime::spawn(async move {
+                let splash_window = handle.get_webview_window("splashscreen").unwrap();
 
-            let engine = embedding::init(model_path).expect("Could not load embedding engine");
+                let model_path = handle
+                    .path()
+                    .resolve("res/minilm-l6.gguf", tauri::path::BaseDirectory::Resource)
+                    .expect("Failed to initialize vector embedding");
 
-            let conn = db::init(&db_path).expect("Could not establish database connection");
+                let db_path = handle
+                    .path()
+                    .resolve("db/appdata.db", tauri::path::BaseDirectory::Resource)
+                    .expect("Failed to load database engine");
 
-            app.manage(AppState {
-                engine,
-                db: std::sync::Mutex::new(conn),
+                let engine = embedding::init(model_path).expect("Could not load embedding engine");
+
+                let conn = db::init(&db_path).expect("Could not establish database connection");
+
+                handle.manage(AppState {
+                    engine,
+                    db: std::sync::Mutex::new(conn),
+                });
+
+                let main_window = handle.get_webview_window("main").unwrap();
+                splash_window.close().unwrap();
+                main_window.show().unwrap();
             });
-
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
