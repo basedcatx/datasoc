@@ -24,6 +24,7 @@ import { createFlags, FLAGS } from "../lib/utils";
 import type React from "react";
 import { useState } from "react";
 import { usePresence } from "#/hooks/use-presence";
+import SettingsCard from "./SettingsCard";
 
 const navLinks = [
 	{ text: "Home", path: "/", icon: Home },
@@ -73,14 +74,18 @@ function SidebarComponent({ children }: { children: React.ReactNode }) {
 					{isOpen && children}
 					{isOpen && (
 						<div className="flex justify-around items-center p-4">
-							<Button
-								variant={"secondary"}
-								size={"lg"}
-								className="p-4 rounded-full"
-							>
-								<LucideSettings />
-								<p>Settings</p>
-							</Button>
+							<SettingsCard
+								Trigger={
+									<Button
+										variant={"secondary"}
+										size={"lg"}
+										className="p-4 rounded-full"
+									>
+										<LucideSettings />
+										<p>Settings</p>
+									</Button>
+								}
+							/>
 							<Button size={"lg"} asChild className="p-4 rounded-full">
 								<Link to="/editor">
 									<LucidePencilLine />
@@ -128,9 +133,13 @@ function SidebarComponent({ children }: { children: React.ReactNode }) {
 							</Link>
 						</Button>
 					</div>
-					<Button variant={"secondary"} className="rounded-full">
-						<LucideSettings className="size-6" />
-					</Button>
+					<SettingsCard
+						Trigger={
+							<Button variant={"secondary"} className="rounded-full">
+								<LucideSettings className="size-6" />
+							</Button>
+						}
+					/>
 				</div>
 			)}
 		</nav>
