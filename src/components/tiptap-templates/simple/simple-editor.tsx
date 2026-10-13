@@ -271,6 +271,7 @@ export function SimpleEditor() {
 
 	const handleAutoSave = (state: any) => {
 		if (!state.name || !state.content || !state.content_html) {
+			setS({ loading: false, msg: "Idling..." });
 			return;
 		}
 
@@ -302,7 +303,7 @@ export function SimpleEditor() {
 			},
 		});
 
-		setS({ loading: false, msg: "Auto saving..." });
+		setS({ loading: false, msg: "Auto saving... running in background" });
 	};
 
 	const editor = useEditor({
