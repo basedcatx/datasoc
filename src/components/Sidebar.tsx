@@ -34,7 +34,7 @@ const navLinks = [
 
 function SidebarComponent({ children }: { children: React.ReactNode }) {
 	const location = useLocation();
-	const [isOpen, setIsOpen] = useState(false);
+	const [isOpen, setIsOpen] = useState(true);
 
 	const { ref, state, mounted } = usePresence(isOpen);
 	if (location.pathname === "/splashscreen") return null;
