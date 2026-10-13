@@ -10,8 +10,8 @@ import type { R } from "#/lib/libs";
 import { Ghost, Plus } from "lucide-react";
 
 function HomeFilter(data: R[]) {
-	return data
-		.toSorted(
+	return [...data]
+		.sort(
 			(a: R, b: R) =>
 				new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime(),
 		)
