@@ -37,6 +37,7 @@ function SidebarComponent({ children }: { children: React.ReactNode }) {
 	const [isOpen, setIsOpen] = useState(false);
 
 	const { ref, state, mounted } = usePresence(isOpen);
+	if (location.pathname === "/splashscreen") return null;
 
 	return (
 		<nav
