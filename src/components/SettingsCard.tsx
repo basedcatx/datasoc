@@ -1,4 +1,7 @@
-import type { ReactNode } from "react";
+"use client";
+
+import { useState, type ReactNode } from "react";
+import { Blobatar } from "@blobatar/react";
 import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog";
 import {
 	FieldLegend,
@@ -6,29 +9,31 @@ import {
 	FieldDescription,
 	FieldGroup,
 } from "./ui/field";
-import { Switch } from "./ui/switch";
-
+import { useTheme } from "next-themes";
+import {
+	Select,
+	SelectContent,
+	SelectGroup,
+	SelectItem,
+	SelectLabel,
+	SelectTrigger,
+	SelectValue,
+} from "./ui/select";
+import { ChevronDown, ChevronRight } from "lucide-react";
+import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from "./ui/collapsible";
 export default function SettingsCard({ Trigger }: { Trigger: ReactNode }) {
 	return (
 		<Dialog>
 			<DialogTrigger asChild>{Trigger}</DialogTrigger>
-			<DialogContent className="sm:max-w-sm w-xl rounded-2xl bg-background">
-				<div>
-					<FieldSet>
-						<FieldLegend>General</FieldLegend>
-						<FieldDescription>General app settings and feel</FieldDescription>
-						<FieldGroup>
-							<Switch />
-						</FieldGroup>
-					</FieldSet>
-
-					<FieldSet>
-						<FieldLegend>Profile</FieldLegend>
-						<FieldDescription>
-							Profile settings, used for cloud back up
-						</FieldDescription>
-					</FieldSet>
-				</div>
+			<DialogContent
+				className="w-xl rounded-2xl bg-background"
+				showCloseButton={false}
+			>
+				<SettingsPage />
 			</DialogContent>
 		</Dialog>
 	);
