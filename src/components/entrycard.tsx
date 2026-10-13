@@ -99,7 +99,8 @@ export default function EntryCard({
 								<Badge
 									className={cn(
 										"p-3 bg-input text-input-foreground",
-										flag.check(FLAGS.IS_COMPLETED) && "bg-green/30",
+										flag.check(FLAGS.IS_COMPLETED) &&
+											"bg-primary text-primary-foreground",
 									)}
 								>
 									{flag.check(FLAGS.IS_COMPLETED) ? "Completed" : "In progress"}
