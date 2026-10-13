@@ -2,7 +2,9 @@ import {
 	File,
 	Home,
 	Library,
+	LucidePencilLine,
 	LucideSearch,
+	LucideSettings,
 	PanelLeft,
 	Plus,
 	Search,
@@ -69,6 +71,24 @@ function SidebarComponent({ children }: { children: React.ReactNode }) {
 						</SearchComponent>
 					</div>
 					{isOpen && children}
+					{isOpen && (
+						<div className="flex justify-around items-center p-4">
+							<Button
+								variant={"secondary"}
+								size={"lg"}
+								className="p-4 rounded-full"
+							>
+								<LucideSettings />
+								<p>Settings</p>
+							</Button>
+							<Button size={"lg"} asChild className="p-4 rounded-full">
+								<Link to="/editor">
+									<LucidePencilLine />
+									<p>New</p>
+								</Link>
+							</Button>
+						</div>
+					)}
 				</>
 			) : (
 				<div className="flex justify-between flex-col h-full items-center">
@@ -108,6 +128,10 @@ function SidebarComponent({ children }: { children: React.ReactNode }) {
 							</Link>
 						</Button>
 					</div>
+					<Button variant={"secondary"} className="rounded-full">
+						<LucideSettings className="size-6" />
+					</Button>
+				</div>
 			)}
 		</nav>
 	);
