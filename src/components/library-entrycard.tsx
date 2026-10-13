@@ -21,7 +21,7 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { recordMutations } from "#/lib/features/query";
 import { appStore } from "#/integrations/tanstack-query/store-provider";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 
 export default function LibraryEntryCard({
 	name,
@@ -90,35 +90,37 @@ export default function LibraryEntryCard({
 	return (
 		<ContextMenu>
 			<ContextMenuTrigger>
-				<Card className="p-6 hover:bg-muted rounded-md dark:hover:bg-input/50 cursor-pointer">
-					<div className="flex justify-between items-center">
-						<div>
-							<p className="text-nowrap w-md text-ellipsis font-bold text-lg">
-								{name}
-							</p>
-							<p className="text-nowrap truncate w-sm md:w-2xl">{content}</p>
+				<Link to="/view/$reportId" params={{ reportId: id!.toString() }}>
+					<Card className="p-6 hover:bg-muted rounded-md dark:hover:bg-input/50 cursor-pointer">
+						<div className="flex justify-between items-center">
+							<div>
+								<p className="text-nowrap w-md text-ellipsis font-bold text-lg">
+									{name}
+								</p>
+								<p className="text-nowrap truncate w-sm md:w-2xl">{content}</p>
+							</div>
 						</div>
-					</div>
-					<div className="flex justify-between items-center">
-						<div className="flex gap-3">
-							<Badge className="p-2">
-								{createFlags(flags).check(FLAGS.IS_COMPLETED)
-									? "Completed"
-									: "Draft"}
-							</Badge>
-							<ul className="flex gap-1">
-								{tags.slice(0, 3).map((tag) => (
-									<li key={tag}>
-										<Badge variant={"secondary"} className="p-2">
-											{tag}
-										</Badge>
-									</li>
-								))}
-							</ul>
+						<div className="flex justify-between items-center">
+							<div className="flex gap-3">
+								<Badge className="p-2">
+									{createFlags(flags).check(FLAGS.IS_COMPLETED)
+										? "Completed"
+										: "Draft"}
+								</Badge>
+								<ul className="flex gap-1">
+									{tags.slice(0, 3).map((tag) => (
+										<li key={tag}>
+											<Badge variant={"secondary"} className="p-2">
+												{tag}
+											</Badge>
+										</li>
+									))}
+								</ul>
+							</div>
+							<p className="text-muted-foreground">created at {created_at}</p>
 						</div>
-						<p className="text-muted-foreground">created at {created_at}</p>
-					</div>
-				</Card>
+					</Card>
+				</Link>
 			</ContextMenuTrigger>
 			<ContextMenuContent className="px-2 text-xl">
 				<ContextMenuItem onClick={handlePreview}>
