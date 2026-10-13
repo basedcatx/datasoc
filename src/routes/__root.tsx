@@ -65,7 +65,8 @@ function RootDocument() {
 					</div>
 				</div>
 				<Footer />
-				<TauriQueryInspector />
+				{/* Would reactivate this only when needed */}
+				{/* <TauriQueryInspector /> */}
 				<TanStackDevtools
 					config={{
 						position: "bottom-right",
