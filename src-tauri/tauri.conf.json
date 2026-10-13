@@ -17,7 +17,9 @@
         "height": 600,
         "resizable": true,
         "fullscreen": false,
-        "devtools": true
+        "visible": false
+      }, {
+        "label": "splashscreen", "url": "/splashscreen"
       }
     ],
     "security": {
