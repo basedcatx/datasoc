@@ -12,8 +12,9 @@ export default function PreviewCard() {
 					return { ...prev, preview: { content: "" } };
 				})
 			}
+			showSwipeHandle
 		>
-			<DrawerContent className="border-none mx-auto w-[calc(100%-50rem)]">
+			<DrawerContent className="border-none h-[calc(100%-20rem)] py-2">
 				<div
 					className="prose-sm overflow-y-auto mx-auto p-8"
 					// biome-ignore lint/security/noDangerouslySetInnerHtml: To display saved records (preview) TODO: serialize
