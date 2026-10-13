@@ -1,6 +1,6 @@
 import { createStore } from "@tanstack/react-store";
 
-export const appStore = createStore({
+export const initialStoreState = {
 	file: {
 		name: "",
 		content: "",
@@ -12,4 +12,5 @@ export const appStore = createStore({
 	preview: {
 		content: "" as string,
 	},
-});
+};
+export const appStore = createStore(initialStoreState);
