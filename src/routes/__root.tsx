@@ -16,6 +16,7 @@ import appCss from "../styles.css?url";
 import { TooltipProvider } from "#/components/ui/tooltip";
 import type { QueryClient } from "@tanstack/react-query";
 import { TauriQueryInspector } from "#/integrations/tanstack-query/tauri-query-inspector";
+import { ThemeProvider } from "next-themes";
 
 interface MyRouterContext {
 	queryClient: QueryClient;
@@ -56,29 +57,36 @@ function RootDocument() {
 				<HeadContent />
 			</head>
 			<body className="font-sans antialiased wrap:anywhere h-full w-full selection:bg-[rgba(79,184,178,0.24)] overflow-hidden">
-				<div className="h-full w-full flex">
-					<Sidebar />
-					<div className="flex-1 min-w-0">
-						<TooltipProvider>
-							<Outlet />
-						</TooltipProvider>
+				<ThemeProvider
+					attribute={"class"}
+					defaultTheme="system"
+					enableSystem
+					disableTransitionOnChange
+				>
+					<div className="h-full w-full flex">
+						<Sidebar />
+						<div className="flex-1 min-w-0">
+							<TooltipProvider>
+								<Outlet />
+							</TooltipProvider>
+						</div>
 					</div>
-				</div>
-				<Footer />
-				{/* Would reactivate this only when needed */}
-				{/* <TauriQueryInspector /> */}
-				<TanStackDevtools
-					config={{
-						position: "bottom-right",
-					}}
-					plugins={[
-						{
-							name: "Tanstack Router",
-							render: <TanStackRouterDevtoolsPanel />,
-						},
-						TanStackQueryDevtools,
-					]}
-				/>
+					<Footer />
+					{/* Would reactivate this only when needed */}
+					{/* <TauriQueryInspector /> */}
+					<TanStackDevtools
+						config={{
+							position: "bottom-right",
+						}}
+						plugins={[
+							{
+								name: "Tanstack Router",
+								render: <TanStackRouterDevtoolsPanel />,
+							},
+							TanStackQueryDevtools,
+						]}
+					/>
+				</ThemeProvider>
 				<Scripts />
 			</body>
 		</html>
