@@ -1,13 +1,16 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState, useTransition, type ReactNode } from "react";
 import { Blobatar } from "@blobatar/react";
 import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog";
+import { signIn, signOut, useSession } from "next-auth/react";
 import {
 	FieldLegend,
 	FieldSet,
 	FieldDescription,
 	FieldGroup,
+	Field,
+	FieldLabel,
 } from "./ui/field";
 import { useTheme } from "next-themes";
 import {
@@ -25,6 +28,10 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "./ui/collapsible";
+import { Input } from "./ui/input";
+import { Button } from "./ui/button";
+import { toast } from "sonner";
+import { Spinner } from "./ui/spinner";
 export default function SettingsCard({ Trigger }: { Trigger: ReactNode }) {
 	return (
 		<Dialog>
@@ -63,19 +70,52 @@ function SettingsPage() {
 
 function ProfileCard() {
 	const [open, setOpen] = useState(false);
+	const { data: session } = useSession();
+	const [isPending, startTransition] = useTransition();
+
+	const handleAuthenticate = async (email: string, password: string) => {
+		if (!(email && password)) return;
+
+		startTransition(async () => {
+			const res = await signIn("credentials", {
+				email,
+				password,
+				redirect: false,
+				redirectTo: "/",
+			});
+
+			if (res.error) {
+				toast.error(
+					"Invalid email or password. Ensure you have a working internet connection",
+				);
+			}
+		});
+	};
+
+	const handleSignOut = async (e: MouseEvent) => {
+		e.preventDefault();
+		await signOut();
+	};
+
 	return (
 		<Collapsible open={open} onOpenChange={setOpen}>
 			<CollapsibleTrigger className="w-full">
-				<div className="flex items-center bg-card rounded-sm justify-between px-2">
-					<span className="flex items-center">
-						<Blobatar
-							name={"sdfssdfs"}
-							animate="hover"
-							className={"size-20 rounded-full"}
-						/>
+				<div className="flex items-center rounded-sm justify-between px-2 focus-within:bg-input/70 hover:bg-input/10 cursor-pointer">
+					<span className="flex items-center gap-4 p-4">
+						<div className="rounded-full p-1">
+							<Blobatar
+								name={session ? (session.user?.email as string) : "none"}
+								animate="always"
+								className={"size-15 object-cover"}
+							/>
+						</div>
 						<div className="text-start">
-							<p className="text-md">basedcatx@gmail.com</p>
-							<p className="text-muted-foreground">admin</p>
+							<p className="text-md">
+								{session ? (session.user?.email as string) : "No login found"}
+							</p>
+							<p className="text-muted-foreground">
+								{session ? (session.user?.role ?? "unknown") : "Please login"}
+							</p>
 						</div>
 					</span>
 					{open ? (
@@ -85,7 +125,69 @@ function ProfileCard() {
 					)}
 				</div>
 			</CollapsibleTrigger>
-			<CollapsibleContent className="radix-collapsibleContent w-full"></CollapsibleContent>
+			<CollapsibleContent className="radix-collapsibleContent w-full py-2 px-1">
+				{session?.user ? (
+					<Button
+						variant={"destructive"}
+						onClick={(e) => handleSignOut(e as unknown as MouseEvent)}
+						className="w-full p-4"
+					>
+						Sign out
+					</Button>
+				) : (
+					<form
+						onSubmit={async (e) => {
+							e.preventDefault();
+							const formData = new FormData(e.target);
+							const email = formData.get("email")?.toString() ?? "";
+							const password = formData.get("password")?.toString() ?? "";
+							await handleAuthenticate(email, password);
+						}}
+					>
+						<FieldGroup>
+							<Field>
+								<FieldLabel htmlFor="fieldgroup-email">Email</FieldLabel>
+
+								<Input
+									className="p-2"
+									id="fieldgroup-email"
+									type="email"
+									name="email"
+									placeholder="name@example.com"
+								/>
+
+								<FieldDescription>
+									Enter your email address to create an account
+								</FieldDescription>
+							</Field>
+
+							<Field>
+								<FieldLabel htmlFor="fieldgroup-password">Password</FieldLabel>
+								<Input
+									className="p-2"
+									id="fieldgroup-password"
+									type="password"
+									name="password"
+									placeholder="********"
+								/>
+
+								<FieldDescription>
+									Enter your password. Would automatically log in if your
+									password is correct and an account exists
+								</FieldDescription>
+							</Field>
+
+							<Field orientation={"horizontal"}>
+								<Button type="reset" variant={"secondary"}>
+									Reset
+								</Button>
+								<Button type="submit">Create an account / sign in</Button>
+								{isPending && <Spinner />}
+							</Field>
+						</FieldGroup>
+					</form>
+				)}
+			</CollapsibleContent>
 		</Collapsible>
 	);
 }

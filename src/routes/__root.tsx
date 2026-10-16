@@ -17,6 +17,7 @@ import { TooltipProvider } from "#/components/ui/tooltip";
 import type { QueryClient } from "@tanstack/react-query";
 import { TauriQueryInspector } from "#/integrations/tanstack-query/tauri-query-inspector";
 import { ThemeProvider } from "next-themes";
+import { SessionProvider } from "next-auth/react";
 
 interface MyRouterContext {
 	queryClient: QueryClient;
@@ -63,14 +64,16 @@ function RootDocument() {
 					enableSystem
 					disableTransitionOnChange
 				>
-					<div className="h-full w-full flex">
-						<Sidebar />
-						<div className="flex-1 min-w-0">
-							<TooltipProvider>
-								<Outlet />
-							</TooltipProvider>
+					<SessionProvider>
+						<div className="h-full w-full flex">
+							<Sidebar />
+							<div className="flex-1 min-w-0">
+								<TooltipProvider>
+									<Outlet />
+								</TooltipProvider>
+							</div>
 						</div>
-					</div>
+					</SessionProvider>
 					<Footer />
 					{/* Would reactivate this only when needed */}
 					{/* <TauriQueryInspector /> */}

@@ -1,19 +1,19 @@
+import { createFileRoute, useBlocker } from "@tanstack/react-router";
 import { SimpleEditor } from "#/components/tiptap-templates/simple/simple-editor";
 import {
 	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
 	AlertDialogContent,
-	AlertDialogHeader,
 	AlertDialogDescription,
 	AlertDialogFooter,
+	AlertDialogHeader,
 	AlertDialogTitle,
-	AlertDialogCancel,
-	AlertDialogAction,
 } from "#/components/ui/alert-dialog";
 import {
 	appStore,
 	initialStoreState,
 } from "#/integrations/tanstack-query/store-provider";
-import { createFileRoute, useBlocker } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/editor")({
 	component: RouteComponent,
