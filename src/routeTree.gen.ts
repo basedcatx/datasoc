@@ -17,6 +17,7 @@ import { Route as HomeIndexRouteImport } from './routes/_home/index'
 import { Route as LibraryIndexRouteImport } from './routes/library/index'
 import { Route as TrashIndexRouteImport } from './routes/trash/index'
 import { Route as ViewReportIdRouteImport } from './routes/view/$reportId'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const EditorRoute = EditorRouteImport.update({
   id: '/editor',
@@ -58,6 +59,11 @@ const ViewReportIdRoute = ViewReportIdRouteImport.update({
   path: '/view/$reportId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/editor': typeof EditorRoute
@@ -68,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/': typeof HomeIndexRoute
   '/library/': typeof LibraryIndexRoute
   '/trash/': typeof TrashIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/editor': typeof EditorRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByTo {
   '/': typeof HomeIndexRoute
   '/library': typeof LibraryIndexRoute
   '/trash': typeof TrashIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -89,6 +97,7 @@ export interface FileRoutesById {
   '/_home/': typeof HomeIndexRoute
   '/library/': typeof LibraryIndexRoute
   '/trash/': typeof TrashIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,6 +110,7 @@ export interface FileRouteTypes {
     | '/'
     | '/library/'
     | '/trash/'
+    | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/editor'
@@ -111,6 +121,7 @@ export interface FileRouteTypes {
     | '/'
     | '/library'
     | '/trash'
+    | '/api/auth/$'
   id:
     | '__root__'
     | '/editor'
@@ -121,6 +132,7 @@ export interface FileRouteTypes {
     | '/_home/'
     | '/library/'
     | '/trash/'
+    | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -132,6 +144,7 @@ export interface RootRouteChildren {
   HomeIndexRoute: typeof HomeIndexRoute
   LibraryIndexRoute: typeof LibraryIndexRoute
   TrashIndexRoute: typeof TrashIndexRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -192,6 +205,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ViewReportIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -204,6 +224,7 @@ const rootRouteChildren: RootRouteChildren = {
   HomeIndexRoute: HomeIndexRoute,
   LibraryIndexRoute: LibraryIndexRoute,
   TrashIndexRoute: TrashIndexRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

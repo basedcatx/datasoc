@@ -1,18 +1,25 @@
-"use client";
-
-import { useState, useTransition, type ReactNode } from "react";
 import { Blobatar } from "@blobatar/react";
-import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog";
+import { ChevronDown, ChevronRight, CloudSync, RotateCcw } from "lucide-react";
 import { signIn, signOut, useSession } from "next-auth/react";
+import { useTheme } from "next-themes";
+import { type ReactNode, useState, useTransition } from "react";
+import { toast } from "sonner";
+import { Button } from "./ui/button";
 import {
-	FieldLegend,
-	FieldSet,
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from "./ui/collapsible";
+import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog";
+import {
+	Field,
 	FieldDescription,
 	FieldGroup,
-	Field,
 	FieldLabel,
+	FieldLegend,
+	FieldSet,
 } from "./ui/field";
-import { useTheme } from "next-themes";
+import { Input } from "./ui/input";
 import {
 	Select,
 	SelectContent,
@@ -22,15 +29,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "./ui/select";
-import { ChevronDown, ChevronRight } from "lucide-react";
-import {
-	Collapsible,
-	CollapsibleContent,
-	CollapsibleTrigger,
-} from "./ui/collapsible";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
-import { toast } from "sonner";
 import { Spinner } from "./ui/spinner";
 export default function SettingsCard({ Trigger }: { Trigger: ReactNode }) {
 	return (
@@ -57,12 +55,15 @@ function SettingsPage() {
 
 				<FieldGroup>
 					<div className="flex justify-between items-center">
-						<p className="text-lg">Theme</p>
+						<p className="text-sm">Theme</p>
 						<ThemeSelect />
 					</div>
 				</FieldGroup>
 
-				<FieldGroup></FieldGroup>
+				<FieldGroup className="w-full">
+					<FieldDescription>Backup & Restore </FieldDescription>
+					<BackupRestoreComponent />
+				</FieldGroup>
 			</FieldSet>
 		</div>
 	);
@@ -189,6 +190,21 @@ function ProfileCard() {
 				)}
 			</CollapsibleContent>
 		</Collapsible>
+	);
+}
+
+function BackupRestoreComponent(role: "admin" | "user") {
+	return (
+		<div className="w-full flex gap-3">
+			<Button variant={"outline"} className="flex-1">
+				<RotateCcw />
+				Restore
+			</Button>
+			<Button className="flex-1" disabled={role !== "admin"}>
+				<CloudSync />
+				Backup
+			</Button>
+		</div>
 	);
 }
 
