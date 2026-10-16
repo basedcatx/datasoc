@@ -1,0 +1,11 @@
+name = "hans-datasoc-auth"
+compatibility_date = "2024-09-03"
+compatibility_flags = ["nodejs_compat"]
+
+[placement]
+mode = "smart"
+
+[[d1_databases]]
+binding = "DATABASE"
+database_name = "hans-datasoc-auth"
+database_id = "81cb46f5-61b9-4749-8353-1239913a9c54"
