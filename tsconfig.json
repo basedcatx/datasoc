@@ -1,5 +1,13 @@
 {
   "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": [
+    "node_modules",
+    "src-tauri/target",
+    ".output",
+    "dist",
+    ".nitro",
+    ".tanstack"
+  ],
   "compilerOptions": {
     "target": "esnext",
     "jsx": "react-jsx",
