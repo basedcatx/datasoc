@@ -307,7 +307,6 @@ export function SimpleEditor() {
 			},
 		});
 
-		await qc.refetchQueries({ queryKey: recordKeys.all });
 		setS({ loading: false, msg: "Saved to database" });
 	};
 

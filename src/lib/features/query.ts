@@ -245,6 +245,9 @@ export const recordMutations = (client: QueryClient) => ({
 			client.setQueryData(recordKeys.name(record.name), record);
 			return { record };
 		},
+		onSettled: () => {
+			client.invalidateQueries({ queryKey: recordKeys.all });
+		},
 		mutationFn: async ({ record }: { record: R }) => {
 			const id = record.id;
 			if (!id) return undefined;

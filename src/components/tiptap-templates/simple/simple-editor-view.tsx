@@ -94,18 +94,6 @@ const MainToolbarContent = ({
 					data-active-state={isSearchAndReplaceOpen ? "on" : "off"}
 					onClick={onSearchAndReplaceClick}
 				/>
-				<Drawer swipeDirection="right" modal={true}>
-					<DrawerTrigger
-						render={
-							<BTN variant="ghost" className="p-2">
-								<LucideOption className="size-4" />
-							</BTN>
-						}
-					></DrawerTrigger>
-					<DrawerContent className={"rounded-sm"}>
-						<div className="p-6 h-full">{<EditorDrawerCard />}</div>
-					</DrawerContent>
-				</Drawer>
 			</ToolbarGroup>
 		</div>
 	);
