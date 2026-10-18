@@ -44,6 +44,7 @@
     "resources": ["./res/*"],
     "android": {
       "debugApplicationIdSuffix": ".debug"
-    }
+    },
+    "externalBin": ["binaries/sqlite3"]
   }
 }

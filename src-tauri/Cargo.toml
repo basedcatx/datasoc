@@ -36,3 +36,4 @@ anyhow-tauri = "1.0.1"
 # split llama into another crate to avoid recompiling it
 llama-cpp = {path="./llama-cpp/"}
 sql = {path = "./sql/"}
+rust-s3 = "0.38.0"
