@@ -92,7 +92,11 @@ import {
 } from "#/components/ui/field";
 import { appStore } from "#/integrations/tanstack-query/store-provider";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { recordMutations, recordQueries } from "#/lib/features/query";
+import {
+	recordKeys,
+	recordMutations,
+	recordQueries,
+} from "#/lib/features/query";
 import { FLAGS } from "#/lib/utils";
 import { Spinner } from "#/components/ui/spinner";
 
@@ -269,7 +273,7 @@ export function SimpleEditor() {
 
 	const AUTOSAVE_INTERVAL_MS = 3000;
 
-	const handleAutoSave = (state: any) => {
+	const handleAutoSave = async (state: any) => {
 		if (!state.name || !state.content || !state.content_html) {
 			setS({ loading: false, msg: "Idling..." });
 			return;
@@ -303,7 +307,8 @@ export function SimpleEditor() {
 			},
 		});
 
-		setS({ loading: false, msg: "Auto saving... running in background" });
+		await qc.refetchQueries({ queryKey: recordKeys.all });
+		setS({ loading: false, msg: "Saved to database" });
 	};
 
 	const editor = useEditor({
