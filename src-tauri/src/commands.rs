@@ -78,7 +78,7 @@ pub async fn get_embedding(input: String, state: State<'_, AppState>) -> Result<
         .new_context(&state.engine.backend, ctx_params)
         .map_err(|_| "Failed to create llama context")?;
 
-    let n_ctx = ctx.n_ctx() as usize;
+    let n_ctx = (ctx.n_ctx() as usize).min(model.n_ctx_train( ) as usize);
 
     let mut token_list = model.vocab().tokenize(input.as_bytes(), true, true);
 
