@@ -167,7 +167,7 @@ export default function Sidebar() {
 	const recent = [...(data as R[])]
 		.sort(
 			(a, b) =>
-				new Date(a.created_at!).getTime() - new Date(b.created_at!).getTime(),
+				new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime(),
 		)
 		.slice(0, 3);
 
