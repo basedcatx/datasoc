@@ -8,6 +8,7 @@ export const initialStoreState = {
 		meta: [] as string[],
 		tags: [] as string[],
 		id: -1 as number,
+		flags: 0 as number,
 	},
 	preview: {
 		content: "" as string,

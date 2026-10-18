@@ -10,18 +10,32 @@ import {
 	FieldSet,
 	Field,
 	FieldLabel,
+	FieldContent,
+	FieldDescription,
 } from "./ui/field";
 import { Badge } from "./ui/badge";
 import { cn } from "#/lib/tiptap-utils";
-import { PopoverClose } from "@radix-ui/react-popover";
 import { appStore } from "#/integrations/tanstack-query/store-provider";
 import { useSelector } from "@tanstack/react-store";
+import { Switch } from "./ui/switch";
+import { createFlags, FLAGS } from "#/lib/utils";
 
 export default function MetadataDialog() {
 	const [open, setOpen] = useState(false);
 	const [isPending, startTransition] = useTransition();
 	const tags = useSelector(appStore, (s) => s.file.tags);
 	const meta = useSelector(appStore, (s) => s.file.meta);
+	const flags = createFlags(useSelector(appStore, (s) => s.file.flags));
+
+	const toggleIsCompleted = () => {
+		startTransition(() => {
+			console.log("Toggling flags");
+			appStore.setState((prev) => ({
+				...prev,
+				file: { ...prev.file, flags: flags.toggle(FLAGS.IS_COMPLETED).value },
+			}));
+		});
+	};
 
 	const handleTags = (str: string) => {
 		startTransition(() => {
@@ -139,6 +153,22 @@ export default function MetadataDialog() {
 										))}
 									</ul>
 								)}
+							</Field>
+							<Field orientation={"horizontal"}>
+								<FieldContent>
+									<FieldLabel htmlFor="r-is-completed" className="text-xs">
+										Completed
+									</FieldLabel>
+									<FieldDescription>
+										Set this on to signal that the current write up is completed
+									</FieldDescription>
+								</FieldContent>
+								<Switch
+									className="p-2 rounded-md"
+									id="r-is-completed"
+									onCheckedChange={toggleIsCompleted}
+									checked={flags.check(FLAGS.IS_COMPLETED)}
+								/>
 							</Field>
 						</FieldGroup>
 					</FieldSet>
