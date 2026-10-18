@@ -194,13 +194,15 @@ function ProfileCard() {
 }
 
 function BackupRestoreComponent(role: "admin" | "user") {
+	// const backupManager = new BackupManager();
+	// backupManager.backupDB();
 	return (
 		<div className="w-full flex gap-3">
 			<Button variant={"outline"} className="flex-1">
 				<RotateCcw />
 				Restore
 			</Button>
-			<Button className="flex-1" disabled={role !== "admin"}>
+			<Button className="flex-1" disabled={role === "user"}>
 				<CloudSync />
 				Backup
 			</Button>
