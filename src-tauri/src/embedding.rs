@@ -1,6 +1,8 @@
-use anyhow::Context;
+use anyhow::{Context, Ok};
 use llama_cpp::sys::{
+    context::LlamaContext,
     llama_backend::LlamaBackend,
+    llama_batch::LlamaBatch,
     model::{params::LlamaModelParams, LlamaModel},
 };
 
@@ -23,6 +25,30 @@ impl EmbeddingEngine {
             model: Mutex::new(model),
         })
     }
+}
+
+pub fn batch_decode(
+    ctx: &mut LlamaContext,
+    batch: &mut LlamaBatch,
+    s_batch: i32,
+    output: &mut Vec<Vec<f32>>,
+) -> anyhow::Result<bool> {
+    ctx.clear_kv_cache();
+
+    ctx.decode(batch)
+        .with_context(|| "llama_decode failed".to_owned())?;
+
+    for i in 0..s_batch {
+        let embedding = ctx
+            .embeddings_seq_ith(i)
+            .with_context(|| "Failed to get embedding".to_owned())?;
+        let output_embedding = normalize(embedding);
+        output.push(output_embedding);
+    }
+
+    batch.clear();
+
+    Ok(true)
 }
 
 pub fn normalize(inputs: &[f32]) -> Vec<f32> {

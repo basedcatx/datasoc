@@ -32,8 +32,8 @@ tauri-plugin-fs = "2"
 anyhow = "1.0.104"
 tokio = "1.53.1"
 anyhow-tauri = "1.0.1"
+rust-s3 = "0.38.0"
 
 # split llama into another crate to avoid recompiling it
-llama-cpp = {path="./llama-cpp/"}
-sql = {path = "./sql/"}
-rust-s3 = "0.38.0"
+llama-cpp = { path = "./llama-cpp/" }
+sql = { path = "./sql/" }

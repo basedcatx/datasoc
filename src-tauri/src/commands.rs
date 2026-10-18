@@ -1,10 +1,12 @@
+use std::num::NonZeroU32;
 use std::{collections::HashMap, vec};
 
 use crate::db::{bm25_search, rrf_fuse, vector_search};
-use crate::embedding::normalize;
+use crate::embedding::{batch_decode, normalize};
 use crate::AppState;
 use llama_cpp::sys::context::params::LlamaContextParams;
 use llama_cpp::sys::llama_batch::LlamaBatch;
+use llama_cpp::sys::token;
 use serde::{Deserialize, Serialize};
 use sql::rusqlite;
 use sql::zerocopy::IntoBytes as AsBytes;
@@ -64,42 +66,38 @@ struct Meta(Vec<String>);
 #[tauri::command]
 pub async fn get_embedding(input: String, state: State<'_, AppState>) -> Result<Vec<f32>, String> {
     let model = state.engine.model.lock().map_err(|e| e.to_string())?;
-    let ctx_params = LlamaContextParams::default().with_embeddings(true);
+
+    let ctx_params = LlamaContextParams::default()
+        .with_embeddings(true)
+        .with_pooling_type(llama_cpp::sys::context::params::LlamaPoolingType::Mean)
+        .with_n_ctx(NonZeroU32::new(2048))
+        .with_n_batch(2048)
+        .with_n_ubatch(2048);
+
     let mut ctx = model
         .new_context(&state.engine.backend, ctx_params)
         .map_err(|_| "Failed to create llama context")?;
-    let mut tokens = model
-        .str_to_token(&input, llama_cpp::sys::model::AddBos::Always)
-        .map_err(|e| e.to_string())?;
 
     let n_ctx = ctx.n_ctx() as usize;
 
-    if tokens.len() > n_ctx {
-        tokens.truncate(n_ctx);
-    }
+    let mut token_list = model.vocab().tokenize(input.as_bytes(), true, true);
 
-    if tokens.is_empty() {
+    token_list.truncate(n_ctx);
+
+    if token_list.is_empty() {
         return Err("Requies an input tokenn".to_string());
     }
 
-    let mut batch = LlamaBatch::new(tokens.len(), 1);
+    let mut output = Vec::with_capacity(1);
 
-    for (i, &token) in tokens.iter().enumerate() {
-        let is_last = i == tokens.len() - 1;
-        batch
-            .add(token, i as i32, &[0], is_last)
-            .map_err(|e| e.to_string())?;
-    }
+    let mut batch = LlamaBatch::new(n_ctx, 1);
 
-    ctx.clear_kv_cache();
-    ctx.encode(&mut batch)
-        .map_err(|_| "Failed to execute encode pass".to_string())?;
+    batch
+        .add_sequence(&token_list, 0, false)
+        .map_err(|e| e.to_string())?;
+    batch_decode(&mut ctx, &mut batch, 1, &mut output).map_err(|e| e.to_string());
 
-    let raw_embedding = ctx
-        .embeddings_ith(0)
-        .map_err(|_| "Failed to extract embedding vector".to_string())?;
-
-    Ok(normalize(raw_embedding))
+    Ok(output[0].clone())
 }
 
 #[tauri::command]
