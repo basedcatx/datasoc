@@ -1,22 +1,34 @@
 mod commands;
 mod db;
 mod embedding;
+use anyhow::Context;
+use commands::{
+    create_record, delete_record, fetch_record_by_id, fetch_record_by_name, fetch_records,
+    get_embedding, hybrid_search, update_record,
+};
+use s3::{creds::Credentials, Bucket};
+
+#[cfg(target_os = "macos")]
+use tauri::TitleBarStyle;
+use tauri::{Manager, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
+use tauri_plugin_shell::{process::Command, ShellExt};
+
+pub struct AppShell {
+    sqlite3: std::sync::Mutex<Command>,
+}
 
 pub struct AppState {
     engine: embedding::EmbeddingEngine,
     db: std::sync::Mutex<sql::rusqlite::Connection>,
+    shell: AppShell,
 }
-
-use commands::*;
-#[cfg(target_os = "macos")]
-use tauri::TitleBarStyle;
-use tauri::{Manager, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_store::Builder::new().build())
+        .plugin(tauri_plugin_shell::init())
         .setup(|app| {
             if cfg!(debug_assertions) {
                 app.handle()
@@ -31,7 +43,9 @@ pub fn run() {
             let handle = app.handle().clone();
 
             tauri::async_runtime::spawn(async move {
-                let splash_window = handle.get_webview_window("splashscreen").unwrap();
+                let splash_window = handle
+                    .get_webview_window("splashscreen")
+                    .expect("No splashscreen found");
 
                 let model_path = handle
                     .path()
@@ -47,15 +61,24 @@ pub fn run() {
 
                 let conn = db::init(&db_path).expect("Could not establish database connection");
 
+                let sqlite3_shell = handle
+                    .shell()
+                    .sidecar("sqlite3")
+                    .expect("Couldn't init sqlite3 shell");
+
                 handle.manage(AppState {
                     engine,
                     db: std::sync::Mutex::new(conn),
+                    shell: AppShell {
+                        sqlite3: std::sync::Mutex::new(sqlite3_shell),
+                    },
                 });
 
+                let _ = splash_window.close();
                 let main_window = handle.get_webview_window("main").unwrap();
-                splash_window.close().unwrap();
-                main_window.show().unwrap();
+                main_window.show();
             });
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

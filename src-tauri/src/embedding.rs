@@ -18,11 +18,10 @@ impl EmbeddingEngine {
     pub fn new<P: AsRef<Path>>(model_path: P) -> anyhow::Result<Self> {
         let backend = LlamaBackend::init()?;
         let model_params = std::pin::pin!(LlamaModelParams::default());
-        let model = LlamaModel::load_from_file(&backend, model_path, &model_params)
-            .map_err(|_| anyhow::anyhow!("Failed to load GGUF from file"))?;
+        let model = LlamaModel::load_from_file(&backend, model_path, &model_params);
         Ok(Self {
             backend,
-            model: Mutex::new(model),
+            model: Mutex::new(model?),
         })
     }
 }
@@ -68,8 +67,12 @@ pub fn normalize(inputs: &[f32]) -> Vec<f32> {
 pub fn init(model_path: std::path::PathBuf) -> anyhow::Result<EmbeddingEngine> {
     println!("Booting LlamaBackend & loading model from {:?}", model_path);
 
-    let engine = EmbeddingEngine::new(model_path)
+    let mut engine = EmbeddingEngine::new(model_path)
         .with_context(|| "Failed to initialize embedding model on boot {e.to_strin()}")?;
+
+    if !cfg!(debug_assertions) {
+        engine.backend.void_logs();
+    }
 
     Ok(engine)
 }

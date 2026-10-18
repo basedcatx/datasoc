@@ -37,3 +37,4 @@ rust-s3 = "0.38.0"
 # split llama into another crate to avoid recompiling it
 llama-cpp = { path = "./llama-cpp/" }
 sql = { path = "./sql/" }
+tauri-plugin-shell = "2.3.6"
