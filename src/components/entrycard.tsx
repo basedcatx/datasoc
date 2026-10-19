@@ -86,13 +86,15 @@ export default function EntryCard({
 				<Link to={"/view/$reportId"} params={{ reportId: id!.toString() }}>
 					<Card className="p-6 hover:bg-muted rounded-md dark:hover:bg-input/50 cursor-pointer  mx-1">
 						<div className="flex justify-between items-center">
-							<div>
-								<p className="text-nowrap w-md text-ellipsis font-bold text-lg">
+							<div className="max-md-w-[70%]">
+								<p className="text-nowrap w-full text-ellipsis font-bold text-lg">
 									{name}
 								</p>
-								<p className="text-nowrap truncate w-sm md:w-2xl">{content}</p>
+								<p className="text-wrap truncate w-full text-ellipsis">
+									{content.split(" ").slice(0, 20).join(" ")}
+								</p>
 							</div>
-							<ArrowUpRight />
+							<ArrowUpRight className="size-5" />
 						</div>
 						<div className="flex justify-between items-center">
 							<div className="flex gap-3">
@@ -116,7 +118,7 @@ export default function EntryCard({
 								</ul>
 							</div>
 							<p className="text-muted-foreground">
-								created on {new Date(created_at!).toDateString().toLowerCase()}
+								Created @ {new Date(created_at!).toDateString()}
 							</p>
 						</div>
 					</Card>
