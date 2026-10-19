@@ -65,7 +65,7 @@ import { MAX_FILE_SIZE } from "#/lib/tiptap-utils";
 // --- Styles ---
 import "#/components/tiptap-templates/simple/simple-editor.scss";
 
-import { LucidePencilLine } from "lucide-react";
+import { LucidePencilLine, Save } from "lucide-react";
 import { Input } from "#/components/ui/input";
 import { Badge } from "#/components/ui/badge";
 
@@ -99,6 +99,7 @@ import {
 } from "#/lib/features/query";
 import { FLAGS } from "#/lib/utils";
 import { Spinner } from "#/components/ui/spinner";
+import { toast } from "sonner";
 
 const MainToolbarContent = ({
 	onHighlighterClick,
@@ -108,6 +109,7 @@ const MainToolbarContent = ({
 	searchAndReplaceButtonRef,
 	isMobile,
 	editor,
+	onSaveClick,
 }: {
 	onHighlighterClick: () => void;
 	onLinkClick: () => void;
@@ -117,6 +119,7 @@ const MainToolbarContent = ({
 	isMobile: boolean;
 	// biome-ignore lint/suspicious/noExplicitAny: This is unecessary
 	editor: any;
+	onSaveClick?: () => void;
 }) => {
 	const state = useSelector(appStore, (s) => s.file);
 	const name = state.name;
@@ -188,9 +191,12 @@ const MainToolbarContent = ({
 				/>
 			)}
 
-			<ToolbarGroup className="max-xl:flex max-xl:flex-col">
+			<ToolbarGroup className="max-xl:flex max-xl:flex-col max-xl:overflow-y-auto max-xl:max-h-[50vh]">
 				<UndoRedoButton action="undo" editor={editor} />
 				<UndoRedoButton action="redo" editor={editor} />
+				<Button variant={"ghost"} onClick={onSaveClick}>
+					<Save className="size-4" />
+				</Button>
 			</ToolbarGroup>
 			<ToolbarSeparator orientation={bp ? "horizontal" : "vertical"} />
 			<ToolbarGroup className="max-xl:flex max-xl:flex-col">
@@ -276,6 +282,7 @@ export function SimpleEditor() {
 	const handleAutoSave = async (state: any) => {
 		if (!state.name || !state.content || !state.content_html) {
 			setS({ loading: false, msg: "Idling..." });
+			toast.error("Unable to save, please ensure that the record's name is set, and it has some content")
 			return;
 		}
 
@@ -308,6 +315,7 @@ export function SimpleEditor() {
 		});
 
 		setS({ loading: false, msg: "Saved to database" });
+		toast.success("Saved to database");
 	};
 
 	const editor = useEditor({
@@ -425,6 +433,7 @@ export function SimpleEditor() {
 						searchAndReplaceButtonRef={searchAndReplaceButtonRef}
 						isMobile={isMobile}
 						editor={editor}
+						onSaveClick={() => handleAutoSave(appStore.state.file)}
 					/>
 
 					<SearchAndReplace
@@ -434,6 +443,8 @@ export function SimpleEditor() {
 						onClose={closeSearchAndReplace}
 						scrollIntoViewOptions={SEARCH_AND_REPLACE_SCROLL_OPTIONS}
 					/>
+
+
 
 					<EditorContent
 						editor={editor}
