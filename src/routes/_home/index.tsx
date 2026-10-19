@@ -39,7 +39,7 @@ function InfoCardSection() {
 	}
 
 	return (
-		<section className="grid grid-cols-4 gap-3">
+		<section className="grid grid-cols-4 gap-3 max-lg:grid-cols-2">
 			<HomeInfoCard
 				type="Saved Records"
 				value={data.length.toString()}

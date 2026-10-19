@@ -45,7 +45,7 @@ function SidebarComponent({ children }: { children: React.ReactNode }) {
 			ref={ref}
 			className={cn(
 				"bg-card w-100 overflow-y-auto scrollbar-thin scrollbar-thumb-primary shrink-0 flex flex-col p-4 border-r gap-10 h-screen sidebar",
-				!isOpen && "p-3 bg-card flex flex-col gap-12 h-screen w-20",
+				!isOpen && "p-3 flex flex-col gap-12 h-screen w-20",
 			)}
 		>
 			{mounted ? (
@@ -78,7 +78,7 @@ function SidebarComponent({ children }: { children: React.ReactNode }) {
 							<SettingsCard
 								Trigger={
 									<Button
-										variant={"secondary"}
+										variant={"outline"}
 										size={"lg"}
 										className="p-4 rounded-full"
 									>
@@ -136,7 +136,7 @@ function SidebarComponent({ children }: { children: React.ReactNode }) {
 					</div>
 					<SettingsCard
 						Trigger={
-							<Button variant={"secondary"} className="rounded-full">
+							<Button variant={"outline"} className="rounded-full">
 								<LucideSettings className="size-6" />
 							</Button>
 						}

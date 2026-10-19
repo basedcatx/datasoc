@@ -59,18 +59,15 @@ function TrashComponent({
 							<AlertDialog>
 								<AlertDialogTrigger asChild>
 									<Button
-										variant={"default"}
-										className="flex p-6 cursor-pointer font-medium rounded-full bg-destructive hover:bg-destructive"
+										variant={"outline"}
+										className="flex cursor-pointer p-3 rounded-full"
 									>
-										<LucideTrash className="size-6" />
-										<p className="text-lg">Delete all</p>
+										<LucideTrash className="size-4" />
+										<p>Delete all</p>
 									</Button>
 								</AlertDialogTrigger>
 								<AlertDialogContent size="sm">
 									<AlertDialogTrigger>
-										<AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
-											<Trash2Icon />
-										</AlertDialogMedia>
 										<AlertDialogTitle>Delete records?</AlertDialogTitle>
 										<AlertDialogDescription>
 											This would parmanently delete all records in the trash
@@ -94,10 +91,10 @@ function TrashComponent({
 								variant={"default"}
 								type="button"
 								onClick={handleRestoreAll}
-								className="flex p-6 cursor-pointer font-medium rounded-full"
+								className="flex p-3 cursor-pointer rounded-full"
 							>
-								<LoaderIcon />
-								<p className="text-lg">Restore all</p>
+								<LoaderIcon className="size-4" />
+								<p>Restore all</p>
 							</Button>
 						</div>
 					</div>
@@ -156,7 +153,7 @@ export default function TrashCard() {
 						No record found in the trash. Click on new to create one
 					</p>
 
-					<Button className="flex items-center w-xs p-4 cursor-pointer rounded-full">
+					<Button className="flex items-center p-4 cursor-pointer rounded-full">
 						<Plus />
 						<p className="text-lg">New</p>
 					</Button>

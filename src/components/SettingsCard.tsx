@@ -62,7 +62,7 @@ function SettingsPage() {
 
 				<FieldGroup className="w-full">
 					<FieldDescription>Backup & Restore </FieldDescription>
-					<BackupRestoreComponent />
+					<BackupRestoreComponent  />
 				</FieldGroup>
 			</FieldSet>
 		</div>
@@ -101,7 +101,7 @@ function ProfileCard() {
 	return (
 		<Collapsible open={open} onOpenChange={setOpen}>
 			<CollapsibleTrigger className="w-full">
-				<div className="flex items-center rounded-sm justify-between px-2 focus-within:bg-input/70 hover:bg-input/10 cursor-pointer">
+				<div className="flex items-center rounded-sm justify-between px-2 focus-within:bg-input/70 cursor-pointer">
 					<span className="flex items-center gap-4 p-4">
 						<div className="rounded-full p-1">
 							<Blobatar
@@ -193,16 +193,18 @@ function ProfileCard() {
 	);
 }
 
-function BackupRestoreComponent(role: "admin" | "user") {
+function BackupRestoreComponent() {
 	// const backupManager = new BackupManager();
 	// backupManager.backupDB();
+
+	const { data: session } = useSession();
 	return (
 		<div className="w-full flex gap-3">
 			<Button variant={"outline"} className="flex-1">
 				<RotateCcw />
 				Restore
 			</Button>
-			<Button className="flex-1" disabled={role === "user"}>
+			<Button className="flex-1" disabled={session?.user?.role === "user"}>
 				<CloudSync />
 				Backup
 			</Button>
