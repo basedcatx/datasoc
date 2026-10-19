@@ -195,12 +195,10 @@ const MainToolbarContent = ({
 					/>
 				)}
 
-				<ToolbarGroup className="max-xl:flex max-xl:flex-col max-xl:overflow-y-auto max-xl:max-h-[50vh]">
+				<ToolbarGroup className="max-xl:flex max-xl:flex-col">
 					<UndoRedoButton action="undo" editor={editor} />
 					<UndoRedoButton action="redo" editor={editor} />
-					<Button variant={"ghost"} onClick={onSaveClick}>
-						<Save className="size-4" />
-					</Button>
+					<MarkButton disabled={false} data-disabled={false} type="save" editor={editor} onClick={onSaveClick} />
 				</ToolbarGroup>
 				<ToolbarSeparator orientation={bp ? "horizontal" : "vertical"} />
 				<ToolbarGroup className="max-xl:flex max-xl:flex-col">
@@ -213,10 +211,10 @@ const MainToolbarContent = ({
 				</ToolbarGroup>
 				<ToolbarSeparator orientation={bp ? "horizontal" : "vertical"} />
 				<ToolbarGroup className="max-xl:flex max-xl:flex-col">
-					<MarkButton type="bold" />
-					<MarkButton type="italic" />
-					<MarkButton type="strike" />
-					<MarkButton type="underline" />
+					<MarkButton type="bold" editor={editor} />
+					<MarkButton type="italic" editor={editor} />
+					<MarkButton type="strike" editor={editor} />
+					<MarkButton type="underline" editor={editor} />
 					{!isMobile ? (
 						<ColorHighlightPopover />
 					) : (
@@ -226,8 +224,8 @@ const MainToolbarContent = ({
 				</ToolbarGroup>
 				<ToolbarSeparator orientation={bp ? "horizontal" : "vertical"} />
 				<ToolbarGroup className="max-xl:flex max-xl:flex-col">
-					<MarkButton type="superscript" />
-					<MarkButton type="subscript" />
+					<MarkButton type="superscript" editor={editor} />
+					<MarkButton type="subscript" editor={editor} />
 				</ToolbarGroup>
 				<ToolbarGroup className="max-xl:flex max-xl:flex-col">
 					<TextAlignButton align="left" />
