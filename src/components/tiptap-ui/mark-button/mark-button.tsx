@@ -3,7 +3,7 @@
 import { forwardRef, useCallback } from "react"
 
 // --- Lib ---
-import { parseShortcutKeys } from "#/lib/tiptap-utils"
+import { cn, parseShortcutKeys } from "#/lib/tiptap-utils"
 
 // --- Hooks ---
 import { useTiptapEditor } from "#/hooks/use-tiptap-editor"
@@ -76,6 +76,7 @@ export const MarkButton = forwardRef<HTMLButtonElement, MarkButtonProps>(
       onToggled,
     })
 
+
     const handleClick = useCallback(
       (event: React.MouseEvent<HTMLButtonElement>) => {
         onClick?.(event)
@@ -88,6 +89,8 @@ export const MarkButton = forwardRef<HTMLButtonElement, MarkButtonProps>(
     if (!isVisible) {
       return null
     }
+
+    console.log("Rendering MarkButton:", type, "isActive:", isActive)
 
     return (
       <Button

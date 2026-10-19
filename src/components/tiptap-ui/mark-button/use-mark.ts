@@ -15,6 +15,7 @@ import { StrikeIcon } from "#/components/tiptap-icons/strike-icon"
 import { SubscriptIcon } from "#/components/tiptap-icons/subscript-icon"
 import { SuperscriptIcon } from "#/components/tiptap-icons/superscript-icon"
 import { UnderlineIcon } from "#/components/tiptap-icons/underline-icon"
+import { SaveIcon } from "lucide-react"
 
 export type Mark =
   | "bold"
@@ -23,7 +24,7 @@ export type Mark =
   | "code"
   | "underline"
   | "superscript"
-  | "subscript"
+  | "subscript" | "save"
 
 /**
  * Configuration for the mark functionality
@@ -56,6 +57,7 @@ export const markIcons = {
   code: Code2Icon,
   superscript: SuperscriptIcon,
   subscript: SubscriptIcon,
+  save: SaveIcon
 }
 
 export const MARK_SHORTCUT_KEYS: Record<Mark, string> = {
@@ -66,6 +68,7 @@ export const MARK_SHORTCUT_KEYS: Record<Mark, string> = {
   code: "mod+e",
   superscript: "mod+.",
   subscript: "mod+,",
+  save: "mod+s",
 }
 
 /**
@@ -93,7 +96,6 @@ export function isMarkActive(editor: Editor | null, type: Mark): boolean {
 export function toggleMark(editor: Editor | null, type: Mark): boolean {
   if (!editor || !editor.isEditable) return false
   if (!canToggleMark(editor, type)) return false
-
   return editor.chain().focus().toggleMark(type).run()
 }
 
@@ -170,13 +172,17 @@ export function getFormattedMarkName(type: Mark): string {
  */
 export function useMark(config: UseMarkConfig) {
   const {
-    editor: providedEditor,
+    editor,
     type,
     hideWhenUnavailable = false,
     onToggled,
   } = config
 
-  const { editor } = useTiptapEditor(providedEditor)
+  if (!editor) {
+    console.warn("useMark: No editor instance provided.")
+    return null;
+  }
+
   const [isVisible, setIsVisible] = useState<boolean>(true)
   const canToggle = canToggleMark(editor, type)
   const isActive = isMarkActive(editor, type)
@@ -206,6 +212,7 @@ export function useMark(config: UseMarkConfig) {
     }
     return success
   }, [editor, type, onToggled])
+
 
   return {
     isVisible,
