@@ -14,14 +14,15 @@ import {
 	appStore,
 	initialStoreState,
 } from "#/integrations/tanstack-query/store-provider";
+import { useSelector } from "@tanstack/react-store";
 
-export const Route = createFileRoute("/editor")({
+export const Route = createFileRoute("/editor/")({
 	component: RouteComponent,
 });
 
 function RouteComponent() {
 	const { status, proceed, reset } = useBlocker({
-		shouldBlockFn: () => true,
+		shouldBlockFn: () => useSelector(appStore, (state) => state.file) !== initialStoreState.file,
 		withResolver: true,
 	});
 
