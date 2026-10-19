@@ -48,6 +48,10 @@ export default function LibraryEntryCard({
 		}));
 	};
 
+	const handleEdit = () => {
+		nav({ to: "/editor/$reportId", params: { reportId: id!.toString() } });
+	};
+
 	const handleSearchSimilar = () => {
 		const search = { query: name };
 		nav({ to: "/search", search: { ...search } });
@@ -150,7 +154,7 @@ export default function LibraryEntryCard({
 					)}
 				</ContextMenuItem>
 				<ContextMenuSeparator />
-				<ContextMenuItem>
+				<ContextMenuItem onClick={handleEdit}>
 					<SquarePen />
 					Edit
 				</ContextMenuItem>

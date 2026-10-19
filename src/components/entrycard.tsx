@@ -57,6 +57,10 @@ export default function EntryCard({
 		});
 	};
 
+	const handleEdit = () => {
+		nav({ to: "/editor/$reportId", params: { reportId: id!.toString() } });
+	}
+
 	const handleDelete = () => {
 		addToFavMutation.mutate({
 			flag: FLAGS.IS_DELETED,
@@ -102,7 +106,7 @@ export default function EntryCard({
 									className={cn(
 										"p-3 bg-input text-input-foreground",
 										flag.check(FLAGS.IS_COMPLETED) &&
-											"bg-primary text-primary-foreground",
+										"bg-primary text-primary-foreground",
 									)}
 								>
 									{flag.check(FLAGS.IS_COMPLETED) ? "Completed" : "In progress"}
@@ -149,7 +153,7 @@ export default function EntryCard({
 					)}
 				</ContextMenuItem>
 				<ContextMenuSeparator />
-				<ContextMenuItem>
+				<ContextMenuItem onClick={handleEdit}>
 					<SquarePen />
 					Edit
 				</ContextMenuItem>
