@@ -295,7 +295,7 @@ export function SimpleEditor({ data }: { data?: R }) {
 		if (!state.name || !state.content || !state.content_html) {
 			setS({ loading: false, msg: "Idling..." });
 			toast.error("Unable to save, please ensure that the record's name is set, and it has some content")
-			return;
+			return false;
 		}
 
 		if (state.id === -1) {
@@ -306,7 +306,7 @@ export function SimpleEditor({ data }: { data?: R }) {
 			});
 
 			setS({ loading: false, msg: "Idling..." });
-			return;
+			return false;
 		}
 
 		const uRecord = fetchRecordByNameQuery.data;
@@ -314,7 +314,7 @@ export function SimpleEditor({ data }: { data?: R }) {
 		if (!uRecord) {
 			console.log(fetchRecordByNameQuery.error);
 			setS({ loading: false, msg: "Idling..." });
-			return;
+			return false;
 		}
 
 		updateRecordMutation.mutate({
@@ -327,7 +327,7 @@ export function SimpleEditor({ data }: { data?: R }) {
 		});
 
 		setS({ loading: false, msg: "Saved to database" });
-		toast.success("Saved to database");
+		return true;
 	};
 
 	const editor = useEditor({
@@ -446,7 +446,7 @@ export function SimpleEditor({ data }: { data?: R }) {
 						searchAndReplaceButtonRef={searchAndReplaceButtonRef}
 						isMobile={isMobile}
 						editor={editor}
-						onSaveClick={() => handleAutoSave(appStore.state.file)}
+						onSaveClick={async () => { const res = await handleAutoSave(appStore.state.file); if (res) toast.success("Saved successfully!"); else toast.error("Failed to save!"); }}
 					/>
 
 					<SearchAndReplace
