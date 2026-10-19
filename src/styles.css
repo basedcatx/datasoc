@@ -314,11 +314,7 @@
 
 
 
-@media (prefers-reduced-motion: reduce) {
-  .radix-collapsibleContent {
-    animation: none !important;
-  }
-}
+
 
 
 .no-scrollbar::-webkit-scrollbar {
