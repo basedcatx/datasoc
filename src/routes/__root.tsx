@@ -18,6 +18,7 @@ import type { QueryClient } from "@tanstack/react-query";
 import { TauriQueryInspector } from "#/integrations/tanstack-query/tauri-query-inspector";
 import { ThemeProvider } from "next-themes";
 import { SessionProvider } from "next-auth/react";
+import { Toaster } from "sonner";
 
 interface MyRouterContext {
 	queryClient: QueryClient;
@@ -64,6 +65,7 @@ function RootDocument() {
 					enableSystem
 					disableTransitionOnChange
 				>
+					<Toaster richColors />
 					<SessionProvider>
 						<div className="h-full w-full flex">
 							<Sidebar />
