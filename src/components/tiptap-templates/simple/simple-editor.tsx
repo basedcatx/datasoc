@@ -100,6 +100,8 @@ import {
 import { FLAGS } from "#/lib/utils";
 import { Spinner } from "#/components/ui/spinner";
 import { toast } from "sonner";
+import type { R } from "#/lib/libs";
+import { cn } from "cn";
 
 const MainToolbarContent = ({
 	onHighlighterClick,
@@ -137,118 +139,123 @@ const MainToolbarContent = ({
 	};
 
 	return (
-		<div className="flex items-center justify-between gap-5 flex-row max-xl:flex-col max-xl:fixed max-xl:top-0 xl:w-full p-4">
-			{bp ? (
-				<AlertDialog>
-					<AlertDialogTrigger asChild>
-						<Button
-							variant={"ghost"}
-							className="flex p-6 cursor-pointer font-medium rounded-full bg-destructive hover:bg-destructive"
-						>
-							<LucidePencilLine className="size-4" />
-						</Button>
-					</AlertDialogTrigger>
-					<AlertDialogContent size="sm">
-						<form
-							className="flex flex-col gap-6"
-							onSubmit={(e) => {
-								e.preventDefault();
-								//@ts-expect-error
-								const value = e.target.elements.name.value;
-								if (value) handleNameChange(value);
-							}}
-						>
-							<FieldGroup>
-								<Field>
-									<FieldLabel htmlFor="name-id">Name</FieldLabel>
-									<Input
-										className="ring-0 focus-visible:ring-0 bg-transparent focus-visible:bg-background focus-active:bg-background border-none rounded-none dark:bg-transparent"
-										placeholder="Name..."
-										defaultValue={name}
-										name="name"
-										id="name-id"
-									/>
-									<FieldDescription>
-										Change the document's name
-									</FieldDescription>
-								</Field>
-							</FieldGroup>
-							<AlertDialogFooter>
-								<AlertDialogCancel variant="outline">Cancel</AlertDialogCancel>
-								<AlertDialogAction type="submit">OK</AlertDialogAction>
-							</AlertDialogFooter>
-						</form>
-					</AlertDialogContent>
-				</AlertDialog>
-			) : (
-				<Input
-					className="ring-0 focus-visible:ring-0 shrink bg-transparent focus-visible:bg-background focus-active:bg-background border-none rounded-none dark:bg-transparent"
-					placeholder="Name..."
-					value={name}
-					onChange={(e) => {
-						handleNameChange(e.target.value);
-					}}
-				/>
-			)}
+		<div className={cn("xl:w-full z-50 max-xl:max-h-dvh flex overflow-x-auto sticky top-0 overflow-auto", bp && "no-scrollbar")}>
+			<div className="flex items-center gap-2 justify-between max-xl:flex-col max-xl:gap-4 max-xl:p-2 xl:w-full">
 
-			<ToolbarGroup className="max-xl:flex max-xl:flex-col max-xl:overflow-y-auto max-xl:max-h-[50vh]">
-				<UndoRedoButton action="undo" editor={editor} />
-				<UndoRedoButton action="redo" editor={editor} />
-				<Button variant={"ghost"} onClick={onSaveClick}>
-					<Save className="size-4" />
-				</Button>
-			</ToolbarGroup>
-			<ToolbarSeparator orientation={bp ? "horizontal" : "vertical"} />
-			<ToolbarGroup className="max-xl:flex max-xl:flex-col">
-				<HeadingDropdownMenu modal={false} levels={[1, 2, 3, 4, 5, 6]} />
-				<ListDropdownMenu
-					modal={false}
-					types={["bulletList", "orderedList", "taskList"]}
-				/>
-				<BlockquoteButton />
-			</ToolbarGroup>
-			<ToolbarSeparator orientation={bp ? "horizontal" : "vertical"} />
-			<ToolbarGroup className="max-xl:flex max-xl:flex-col">
-				<MarkButton type="bold" />
-				<MarkButton type="italic" />
-				<MarkButton type="strike" />
-				<MarkButton type="underline" />
-				{!isMobile ? (
-					<ColorHighlightPopover />
+				{bp ? (
+					<AlertDialog>
+						<AlertDialogTrigger asChild>
+							<Button
+								variant={"ghost"}
+								className="flex p-6 cursor-pointer font-medium rounded-full bg-destructive hover:bg-destructive"
+							>
+								<LucidePencilLine className="size-4" />
+							</Button>
+						</AlertDialogTrigger>
+						<AlertDialogContent size="sm">
+							<form
+								className="flex flex-col gap-6"
+								onSubmit={(e) => {
+									e.preventDefault();
+									//@ts-expect-error
+									const value = e.target.elements.name.value;
+									if (value) handleNameChange(value);
+								}}
+							>
+								<FieldGroup>
+									<Field>
+										<FieldLabel htmlFor="name-id">Name</FieldLabel>
+										<Input
+											className="ring-0 focus-visible:ring-0 bg-transparent focus-visible:bg-background focus-active:bg-background border-none rounded-none dark:bg-transparent"
+											placeholder="Name..."
+											defaultValue={name}
+											name="name"
+											id="name-id"
+										/>
+										<FieldDescription>
+											Change the document's name
+										</FieldDescription>
+									</Field>
+								</FieldGroup>
+								<AlertDialogFooter>
+									<AlertDialogCancel variant="outline">Cancel</AlertDialogCancel>
+									<AlertDialogAction type="submit">OK</AlertDialogAction>
+								</AlertDialogFooter>
+							</form>
+						</AlertDialogContent>
+					</AlertDialog>
 				) : (
-					<ColorHighlightPopoverButton onClick={onHighlighterClick} />
+					<Input
+						className="ring-0 focus-visible:ring-0 shrink bg-transparent focus-visible:bg-background focus-active:bg-background border-none rounded-none dark:bg-transparent"
+						placeholder="Name..."
+						value={name}
+						onChange={(e) => {
+							handleNameChange(e.target.value);
+						}}
+					/>
 				)}
-				{!isMobile ? <LinkPopover /> : <LinkButton onClick={onLinkClick} />}
-			</ToolbarGroup>
-			<ToolbarSeparator orientation={bp ? "horizontal" : "vertical"} />
-			<ToolbarGroup className="max-xl:flex max-xl:flex-col">
-				<MarkButton type="superscript" />
-				<MarkButton type="subscript" />
-			</ToolbarGroup>
-			<ToolbarGroup className="max-xl:flex max-xl:flex-col">
-				<TextAlignButton align="left" />
-				<TextAlignButton align="center" />
-				<TextAlignButton align="right" />
-				<TextAlignButton align="justify" />
-			</ToolbarGroup>
-			<ToolbarGroup>
-				<ImageUploadButton text={!bp ? "Add" : ""} />
-			</ToolbarGroup>
-			<ToolbarGroup className="max-xl:flex max-xl:flex-col">
-				<SearchAndReplaceButton
-					ref={searchAndReplaceButtonRef}
-					aria-expanded={isSearchAndReplaceOpen}
-					data-active-state={isSearchAndReplaceOpen ? "on" : "off"}
-					onClick={onSearchAndReplaceClick}
-				/>
 
-				<MetadataDialog />
-			</ToolbarGroup>
+				<ToolbarGroup className="max-xl:flex max-xl:flex-col max-xl:overflow-y-auto max-xl:max-h-[50vh]">
+					<UndoRedoButton action="undo" editor={editor} />
+					<UndoRedoButton action="redo" editor={editor} />
+					<Button variant={"ghost"} onClick={onSaveClick}>
+						<Save className="size-4" />
+					</Button>
+				</ToolbarGroup>
+				<ToolbarSeparator orientation={bp ? "horizontal" : "vertical"} />
+				<ToolbarGroup className="max-xl:flex max-xl:flex-col">
+					<HeadingDropdownMenu modal={false} levels={[1, 2, 3, 4, 5, 6]} />
+					<ListDropdownMenu
+						modal={false}
+						types={["bulletList", "orderedList", "taskList"]}
+					/>
+					<BlockquoteButton />
+				</ToolbarGroup>
+				<ToolbarSeparator orientation={bp ? "horizontal" : "vertical"} />
+				<ToolbarGroup className="max-xl:flex max-xl:flex-col">
+					<MarkButton type="bold" />
+					<MarkButton type="italic" />
+					<MarkButton type="strike" />
+					<MarkButton type="underline" />
+					{!isMobile ? (
+						<ColorHighlightPopover />
+					) : (
+						<ColorHighlightPopoverButton onClick={onHighlighterClick} />
+					)}
+					{!isMobile ? <LinkPopover /> : <LinkButton onClick={onLinkClick} />}
+				</ToolbarGroup>
+				<ToolbarSeparator orientation={bp ? "horizontal" : "vertical"} />
+				<ToolbarGroup className="max-xl:flex max-xl:flex-col">
+					<MarkButton type="superscript" />
+					<MarkButton type="subscript" />
+				</ToolbarGroup>
+				<ToolbarGroup className="max-xl:flex max-xl:flex-col">
+					<TextAlignButton align="left" />
+					<TextAlignButton align="center" />
+					<TextAlignButton align="right" />
+					<TextAlignButton align="justify" />
+				</ToolbarGroup>
+				<ToolbarGroup>
+					<ImageUploadButton text={!bp ? "Add" : ""} />
+				</ToolbarGroup>
+				<ToolbarGroup className="max-xl:flex max-xl:flex-col">
+					<SearchAndReplaceButton
+						ref={searchAndReplaceButtonRef}
+						aria-expanded={isSearchAndReplaceOpen}
+						data-active-state={isSearchAndReplaceOpen ? "on" : "off"}
+						onClick={onSearchAndReplaceClick}
+					/>
+
+					<MetadataDialog />
+				</ToolbarGroup>
+
+
+			</div>
 		</div>
 	);
 };
 
-export function SimpleEditor() {
+export function SimpleEditor({ data }: { data?: R }) {
 	const isMobile = useIsBreakpoint();
 	const { height } = useWindowSize();
 	const [mobileView, setMobileView] = useState<"main" | "highlighter" | "link">(
@@ -261,6 +268,13 @@ export function SimpleEditor() {
 	const qc = useQueryClient();
 	const [s, setS] = useState({ loading: false, msg: "" });
 	const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+	if (data) {
+		appStore.setState((prev) => ({
+			...prev,
+			file: { ...prev.file, ...data },
+		}));
+	}
 
 	const docId = useSelector(appStore, (store) => store.file.id);
 
@@ -369,6 +383,7 @@ export function SimpleEditor() {
 				onError: (error) => console.error("Upload failed:", error),
 			}),
 		],
+		content: data?.content_html ?? "",
 		onUpdate({ editor }) {
 			const plainText = editor.getText({ blockSeparator: "\n" });
 			const html = editor.getHTML();
