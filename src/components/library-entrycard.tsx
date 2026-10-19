@@ -93,11 +93,13 @@ export default function LibraryEntryCard({
 				<Link to="/view/$reportId" params={{ reportId: id!.toString() }}>
 					<Card className="p-6 hover:bg-muted rounded-md dark:hover:bg-input/50 cursor-pointer">
 						<div className="flex justify-between items-center">
-							<div>
-								<p className="text-nowrap w-md text-ellipsis font-bold text-lg">
+							<div className="max-md-w-[70%]">
+								<p className="text-nowrap w-full text-ellipsis font-bold text-lg">
 									{name}
 								</p>
-								<p className="text-nowrap truncate w-sm md:w-2xl">{content}</p>
+								<p className="text-wrap truncate w-full text-ellipsis">
+									{content.split(" ").slice(0, 20).join(" ")}
+								</p>
 							</div>
 						</div>
 						<div className="flex justify-between items-center">
@@ -117,7 +119,9 @@ export default function LibraryEntryCard({
 									))}
 								</ul>
 							</div>
-							<p className="text-muted-foreground">created at {created_at}</p>
+							<p className="text-muted-foreground">
+								Created @ {new Date(created_at!).toDateString()}
+							</p>
 						</div>
 					</Card>
 				</Link>
