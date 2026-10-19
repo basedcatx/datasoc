@@ -1,8 +1,8 @@
 [package]
 name = "Datasoc"
-version = "0.1.0"
+version = "0.1.1"
 description = "A Logging app"
-authors = ["you"]
+authors = ["basedcatx"]
 license = ""
 repository = ""
 edition = "2021"

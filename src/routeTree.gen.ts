@@ -9,21 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as EditorRouteImport } from './routes/editor'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SplashscreenRouteImport } from './routes/splashscreen'
 import { Route as HomeIndexRouteImport } from './routes/_home/index'
+import { Route as EditorIndexRouteImport } from './routes/editor/index'
+import { Route as EditorReportIdRouteImport } from './routes/editor/$reportId'
 import { Route as LibraryIndexRouteImport } from './routes/library/index'
 import { Route as TrashIndexRouteImport } from './routes/trash/index'
 import { Route as ViewReportIdRouteImport } from './routes/view/$reportId'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
-const EditorRoute = EditorRouteImport.update({
-  id: '/editor',
-  path: '/editor',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
@@ -42,6 +38,16 @@ const SplashscreenRoute = SplashscreenRouteImport.update({
 const HomeIndexRoute = HomeIndexRouteImport.update({
   id: '/_home/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EditorIndexRoute = EditorIndexRouteImport.update({
+  id: '/editor/',
+  path: '/editor/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EditorReportIdRoute = EditorReportIdRouteImport.update({
+  id: '/editor/$reportId',
+  path: '/editor/$reportId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LibraryIndexRoute = LibraryIndexRouteImport.update({
@@ -66,35 +72,38 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/editor': typeof EditorRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/splashscreen': typeof SplashscreenRoute
+  '/editor/$reportId': typeof EditorReportIdRoute
   '/view/$reportId': typeof ViewReportIdRoute
   '/': typeof HomeIndexRoute
+  '/editor/': typeof EditorIndexRoute
   '/library/': typeof LibraryIndexRoute
   '/trash/': typeof TrashIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
-  '/editor': typeof EditorRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/splashscreen': typeof SplashscreenRoute
+  '/editor/$reportId': typeof EditorReportIdRoute
   '/view/$reportId': typeof ViewReportIdRoute
   '/': typeof HomeIndexRoute
+  '/editor': typeof EditorIndexRoute
   '/library': typeof LibraryIndexRoute
   '/trash': typeof TrashIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/editor': typeof EditorRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/splashscreen': typeof SplashscreenRoute
+  '/editor/$reportId': typeof EditorReportIdRoute
   '/view/$reportId': typeof ViewReportIdRoute
   '/_home/': typeof HomeIndexRoute
+  '/editor/': typeof EditorIndexRoute
   '/library/': typeof LibraryIndexRoute
   '/trash/': typeof TrashIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -102,46 +111,50 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/editor'
     | '/search'
     | '/settings'
     | '/splashscreen'
+    | '/editor/$reportId'
     | '/view/$reportId'
     | '/'
+    | '/editor/'
     | '/library/'
     | '/trash/'
     | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/editor'
     | '/search'
     | '/settings'
     | '/splashscreen'
+    | '/editor/$reportId'
     | '/view/$reportId'
     | '/'
+    | '/editor'
     | '/library'
     | '/trash'
     | '/api/auth/$'
   id:
     | '__root__'
-    | '/editor'
     | '/search'
     | '/settings'
     | '/splashscreen'
+    | '/editor/$reportId'
     | '/view/$reportId'
     | '/_home/'
+    | '/editor/'
     | '/library/'
     | '/trash/'
     | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  EditorRoute: typeof EditorRoute
   SearchRoute: typeof SearchRoute
   SettingsRoute: typeof SettingsRoute
   SplashscreenRoute: typeof SplashscreenRoute
+  EditorReportIdRoute: typeof EditorReportIdRoute
   ViewReportIdRoute: typeof ViewReportIdRoute
   HomeIndexRoute: typeof HomeIndexRoute
+  EditorIndexRoute: typeof EditorIndexRoute
   LibraryIndexRoute: typeof LibraryIndexRoute
   TrashIndexRoute: typeof TrashIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -149,13 +162,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/editor': {
-      id: '/editor'
-      path: '/editor'
-      fullPath: '/editor'
-      preLoaderRoute: typeof EditorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/search': {
       id: '/search'
       path: '/search'
@@ -182,6 +188,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof HomeIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/editor/': {
+      id: '/editor/'
+      path: '/editor'
+      fullPath: '/editor/'
+      preLoaderRoute: typeof EditorIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/editor/$reportId': {
+      id: '/editor/$reportId'
+      path: '/editor/$reportId'
+      fullPath: '/editor/$reportId'
+      preLoaderRoute: typeof EditorReportIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/library/': {
@@ -216,12 +236,13 @@ declare module '@tanstack/react-router' {
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  EditorRoute: EditorRoute,
   SearchRoute: SearchRoute,
   SettingsRoute: SettingsRoute,
   SplashscreenRoute: SplashscreenRoute,
+  EditorReportIdRoute: EditorReportIdRoute,
   ViewReportIdRoute: ViewReportIdRoute,
   HomeIndexRoute: HomeIndexRoute,
+  EditorIndexRoute: EditorIndexRoute,
   LibraryIndexRoute: LibraryIndexRoute,
   TrashIndexRoute: TrashIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
