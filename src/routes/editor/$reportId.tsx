@@ -10,10 +10,8 @@ export const Route = createFileRoute("/editor/$reportId")({
 function RouteComponent() {
 
 	const { reportId } = Route.useParams();
-	console.log("reportId", reportId);
 
 	const { data } = useQuery({ ...recordQueries.id(Number(reportId)), enabled: !!reportId });
-	console.log("data", data);
 
 	return (
 		<div>

@@ -90,7 +90,6 @@ export const MarkButton = forwardRef<HTMLButtonElement, MarkButtonProps>(
       return null
     }
 
-    console.log("Rendering MarkButton:", type, "isActive:", isActive)
 
     return (
       <Button

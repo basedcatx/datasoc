@@ -29,7 +29,6 @@ export default function MetadataDialog() {
 
 	const toggleIsCompleted = () => {
 		startTransition(() => {
-			console.log("Toggling flags");
 			appStore.setState((prev) => ({
 				...prev,
 				file: { ...prev.file, flags: flags.toggle(FLAGS.IS_COMPLETED).value },
@@ -164,7 +163,6 @@ export default function MetadataDialog() {
 									</FieldDescription>
 								</FieldContent>
 								<Switch
-									className="p-2 rounded-md"
 									id="r-is-completed"
 									onCheckedChange={toggleIsCompleted}
 									checked={flags.check(FLAGS.IS_COMPLETED)}
