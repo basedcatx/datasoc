@@ -267,14 +267,8 @@ export function SimpleEditor({ data }: { data?: R }) {
 	const [s, setS] = useState({ loading: false, msg: "" });
 	const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-	if (data) {
-		appStore.setState((prev) => ({
-			...prev,
-			file: { ...prev.file, ...data },
-		}));
-	}
+	const state = useSelector(appStore, (s) => s.file);
 
-	const docId = useSelector(appStore, (store) => store.file.id);
 
 	const createNewRecordMutation = useMutation({
 		...recordMutations(qc).createNewRecord(),
@@ -285,18 +279,30 @@ export function SimpleEditor({ data }: { data?: R }) {
 	});
 
 	const fetchRecordByNameQuery = useQuery({
-		...recordQueries.id(docId),
-		enabled: docId !== -1,
+		...recordQueries.id(state.id),
+		enabled: state.id !== -1,
 	});
 
 	const AUTOSAVE_INTERVAL_MS = 3000;
 
-	const handleAutoSave = async (state: any) => {
+	useEffect(() => {
+		if (data) {
+			appStore.setState((prev) => ({
+				...prev,
+				file: { ...prev.file, ...data },
+			}));
+		}
+	}, [data])
+
+	const handleAutoSave = async () => {
+		console.log("state", state)
+
 		if (!state.name || !state.content || !state.content_html) {
 			setS({ loading: false, msg: "Idling..." });
 			toast.error("Unable to save, please ensure that the record's name is set, and it has some content")
-			return false;
+			return Promise.resolve(false);
 		}
+
 
 		if (state.id === -1) {
 			setS({ loading: true, msg: "Creating new record..." });
@@ -306,7 +312,7 @@ export function SimpleEditor({ data }: { data?: R }) {
 			});
 
 			setS({ loading: false, msg: "Idling..." });
-			return false;
+			return Promise.resolve(false);
 		}
 
 		const uRecord = fetchRecordByNameQuery.data;
@@ -314,7 +320,7 @@ export function SimpleEditor({ data }: { data?: R }) {
 		if (!uRecord) {
 			console.log(fetchRecordByNameQuery.error);
 			setS({ loading: false, msg: "Idling..." });
-			return false;
+			return Promise.resolve(false);
 		}
 
 		updateRecordMutation.mutate({
@@ -323,11 +329,13 @@ export function SimpleEditor({ data }: { data?: R }) {
 				name: state.name,
 				content: state.content,
 				content_html: state.content_html,
+				flags: state.flags,
+				meta: state.meta,
+				tags: state.tags,
 			},
 		});
 
-		setS({ loading: false, msg: "Saved to database" });
-		return true;
+		return Promise.resolve(true);
 	};
 
 	const editor = useEditor({
@@ -391,6 +399,7 @@ export function SimpleEditor({ data }: { data?: R }) {
 				file: { ...prev.file, content_html: html, content: plainText },
 			}));
 
+
 			if (timerRef.current) {
 				clearTimeout(timerRef.current);
 			}
@@ -398,7 +407,13 @@ export function SimpleEditor({ data }: { data?: R }) {
 			setS({ loading: true, msg: "Auto saving..." });
 
 			timerRef.current = setTimeout(() => {
-				handleAutoSave(appStore.state.file);
+				handleAutoSave().then((success) => {
+					if (success) {
+						setS({ loading: false, msg: "Saved to database" });
+					} else {
+						setS({ loading: false, msg: "Failed to save" });
+					}
+				})
 			}, AUTOSAVE_INTERVAL_MS);
 		},
 	});
@@ -446,7 +461,7 @@ export function SimpleEditor({ data }: { data?: R }) {
 						searchAndReplaceButtonRef={searchAndReplaceButtonRef}
 						isMobile={isMobile}
 						editor={editor}
-						onSaveClick={async () => { const res = await handleAutoSave(appStore.state.file); if (res) toast.success("Saved successfully!"); else toast.error("Failed to save!"); }}
+						onSaveClick={async () => { const res = await handleAutoSave(); if (res) toast.success("Saved successfully!"); else toast.error("Failed to save!"); }}
 					/>
 
 					<SearchAndReplace
