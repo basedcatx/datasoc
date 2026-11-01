@@ -78,7 +78,7 @@ function RootDocument() {
 					</SessionProvider>
 					<Footer />
 					{/* Would reactivate this only when needed */}
-					{/* <TauriQueryInspector /> */}
+					<TauriQueryInspector />
 					<TanStackDevtools
 						config={{
 							position: "bottom-right",
