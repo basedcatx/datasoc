@@ -43,10 +43,6 @@ pub fn run() {
             let handle = app.handle().clone();
 
             tauri::async_runtime::spawn(async move {
-                let splash_window = handle
-                    .get_webview_window("splashscreen")
-                    .expect("No splashscreen found");
-
                 let model_path = handle
                     .path()
                     .resolve("res/minilm-l6.gguf", tauri::path::BaseDirectory::Resource)
@@ -74,7 +70,6 @@ pub fn run() {
                     },
                 });
 
-                let _ = splash_window.close();
                 let main_window = handle.get_webview_window("main").unwrap();
                 main_window.show();
             });
