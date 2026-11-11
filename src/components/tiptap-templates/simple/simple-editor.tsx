@@ -317,17 +317,21 @@ export function SimpleEditor({ data }: { data?: R }) {
 		if (state.id === -1) {
 			setS({ loading: true, msg: "Creating new record..." });
 
-			createNewRecordMutation.mutateAsync({
-				data: {
-					record: {
-						...state,
-						record_type: RecordTypes.DOCUMENT,
-						flags: FLAGS.NONE_CLEAR_ALL,
-						created_at: "",
+			try {
+				await createNewRecordMutation.mutateAsync({
+					data: {
+						record: {
+							...state,
+							record_type: RecordTypes.DOCUMENT,
+							flags: FLAGS.NONE_CLEAR_ALL,
+							created_at: "",
+						},
 					},
-				},
-			});
-
+				});
+			} catch (_) {
+				setS({ loading: false, msg: "Failed to save..." });
+				return false;
+			}
 			setS({ loading: false, msg: "Idling..." });
 			return true;
 		}
