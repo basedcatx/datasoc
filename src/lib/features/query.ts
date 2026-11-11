@@ -259,23 +259,31 @@ export const recordMutations = (client: QueryClient) => ({
 	}),
 
 	updateRecord: () => ({
-		onMutate: ({ record }: { record: R }) => {
-			const { id } = record;
+		onMutate: ({ data }: { data: Omit<RUpdate, "id" | "record_type"> }) => {
+			const { id } = data.record;
 			if (!id) {
 				console.log("Error(updateRecord): Invalid id");
 				return;
 			}
-			client.setQueryData(recordKeys.id(id), record);
-			client.setQueryData(recordKeys.name(record.name), record);
-			return { record };
+			client.setQueryData(recordKeys.id(id), data);
+			client.setQueryData(recordKeys.name(data.record.name), data);
+			return { data };
 		},
 		onSettled: () => {
 			client.invalidateQueries({ queryKey: recordKeys.all });
 		},
-		mutationFn: async ({ record }: { record: R }) => {
-			const id = record.id;
-			if (!id) return undefined;
-			const rUpdate: RUpdate = { ...record, id };
+		mutationFn: async ({
+			data,
+		}: {
+			data: Omit<RUpdate, "id" | "record_type">;
+		}) => {
+			const { id } = data.record;
+			if (!id) return;
+			const rUpdate: RUpdate = {
+				...data,
+				record: { ...data.record, id },
+				id,
+			};
 			await updateRecord(rUpdate);
 			return rUpdate;
 		},
