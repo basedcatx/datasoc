@@ -26,25 +26,25 @@ export const recordKeys = {
 
 export const recordQueries = {
 	all: () =>
-		queryOptions<R[]>({
+		queryOptions<{ record: R }[]>({
 			queryKey: recordKeys.all,
 			queryFn: () => fetchRecords(),
 			staleTime: 5 * 60 * 1000,
 		}),
 	search: (query: string) =>
-		queryOptions<R[]>({
+		queryOptions<RSearchResult[]>({
 			queryKey: [...recordKeys.search(query)],
 			queryFn: () => hybridSearchRecords({ text: query }),
 			staleTime: 10 * 60 * 1000,
 		}),
 	id: (id: number) =>
-		queryOptions<R>({
+		queryOptions<{ record: R }>({
 			queryKey: recordKeys.id(id),
 			staleTime: 5 * 60 * 1000,
 			queryFn: () => fetchRecordById(id),
 		}),
 	name: (str: string) =>
-		queryOptions<R>({
+		queryOptions<{ record: R }>({
 			queryKey: recordKeys.name(str),
 			staleTime: 5 * 60 * 1000,
 			queryFn: () => fetchRecordByName(str),
