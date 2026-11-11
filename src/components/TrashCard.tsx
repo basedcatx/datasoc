@@ -46,7 +46,8 @@ function TrashComponent({
 
 	const handleRestoreAll = () => {
 		if (!data) return {};
-		restoreAllMutation.mutate({ data });
+		const dataUpdates = data.map((d) => ({ update: d }));
+		restoreAllMutation.mutate({ data: dataUpdates });
 	};
 
 	return (
