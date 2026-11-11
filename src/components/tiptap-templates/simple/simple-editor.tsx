@@ -344,21 +344,26 @@ export function SimpleEditor({ data }: { data?: R }) {
 			return Promise.resolve(false);
 		}
 
-		updateRecordMutation.mutate({
-			data: {
-				record: {
-					...uRecord,
-					name: state.name,
-					content: state.content,
-					content_html: state.content_html,
-					flags: state.flags,
-					meta: state.meta,
-					tags: state.tags,
+		try {
+			await updateRecordMutation.mutateAsync({
+				data: {
+					record: {
+						...uRecord,
+						name: state.name,
+						content: state.content,
+						content_html: state.content_html,
+						flags: state.flags,
+						meta: state.meta,
+						tags: state.tags,
+					},
 				},
-			},
-		});
+			});
+		} catch (e) {
+			toast.error(`Failed to update record: ${e}`);
+			return false;
+		}
 
-		return Promise.resolve(true);
+		return true;
 	};
 
 	const editor = useEditor({
