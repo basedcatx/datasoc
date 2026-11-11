@@ -44,13 +44,10 @@ export interface RSearchResult {
 }
 
 async function generateVector(text: string) {
-	try {
-		const vector: number[] = await invoke("get_embedding", { input: text });
-		return vector;
-	} catch (e) {
-		console.error("Embedding generation error", e);
-		return [];
-	}
+	const vector: number[] = await invoke("get_embedding", { input: text });
+	if (vector.length < 1)
+		throw new Error("Invalid vector embedding, length < 1");
+	return vector;
 }
 
 async function generateContentEmbedding(
