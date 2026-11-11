@@ -228,28 +228,33 @@ export const recordMutations = (client: QueryClient) => ({
 	}),
 
 	createNewRecord: () => ({
-		onMutate: ({ record }: { record: R }) => {
-			client.setQueryData(recordKeys.name(record.name), record);
-			return { record };
+		onMutate: ({ data }: { data: RInsert }) => {
+			client.setQueryData(recordKeys.name(data.record.name), data);
+			return { data };
 		},
 
-		onSettled: (_, __, { record }: { record: R }) => {
-			client.invalidateQueries({ queryKey: recordKeys.name(record.name) });
+		onSettled: (_: any, __: any, { data }: { data: RInsert }) => {
+			client.invalidateQueries({ queryKey: recordKeys.name(data.record.name) });
+			return { data };
 		},
 
-		onSuccess: (data: { record: R }) => {
+		onSuccess: ({ data }: { data: RInsert }) => {
 			appStore.setState((prev) => ({
 				...prev,
 				file: { ...prev.file, id: data.record.id ?? -1 },
 			}));
+			return { data };
 		},
 
-		mutationFn: async ({ record }: { record: R }) => {
-			await insertRecord(record);
-			const temp = await fetchRecordByName(record.name);
-			// This is a very silly check btw. Temp would always have an id, thanks to ts
-			if (temp.id) client.setQueryData(recordKeys.id(temp.id), temp);
-			return { record: temp };
+		mutationFn: async ({ data }: { data: RInsert }) => {
+			const input: RInsert = {
+				record: { ...data.record },
+			};
+			const id = await insertRecord(input);
+			if (id === -1) return;
+			const record = await fetchRecordById(id);
+			client.setQueryData(recordKeys.id(id), record);
+			return { data: record };
 		},
 	}),
 
