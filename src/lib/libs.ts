@@ -101,7 +101,10 @@ export async function fetchRecordByName(name: string): Promise<{ record: R }> {
 
 export async function updateRecord(input: RUpdate): Promise<boolean> {
 	try {
-		const embedding = await generateContentEmbedding(input.name, input.content);
+		const embedding = await generateContentEmbedding(
+			input.record.name,
+			input.record.content,
+		);
 		input.embedding = embedding;
 		// console.log(input);
 		return await invoke<boolean>("update_record", {
