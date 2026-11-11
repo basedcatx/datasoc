@@ -60,7 +60,7 @@ export default function EntryCard({
 
 	const handleEdit = () => {
 		nav({ to: "/editor/$reportId", params: { reportId: id!.toString() } });
-	}
+	};
 
 	const handleDelete = () => {
 		addToFavMutation.mutate({
@@ -107,7 +107,7 @@ export default function EntryCard({
 									className={cn(
 										"p-3 bg-input text-input-foreground",
 										flag.check(FLAGS.IS_COMPLETED) &&
-										"bg-primary text-primary-foreground",
+											"bg-primary text-primary-foreground",
 									)}
 								>
 									{flag.check(FLAGS.IS_COMPLETED) ? "Completed" : "In progress"}
