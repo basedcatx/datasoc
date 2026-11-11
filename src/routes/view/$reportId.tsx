@@ -24,7 +24,7 @@ function RouteComponent() {
 		return <div>{error.message}</div>;
 	}
 
-	const { name, content_html } = data;
+	const { name, content_html } = data.record;
 
 	return (
 		<div>
