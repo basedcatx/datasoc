@@ -111,7 +111,7 @@ pub async fn get_embedding(input: String, state: State<'_, AppState>) -> Result<
 
 #[tauri::command]
 pub async fn create_record(input: RecordInsert, state: State<'_, AppState>) -> Result<i64, String> {
-    let db = state.db.lock().map_err(|_| "Failed to get db lock")?;
+    let mut db = state.db.lock().map_err(|_| "Failed to get db lock")?;
 
     let RecordInsert {
         record:
@@ -132,23 +132,27 @@ pub async fn create_record(input: RecordInsert, state: State<'_, AppState>) -> R
     let meta_string =
         serde_json::to_string(&meta).map_err(|_| "Failed to convert meta to string")?;
 
-    let res = db
-        .execute(
+    let tx = db
+        .transaction()
+        .map_err(|e| format!("Failed to start transaction {e}"))?;
+
+    tx.execute(
             "INSERT INTO Records(name, content, tags, flags, meta, content_html, record_type ) VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7)",
             rusqlite::params![&name, &content, &tags_string, &flags, &meta_string, &content_html, &record_type],
         )
         .map_err(|e| format!("An error occurred while executing query: {e}"))?;
 
-    let id = db.last_insert_rowid();
+    let id = tx.last_insert_rowid();
 
-    let vec_res = db
-        .execute(
-            "INSERT OR REPLACE INTO RecordEmbedding(rowid, embedding) VALUES(?1, ?2)",
-            rusqlite::params![&id, &embedding.as_bytes()],
-        )
-        .map_err(|e| format!("An error occurred while executing query {e}"))?;
+    tx.execute(
+        "INSERT OR REPLACE INTO RecordEmbedding(rowid, embedding) VALUES(?1, ?2)",
+        rusqlite::params![&id, &embedding.as_bytes()],
+    )
+    .map_err(|e| format!("An error occurred while executing query {e}"))?;
 
-    Ok(if res > 0 && vec_res > 0 { id } else { -1 })
+    tx.commit()
+        .map_err(|e| format!("Failed to commit transaction {e}"))?;
+    Ok(id)
 }
 
 #[tauri::command]
