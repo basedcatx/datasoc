@@ -23,7 +23,7 @@ function TrashComponent({
 	data,
 }: {
 	children: React.ReactNode;
-	data?: RUpdate[];
+	data?: { record: R }[];
 }) {
 	const qc = useQueryClient();
 	const ids = data?.map((d) => d.record.id).filter((id) => id !== undefined);
