@@ -15,7 +15,7 @@ use tauri::State;
 const K_RRF: u32 = 60;
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct RecordSearch {
+pub struct Record {
     id: u32,
     name: String,
     content: String,
@@ -23,30 +23,36 @@ pub struct RecordSearch {
     tags: Tags,
     flags: u32,
     meta: Meta,
-    created_at: String,
-    updated_at: String,
+    record_type: Option<i8>,
+    created_at: Option<String>,
+    updated_at: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct RecordNew {
+    name: String,
+    content: String,
+    content_html: String,
+    record_type: i8,
+    tags: Tags,
+    flags: u32,
+    meta: Meta,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct RecordSearch {
+    record: Record,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct RecordInsert {
-    name: String,
-    content: String,
-    content_html: String,
-    tags: Tags,
-    flags: u32,
-    meta: Meta,
+    record: RecordNew,
     embedding: Vec<f32>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct RecordUpdate {
-    id: u32,
-    name: String,
-    content: String,
-    content_html: String,
-    tags: Tags,
-    flags: u32,
-    meta: Meta,
+    record: Record,
     embedding: Vec<f32>,
 }
 
