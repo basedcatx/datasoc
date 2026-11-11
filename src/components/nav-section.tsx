@@ -24,7 +24,7 @@ export default function NavSection({
 	queryStr?: string;
 	icon: LucideIcon;
 	sectionName: string;
-	items: { data: R[]; action: (id?: number) => void };
+	items: { data: { record: R }[]; action: (id?: number) => void };
 }) {
 	const Icon = icon;
 
@@ -47,16 +47,19 @@ export default function NavSection({
 				<ul className="flex flex-col gap-2 items-start my-2 w-full">
 					{items.data.map((i) => {
 						return (
-							<li key={i.name + String(Math.random() * 100)} className="w-full">
+							<li
+								key={i.record.name + String(Math.random() * 100)}
+								className="w-full"
+							>
 								<Button
 									variant={"ghost"}
 									className="w-full justify-start cursor-pointer transition-all duration-300 dark:hover:bg-input/30"
-									onClick={() => items.action(i.id)}
+									onClick={() => items.action(i.record.id)}
 									asChild
 								>
 									<div>
 										<Icon />
-										<p>{i.name}</p>
+										<p>{i.record.name}</p>
 									</div>
 								</Button>
 							</li>
