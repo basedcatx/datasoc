@@ -42,13 +42,14 @@ export default function EntryCard({
 	};
 
 	const handleAddOrRemoveFav = () => {
+		if (!id) return;
 		addToFavMutation.mutate({
 			flag: FLAGS.IS_FAVORITE,
 			data: {
 				name,
 				content,
 				tags,
-				id: id!,
+				id,
 				flags,
 				created_at,
 				content_html,
