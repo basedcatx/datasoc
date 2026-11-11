@@ -186,20 +186,23 @@ export const recordMutations = (client: QueryClient) => ({
 
 			for (const d of data) {
 				if (!d) continue;
+				const id = d.update.id;
+				if (!id) continue;
 
 				const newFlag = createFlags(d.update.record.flags).clear(
 					FLAGS.IS_DELETED,
 				).value;
 
-				client.setQueryData(recordKeys.id(d.update.id), () => ({
-					...d,
-					flags: newFlag,
+				client.setQueryData(recordKeys.id(id), (old?: { record: R }) => ({
+					record: { ...old?.record, ...d.update.record, flags: newFlag },
 				}));
 
 				d.update.record.flags = newFlag;
 
-				client.setQueryData(recordKeys.all, (old: R[]) => {
-					const record = old.find((r) => r.id === d.update.record.id);
+				client.setQueryData(recordKeys.all, (old: { record: R }[]) => {
+					const record = old.find(
+						(r) => r.record.id === d.update.record.id,
+					)?.record;
 					if (record) record.flags = d.update.record.flags;
 					return old;
 				});
