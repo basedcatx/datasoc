@@ -82,7 +82,7 @@ pub async fn get_embedding(input: String, state: State<'_, AppState>) -> Result<
         .new_context(&state.engine.backend, ctx_params)
         .map_err(|_| "Failed to create llama context")?;
 
-    let n_ctx = (ctx.n_ctx() as usize).min(model.n_ctx_train( ) as usize);
+    let n_ctx = (ctx.n_ctx() as usize).min(model.n_ctx_train() as usize);
 
     let mut token_list = model.vocab().tokenize(input.as_bytes(), true, true);
 
@@ -99,26 +99,27 @@ pub async fn get_embedding(input: String, state: State<'_, AppState>) -> Result<
     batch
         .add_sequence(&token_list, 0, false)
         .map_err(|e| e.to_string())?;
-    batch_decode(&mut ctx, &mut batch, 1, &mut output).map_err(|e| e.to_string());
+    let _ = batch_decode(&mut ctx, &mut batch, 1, &mut output).map_err(|e| e.to_string());
 
     Ok(output[0].clone())
 }
 
 #[tauri::command]
-pub async fn create_record(
-    input: RecordInsert,
-    state: State<'_, AppState>,
-) -> Result<bool, String> {
+pub async fn create_record(input: RecordInsert, state: State<'_, AppState>) -> Result<i64, String> {
     let db = state.db.lock().map_err(|_| "Failed to get db lock")?;
 
     let RecordInsert {
-        name,
-        content,
-        tags,
-        flags,
-        meta,
+        record:
+            RecordNew {
+                name,
+                record_type,
+                content,
+                content_html,
+                flags,
+                tags,
+                meta,
+            },
         embedding,
-        content_html,
     } = &input;
 
     let tags_string =
@@ -383,7 +384,7 @@ pub async fn hybrid_search(
     input: SearchInput,
     state: State<'_, AppState>,
 ) -> Result<Vec<RecordSearch>, String> {
-    let conn = state.db.lock().map_err(|e| "Failed to acquire db lock")?;
+    let conn = state.db.lock().map_err(|_| "Failed to acquire db lock")?;
 
     let bm25_res = bm25_search(&conn, &input.text, input.limit).map_err(|e| e.to_string())?;
     let vec_res = vector_search(&conn, &input.embedding, input.limit).map_err(|e| e.to_string())?;
