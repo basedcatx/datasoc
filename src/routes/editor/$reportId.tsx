@@ -8,15 +8,16 @@ export const Route = createFileRoute("/editor/$reportId")({
 });
 
 function RouteComponent() {
-
 	const { reportId } = Route.useParams();
 
-	const { data } = useQuery({ ...recordQueries.id(Number(reportId)), enabled: !!reportId });
+	const { data } = useQuery({
+		...recordQueries.id(Number(reportId)),
+		enabled: !!reportId,
+	});
 
 	return (
 		<div>
-			<SimpleEditor data={data} />
+			<SimpleEditor data={data?.record} />
 		</div>
 	);
 }
-
