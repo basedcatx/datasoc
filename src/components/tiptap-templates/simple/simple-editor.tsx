@@ -97,7 +97,7 @@ import {
 	recordMutations,
 	recordQueries,
 } from "#/lib/features/query";
-import { FLAGS } from "#/lib/utils";
+import { FLAGS, RecordTypes } from "#/lib/utils";
 import { Spinner } from "#/components/ui/spinner";
 import { toast } from "sonner";
 import type { R } from "#/lib/libs";
@@ -292,30 +292,38 @@ export function SimpleEditor({ data }: { data?: R }) {
 				file: { ...prev.file, ...data },
 			}));
 		}
-	}, [data])
+	}, [data]);
 
 	const handleAutoSave = async () => {
-		console.log("state", state)
+		console.log("state", state);
 
 		if (!state.name || !state.content || !state.content_html) {
 			setS({ loading: false, msg: "Idling..." });
-			toast.error("Unable to save, please ensure that the record's name is set, and it has some content")
+			toast.error(
+				"Unable to save, please ensure that the record's name is set, and it has some content",
+			);
 			return Promise.resolve(false);
 		}
-
 
 		if (state.id === -1) {
 			setS({ loading: true, msg: "Creating new record..." });
 
-			createNewRecordMutation.mutate({
-				record: { ...state, id: undefined, flags: FLAGS.NONE_CLEAR_ALL },
+			createNewRecordMutation.mutateAsync({
+				data: {
+					record: {
+						...state,
+						record_type: RecordTypes.DOCUMENT,
+						flags: FLAGS.NONE_CLEAR_ALL,
+						created_at: "",
+					},
+				},
 			});
 
 			setS({ loading: false, msg: "Idling..." });
-			return Promise.resolve(false);
+			return true;
 		}
 
-		const uRecord = fetchRecordByNameQuery.data;
+		const uRecord = fetchRecordByNameQuery.data?.record;
 
 		if (!uRecord) {
 			console.log(fetchRecordByNameQuery.error);
