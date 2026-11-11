@@ -130,7 +130,7 @@ export async function hybridSearchRecords(input: RSearch) {
 	const limit = input.limit || 50;
 
 	try {
-		return await invoke<R[]>("hybrid_search", {
+		return await invoke<RSearchResult[]>("hybrid_search", {
 			input: { ...input, embedding, limit },
 		});
 	} catch (e) {
