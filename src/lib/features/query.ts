@@ -1,8 +1,5 @@
-import {
-	mutationOptions,
-	QueryClient,
-	queryOptions,
-} from "@tanstack/react-query";
+import { type QueryClient, queryOptions } from "@tanstack/react-query";
+import { appStore } from "#/integrations/tanstack-query/store-provider";
 import {
 	deleteRecord,
 	fetchRecordById,
@@ -10,12 +7,13 @@ import {
 	fetchRecords,
 	hybridSearchRecords,
 	insertRecord,
-	updateRecord,
 	type R,
+	type RInsert,
+	type RSearchResult,
 	type RUpdate,
+	updateRecord,
 } from "../libs";
-import { createFlags, FLAGS } from "../utils";
-import { appStore } from "#/integrations/tanstack-query/store-provider";
+import { createFlags, FLAGS, RecordTypes } from "../utils";
 
 export const recordKeys = {
 	all: ["records"] as const,
