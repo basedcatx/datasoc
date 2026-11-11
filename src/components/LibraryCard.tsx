@@ -30,34 +30,38 @@ import { useQuery } from "@tanstack/react-query";
 import { recordQueries } from "#/lib/features/query";
 import { createFlags, FLAGS } from "#/lib/utils";
 
-function LibraryFilter(data: R[], filter: string, sort: string) {
+function LibraryFilter(data: { record: R }[], filter: string, sort: string) {
 	const sortedData = [...data].sort((a, b) => {
-		if (!(a.updated_at && b.updated_at)) {
-			return (a.id ?? 0) - (b.id ?? 0);
+		if (!(a.record.updated_at && b.record.updated_at)) {
+			return (a.record.id ?? 0) - (b.record.id ?? 0);
 		}
 
 		if (sort === "ASC") {
 			return (
-				new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime()
+				new Date(a.record.updated_at).getTime() -
+				new Date(b.record.updated_at).getTime()
 			);
 		}
-		return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+		return (
+			new Date(b.record.updated_at).getTime() -
+			new Date(a.record.updated_at).getTime()
+		);
 	});
 
 	return sortedData
-		.filter((d: R) => !createFlags(d.flags).check(FLAGS.IS_DELETED))
-		.filter((d: R) => {
+		.filter((d) => !createFlags(d.record.flags).check(FLAGS.IS_DELETED))
+		.filter((d) => {
 			if (!filter) {
 				return d;
 			}
-			return d.name.toLowerCase().startsWith(filter.toLowerCase());
-		}) as R[];
+			return d.record.name.toLowerCase().startsWith(filter.toLowerCase());
+		});
 }
 
 function LibraryComponent({
 	children,
 }: {
-	children: (data: R[], isPending: boolean) => React.ReactNode;
+	children: (data: { record: R }[], isPending: boolean) => React.ReactNode;
 }) {
 	const [sortby, setSortby] = useState<"ASC" | "DESC">("ASC");
 	const [nameFilter, setNameFilter] = useState("");
@@ -136,8 +140,8 @@ export default function LibraryCard() {
 				return data.length > 0 ? (
 					<ul className="flex gap-4 flex-col">
 						{data.map((e) => (
-							<li key={e.name} className="cv-list-item">
-								<LibraryEntryCard {...e} />
+							<li key={e.record.name} className="cv-list-item">
+								<LibraryEntryCard {...e.record} />
 							</li>
 						))}
 					</ul>
