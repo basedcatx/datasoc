@@ -8,6 +8,11 @@ export const FLAGS = {
 	IS_COMPLETED: 1 << 2,
 };
 
+export const RecordTypes = {
+	DOCUMENT: 0,
+	PDF: 1,
+} as const;
+
 export type FLAGS = (typeof FLAGS)[keyof typeof FLAGS];
 
 export const createFlags = (initial = 1) => {
