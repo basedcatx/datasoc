@@ -44,7 +44,11 @@ function TrashComponent({
 
 	const handleRestoreAll = () => {
 		if (!data) return {};
-		const dataUpdates = data.map((d) => ({ update: d }));
+
+		const dataUpdates = data.map((d) => ({
+			update: { ...d, id: d.record.id! },
+		})) satisfies { update: RUpdate }[];
+
 		restoreAllMutation.mutate({ data: dataUpdates });
 	};
 
