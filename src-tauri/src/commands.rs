@@ -130,8 +130,8 @@ pub async fn create_record(
 
     let res = db
         .execute(
-            "INSERT INTO Records(name, content, tags, flags, meta, content_html ) VALUES(?1, ?2, ?3, ?4, ?5, ?6)",
-            rusqlite::params![&name, &content, &tags_string, &flags, &meta_string, &content_html],
+            "INSERT INTO Records(name, content, tags, flags, meta, content_html, record_type ) VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+            rusqlite::params![&name, &content, &tags_string, &flags, &meta_string, &content_html, &record_type],
         )
         .map_err(|e| format!("An error occurred while executing query: {e}"))?;
 
@@ -144,7 +144,7 @@ pub async fn create_record(
         )
         .map_err(|e| format!("An error occurred while executing query {e}"))?;
 
-    Ok(res > 0 && vec_res > 0)
+    Ok(if res > 0 && vec_res > 0 { id } else { -1 })
 }
 
 #[tauri::command]
