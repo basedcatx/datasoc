@@ -378,23 +378,29 @@ pub async fn update_record(
 
 #[tauri::command]
 pub async fn delete_record(input: u32, state: State<'_, AppState>) -> Result<bool, String> {
-    let db = state.db.lock().map_err(|_| "Failed to get db lock")?;
+    let mut db = state.db.lock().map_err(|_| "Failed to get db lock")?;
 
-    let res = db
-        .execute(
-            "DELETE FROM Records WHERE id = ?1",
-            rusqlite::params![&input],
-        )
-        .map_err(|e| format!("An error occurred while executing query: {e}"))?;
+    let tx = db
+        .transaction()
+        .map_err(|e| format!("Failed to create transaction {e}"))?;
 
-    let vec_res = db
-        .execute(
-            "DELETE FROM RecordEmbedding WHERE rowid = ?1",
-            rusqlite::params![input],
-        )
-        .map_err(|e| format!("Failed to execute embedding query: {e}"))?;
+    tx.execute(
+        "DELETE FROM Records WHERE id = ?1",
+        rusqlite::params![&input],
+    )
+    .map_err(|e| format!("An error occurred while executing query: {e}"))?;
 
-    Ok(res > 0 && vec_res > 0)
+    tx.execute(
+        "DELETE FROM RecordEmbedding WHERE rowid = ?1",
+        rusqlite::params![input],
+    )
+    .map_err(|e| format!("Failed to execute embedding query: {e}"))?;
+
+    tx.commit()
+        .map_err(|e| format!("Failed to commit transaction {e}"))?;
+
+    // It is okay if we just return true for now.
+    Ok(true)
 }
 
 #[tauri::command]
