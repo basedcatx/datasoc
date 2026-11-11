@@ -10,16 +10,37 @@ export interface R {
 	meta: string[];
 	created_at?: string;
 	updated_at?: string;
-	embedding?: number[];
+	record_type: number;
 }
 
-export interface RUpdate extends R {
+export interface RNew {
+	name: string;
+	content: string;
+	content_html: string;
+	flags: number;
+	record_type: number;
+	tags: string[];
+	meta: string[];
+}
+
+export interface RUpdate {
+	record: Omit<R, "record_type">;
+	embedding?: number[];
 	id: number;
+}
+
+export interface RInsert {
+	record: R;
+	embedding?: number[];
 }
 
 export interface RSearch {
 	text: string;
 	limit?: number;
+}
+
+export interface RSearchResult {
+	record: R;
 }
 
 async function generateVector(text: string) {
