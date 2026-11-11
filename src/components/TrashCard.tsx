@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Ghost, LoaderIcon, LucideTrash, Plus, Trash2Icon } from "lucide-react";
 import { recordMutations, recordQueries } from "#/lib/features/query";
-
+import type { R, RUpdate } from "#/lib/libs";
+import { createFlags, FLAGS } from "#/lib/utils";
 import TrashEntryCard from "./trash-entrycard";
 import {
 	AlertDialog,
@@ -10,15 +11,12 @@ import {
 	AlertDialogContent,
 	AlertDialogDescription,
 	AlertDialogFooter,
-	AlertDialogMedia,
 	AlertDialogTitle,
 	AlertDialogTrigger,
 } from "./ui/alert-dialog";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Skeleton } from "./ui/skeleton";
-import type { R, RUpdate } from "#/lib/libs";
-import { createFlags, FLAGS } from "#/lib/utils";
 
 function TrashComponent({
 	children,
