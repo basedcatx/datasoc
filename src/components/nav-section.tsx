@@ -1,20 +1,13 @@
 import type { LucideIcon } from "lucide-react";
-import {
-	ChevronDown,
-	ChevronRight,
-	ChevronsRight,
-	ChevronsUp,
-	ChevronsUpDown,
-	ChevronUp,
-} from "lucide-react";
-import { Button } from "./ui/button";
+import { ChevronDown, ChevronRight } from "lucide-react";
+import { useState } from "react";
+import type { R } from "#/lib/libs";
 import {
 	Collapsible,
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { useState } from "react";
-import type { R } from "#/lib/libs";
+import { Button } from "./ui/button";
 
 export default function NavSection({
 	sectionName,
