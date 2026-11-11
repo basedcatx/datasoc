@@ -21,8 +21,10 @@ export const Route = createFileRoute("/editor/")({
 });
 
 function RouteComponent() {
+	const file = useSelector(appStore, (state) => state.file);
+
 	const { status, proceed, reset } = useBlocker({
-		shouldBlockFn: () => useSelector(appStore, (state) => state.file) !== initialStoreState.file,
+		shouldBlockFn: () => file.content.length > 0,
 		withResolver: true,
 	});
 
