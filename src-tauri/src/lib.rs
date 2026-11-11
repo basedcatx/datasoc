@@ -54,7 +54,7 @@ pub fn run() {
 
                 let db_path = handle
                     .path()
-                    .resolve("db/appdata.db", tauri::path::BaseDirectory::Resource)
+                    .resolve("db/appdata.db", tauri::path::BaseDirectory::AppData)
                     .expect("Failed to load database engine");
 
                 let engine = embedding::init(model_path).expect("Could not load embedding engine");
