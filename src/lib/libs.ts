@@ -60,39 +60,39 @@ async function generateContentEmbedding(
 	return await generateVector(`${name}\n${content}`);
 }
 
-export async function insertRecord(input: R) {
+export async function insertRecord(input: RInsert) {
 	try {
-		const { name, content } = input;
-		const vec = await generateContentEmbedding(name, content);
+		const { record } = input;
+		const vec = await generateContentEmbedding(record.name, record.content);
 		input.embedding = [...vec];
-		return await invoke<boolean>("create_record", { input });
+		return await invoke<number>("create_record", { input });
 	} catch (e) {
 		console.error("createRecord error", e);
-		return false;
+		return -1;
 	}
 }
 
-export async function fetchRecords(): Promise<R[]> {
+export async function fetchRecords(): Promise<{ record: R }[]> {
 	try {
-		return await invoke<R[]>("fetch_records");
+		return await invoke("fetch_records");
 	} catch (e) {
 		console.log("ERROR: ", e);
 		return [];
 	}
 }
 
-export async function fetchRecordById(id: number): Promise<R> {
+export async function fetchRecordById(id: number): Promise<{ record: R }> {
 	try {
-		return await invoke<R>("fetch_record_by_id", { input: id });
+		return await invoke("fetch_record_by_id", { input: id });
 	} catch (e) {
 		console.error(e);
 		throw e;
 	}
 }
 
-export async function fetchRecordByName(name: string): Promise<R> {
+export async function fetchRecordByName(name: string): Promise<{ record: R }> {
 	try {
-		return await invoke<R>("fetch_record_by_name", { input: name });
+		return await invoke("fetch_record_by_name", { input: name });
 	} catch (e) {
 		console.error(e);
 		throw e;
