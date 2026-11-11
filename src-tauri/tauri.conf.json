@@ -19,8 +19,6 @@
         "resizable": true,
         "fullscreen": false,
         "visible": false
-      }, {
-        "label": "splashscreen", "url": "/splashscreen"
       }
     ],
     "security": {
@@ -33,6 +31,7 @@
     "windows": {
         "webviewInstallMode": {
         "type": "offlineInstaller"
+        
       }
     },
     "icon": [
