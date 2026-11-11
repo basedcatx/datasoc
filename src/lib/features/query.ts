@@ -256,7 +256,7 @@ export const recordMutations = (client: QueryClient) => ({
 				record: { ...data.record },
 			};
 			const id = await insertRecord(input);
-			if (id === -1) return;
+			if (id === -1) throw new Error("create new record returned -1");
 			const record = await fetchRecordById(id);
 			client.setQueryData(recordKeys.id(id), record);
 			return { data: record };
