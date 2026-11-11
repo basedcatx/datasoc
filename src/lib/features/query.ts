@@ -181,24 +181,26 @@ export const recordMutations = (client: QueryClient) => ({
 	restoreAllDeleted: () => ({
 		mutationKey: recordKeys.all,
 
-		onMutate: ({ data }: { data: RUpdate[] }) => {
+		onMutate: ({ data }: { data: { update: RUpdate }[] }) => {
 			client.cancelQueries({ queryKey: [recordKeys.all] });
 
 			for (const d of data) {
 				if (!d) continue;
 
-				const newFlag = createFlags(d.flags).clear(FLAGS.IS_DELETED).value;
+				const newFlag = createFlags(d.update.record.flags).clear(
+					FLAGS.IS_DELETED,
+				).value;
 
-				client.setQueryData(recordKeys.id(d.id), () => ({
+				client.setQueryData(recordKeys.id(d.update.id), () => ({
 					...d,
 					flags: newFlag,
 				}));
 
-				d.flags = newFlag;
+				d.update.record.flags = newFlag;
 
 				client.setQueryData(recordKeys.all, (old: R[]) => {
-					const record = old.find((r) => r.id === d.id);
-					if (record) record.flags = d.flags;
+					const record = old.find((r) => r.id === d.update.record.id);
+					if (record) record.flags = d.update.record.flags;
 					return old;
 				});
 			}
@@ -210,11 +212,15 @@ export const recordMutations = (client: QueryClient) => ({
 			client.invalidateQueries({ queryKey: recordKeys.all });
 		},
 
-		mutationFn: async ({ data }: { data: RUpdate[] }) => {
+		mutationFn: async ({ data }: { data: { update: RUpdate }[] }) => {
 			for (const d of data) {
 				await updateRecord({
-					...d,
-					flags: createFlags(d.flags).clear(FLAGS.IS_DELETED).value,
+					...d.update,
+					record: {
+						...d.update.record,
+						flags: createFlags(d.update.record.flags).clear(FLAGS.IS_DELETED)
+							.value,
+					},
 				});
 			}
 			return true;
