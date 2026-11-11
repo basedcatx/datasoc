@@ -36,7 +36,7 @@ function Component({
 	query,
 	page,
 }: {
-	children: (data: R[], isPending: boolean) => React.ReactNode;
+	children: (data: { record: R }[], isPending: boolean) => React.ReactNode;
 	query: string;
 	page: string;
 }) {
@@ -48,7 +48,7 @@ function Component({
 			switch (page) {
 				case "starred": {
 					return data.filter((r) => {
-						const flag = createFlags(r.flags);
+						const flag = createFlags(r.record.flags);
 
 						return (
 							!flag.check(FLAGS.IS_DELETED) && flag.check(FLAGS.IS_FAVORITE)
@@ -57,12 +57,12 @@ function Component({
 				}
 				case "deleted": {
 					return data.filter((r) =>
-						createFlags(r.flags).check(FLAGS.IS_DELETED),
+						createFlags(r.record.flags).check(FLAGS.IS_DELETED),
 					);
 				}
 				default:
 					return data.filter(
-						(r) => !createFlags(r.flags).check(FLAGS.IS_DELETED),
+						(r) => !createFlags(r.record.flags).check(FLAGS.IS_DELETED),
 					);
 			}
 		},
@@ -133,8 +133,8 @@ export default function SearchCard({
 				return data.length > 0 ? (
 					<ul className="flex gap-4 flex-col">
 						{data.map((e) => (
-							<li key={e.name} className="cv-list-item">
-								<LibraryEntryCard {...e} />
+							<li key={e.record.name} className="cv-list-item">
+								<LibraryEntryCard {...e.record} />
 							</li>
 						))}
 					</ul>
