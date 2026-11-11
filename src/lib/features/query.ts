@@ -112,10 +112,18 @@ export const recordMutations = (client: QueryClient) => ({
 		},
 	}),
 
+	// Omitted record type because it can't be changed on update.
+	//
 	changeFlag: (id: number) => ({
 		mutationKey: recordKeys.id(id),
 
-		onMutate: ({ flag, data }: { flag: number; data: RUpdate }) => {
+		onMutate: ({
+			flag,
+			data,
+		}: {
+			flag: number;
+			data: Omit<R, "record_type">;
+		}) => {
 			client.cancelQueries({ queryKey: [recordKeys.id(id), recordKeys.all] });
 
 			const prev = data.flags;
@@ -129,8 +137,7 @@ export const recordMutations = (client: QueryClient) => ({
 			}
 
 			client.setQueryData(recordKeys.id(id), () => ({
-				...data,
-				flags: newFlag,
+				record: { ...data, flags: newFlag },
 			}));
 
 			client.setQueryData(recordKeys.all, (old: R[]) => {
@@ -147,7 +154,13 @@ export const recordMutations = (client: QueryClient) => ({
 			client.invalidateQueries({ queryKey: recordKeys.all });
 		},
 
-		mutationFn: async ({ flag, data }: { flag: number; data: RUpdate }) => {
+		mutationFn: async ({
+			flag,
+			data,
+		}: {
+			flag: number;
+			data: Omit<R, "record_type">;
+		}) => {
 			const prev = data.flags;
 			const f = createFlags(prev);
 
@@ -157,9 +170,11 @@ export const recordMutations = (client: QueryClient) => ({
 				f.set(flag);
 			}
 
-			return updateRecord({ ...data, flags: f.value }).then((r) =>
-				console.log(r),
-			);
+			return updateRecord({
+				...data,
+				id,
+				record: { ...data, flags: f.value },
+			}).then((r) => console.log(r));
 		},
 	}),
 
