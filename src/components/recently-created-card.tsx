@@ -8,13 +8,17 @@ import { createFlags, FLAGS } from "#/lib/utils";
 import type { R } from "#/lib/libs";
 import { Ghost, Plus } from "lucide-react";
 
-function HomeFilter(data: R[]) {
+function HomeFilter(data: { record: R }[]) {
 	return [...data]
-		.sort(
-			(a: R, b: R) =>
-				new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime(),
-		)
-		.filter((d: R) => !createFlags(d.flags).check(FLAGS.IS_DELETED));
+		.sort((a, b) => {
+			const aTime = a.record.created_at;
+			const bTime = b.record.created_at;
+			if (!aTime || !bTime) {
+				return 0;
+			}
+			return new Date(bTime).getTime() - new Date(aTime).getTime();
+		})
+		.filter((d) => !createFlags(d.record.flags).check(FLAGS.IS_DELETED));
 }
 
 export default function RecentlyCreatedCard() {
@@ -22,10 +26,6 @@ export default function RecentlyCreatedCard() {
 		...recordQueries.all(),
 		select: HomeFilter,
 	});
-
-	if (!data) {
-		return <div>Something went wrong, invalid data: {error?.message}</div>;
-	}
 
 	if (isPending) {
 		return (
@@ -39,6 +39,10 @@ export default function RecentlyCreatedCard() {
 				</div>
 			</div>
 		);
+	}
+
+	if (!data) {
+		return <div>Something went wrong, invalid data: {error?.message}</div>;
 	}
 
 	return (
@@ -58,9 +62,9 @@ export default function RecentlyCreatedCard() {
 			<div className="flex flex-col grow-1 h-full gap-4">
 				{data.length > 0 ? (
 					<ul className="flex gap-4 flex-col">
-						{data.slice(0, 5).map((e: R) => (
-							<li key={e.name}>
-								<EntryCard {...e} />
+						{data.slice(0, 5).map((e) => (
+							<li key={e.record.name}>
+								<EntryCard {...e.record} />
 							</li>
 						))}
 					</ul>
