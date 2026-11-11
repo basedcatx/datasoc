@@ -232,12 +232,14 @@ export const recordMutations = (client: QueryClient) => ({
 
 	createNewRecord: () => ({
 		onMutate: ({ data }: { data: RInsert }) => {
-			client.setQueryData(recordKeys.name(data.record.name), data);
+			client.setQueryData(recordKeys.name(data.record.name), {
+				record: data.record,
+			});
 			return { data };
 		},
 
 		onSettled: (_: any, __: any, { data }: { data: RInsert }) => {
-			client.invalidateQueries({ queryKey: recordKeys.name(data.record.name) });
+			client.invalidateQueries({ queryKey: recordKeys.all });
 			return { data };
 		},
 
