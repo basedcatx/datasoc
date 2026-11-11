@@ -58,15 +58,10 @@ async function generateContentEmbedding(
 }
 
 export async function insertRecord(input: RInsert) {
-	try {
-		const { record } = input;
-		const vec = await generateContentEmbedding(record.name, record.content);
-		input.embedding = [...vec];
-		return await invoke<number>("create_record", { input });
-	} catch (e) {
-		console.error("createRecord error", e);
-		return -1;
-	}
+	const { record } = input;
+	const vec = await generateContentEmbedding(record.name, record.content);
+	input.embedding = [...vec];
+	return await invoke<number>("create_record", { input });
 }
 
 export async function fetchRecords(): Promise<{ record: R }[]> {
