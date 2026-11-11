@@ -1,12 +1,10 @@
 use std::num::NonZeroU32;
-use std::{collections::HashMap, vec};
 
 use crate::db::{bm25_search, rrf_fuse, vector_search};
-use crate::embedding::{batch_decode, normalize};
+use crate::embedding::batch_decode;
 use crate::AppState;
 use llama_cpp::sys::context::params::LlamaContextParams;
 use llama_cpp::sys::llama_batch::LlamaBatch;
-use llama_cpp::sys::token;
 use serde::{Deserialize, Serialize};
 use sql::rusqlite;
 use sql::zerocopy::IntoBytes as AsBytes;
