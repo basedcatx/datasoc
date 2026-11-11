@@ -139,9 +139,13 @@ const MainToolbarContent = ({
 	};
 
 	return (
-		<div className={cn("xl:w-full z-50 max-xl:max-h-dvh flex overflow-x-auto sticky top-0 overflow-auto", bp && "no-scrollbar")}>
+		<div
+			className={cn(
+				"xl:w-full z-50 max-xl:max-h-dvh flex overflow-x-auto sticky top-0 overflow-auto",
+				bp && "no-scrollbar",
+			)}
+		>
 			<div className="flex items-center gap-2 justify-between max-xl:flex-col max-xl:gap-4 max-xl:p-2 xl:w-full">
-
 				{bp ? (
 					<AlertDialog>
 						<AlertDialogTrigger asChild>
@@ -178,7 +182,9 @@ const MainToolbarContent = ({
 									</Field>
 								</FieldGroup>
 								<AlertDialogFooter>
-									<AlertDialogCancel variant="outline">Cancel</AlertDialogCancel>
+									<AlertDialogCancel variant="outline">
+										Cancel
+									</AlertDialogCancel>
 									<AlertDialogAction type="submit">OK</AlertDialogAction>
 								</AlertDialogFooter>
 							</form>
@@ -198,7 +204,13 @@ const MainToolbarContent = ({
 				<ToolbarGroup className="max-xl:flex max-xl:flex-col">
 					<UndoRedoButton action="undo" editor={editor} />
 					<UndoRedoButton action="redo" editor={editor} />
-					<MarkButton disabled={false} data-disabled={false} type="save" editor={editor} onClick={onSaveClick} />
+					<MarkButton
+						disabled={false}
+						data-disabled={false}
+						type="save"
+						editor={editor}
+						onClick={onSaveClick}
+					/>
 				</ToolbarGroup>
 				<ToolbarSeparator orientation={bp ? "horizontal" : "vertical"} />
 				<ToolbarGroup className="max-xl:flex max-xl:flex-col">
@@ -246,8 +258,6 @@ const MainToolbarContent = ({
 
 					<MetadataDialog />
 				</ToolbarGroup>
-
-
 			</div>
 		</div>
 	);
@@ -268,7 +278,6 @@ export function SimpleEditor({ data }: { data?: R }) {
 	const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	const state = useSelector(appStore, (s) => s.file);
-
 
 	const createNewRecordMutation = useMutation({
 		...recordMutations(qc).createNewRecord(),
@@ -409,7 +418,6 @@ export function SimpleEditor({ data }: { data?: R }) {
 				file: { ...prev.file, content_html: html, content: plainText },
 			}));
 
-
 			if (timerRef.current) {
 				clearTimeout(timerRef.current);
 			}
@@ -423,7 +431,7 @@ export function SimpleEditor({ data }: { data?: R }) {
 					} else {
 						setS({ loading: false, msg: "Failed to save" });
 					}
-				})
+				});
 			}, AUTOSAVE_INTERVAL_MS);
 		},
 	});
@@ -471,7 +479,11 @@ export function SimpleEditor({ data }: { data?: R }) {
 						searchAndReplaceButtonRef={searchAndReplaceButtonRef}
 						isMobile={isMobile}
 						editor={editor}
-						onSaveClick={async () => { const res = await handleAutoSave(); if (res) toast.success("Saved successfully!"); else toast.error("Failed to save!"); }}
+						onSaveClick={async () => {
+							const res = await handleAutoSave();
+							if (res) toast.success("Saved successfully!");
+							else toast.error("Failed to save!");
+						}}
 					/>
 
 					<SearchAndReplace
@@ -481,8 +493,6 @@ export function SimpleEditor({ data }: { data?: R }) {
 						onClose={closeSearchAndReplace}
 						scrollIntoViewOptions={SEARCH_AND_REPLACE_SCROLL_OPTIONS}
 					/>
-
-
 
 					<EditorContent
 						editor={editor}
