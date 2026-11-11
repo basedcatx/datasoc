@@ -321,13 +321,19 @@ pub async fn update_record(
     let db = state.db.lock().map_err(|_| "Failed to get db lock")?;
 
     let RecordUpdate {
-        id,
-        name,
-        content,
-        tags,
-        flags,
-        meta,
-        content_html,
+        record:
+            Record {
+                name,
+                content,
+                tags,
+                flags,
+                record_type: _,
+                id,
+                meta,
+                content_html,
+                created_at: _,
+                updated_at: _,
+            },
         embedding,
     } = &input;
 
