@@ -332,14 +332,16 @@ export function SimpleEditor({ data }: { data?: R }) {
 		}
 
 		updateRecordMutation.mutate({
-			record: {
-				...uRecord,
-				name: state.name,
-				content: state.content,
-				content_html: state.content_html,
-				flags: state.flags,
-				meta: state.meta,
-				tags: state.tags,
+			data: {
+				record: {
+					...uRecord,
+					name: state.name,
+					content: state.content,
+					content_html: state.content_html,
+					flags: state.flags,
+					meta: state.meta,
+					tags: state.tags,
+				},
 			},
 		});
 
