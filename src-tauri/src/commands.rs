@@ -99,7 +99,12 @@ pub async fn get_embedding(input: String, state: State<'_, AppState>) -> Result<
     batch
         .add_sequence(&token_list, 0, false)
         .map_err(|e| e.to_string())?;
-    let _ = batch_decode(&mut ctx, &mut batch, 1, &mut output).map_err(|e| e.to_string());
+
+    batch_decode(&mut ctx, &mut batch, 1, &mut output).map_err(|e| e.to_string())?;
+
+    if output.is_empty() {
+        return Err("Failed to generate embedding".to_string());
+    }
 
     Ok(output[0].clone())
 }
