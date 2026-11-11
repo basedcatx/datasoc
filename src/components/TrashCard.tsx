@@ -75,10 +75,11 @@ function TrashComponent({
 										</AlertDialogDescription>
 									</AlertDialogTrigger>
 									<AlertDialogFooter>
-										<AlertDialogCancel variant="outline">
+										<AlertDialogCancel size={"default"} variant="outline">
 											Cancel
 										</AlertDialogCancel>
 										<AlertDialogAction
+											size={"default"}
 											variant="destructive"
 											onClick={handleDeleteAll}
 										>
