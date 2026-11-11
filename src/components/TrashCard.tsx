@@ -28,7 +28,7 @@ function TrashComponent({
 	data?: RUpdate[];
 }) {
 	const qc = useQueryClient();
-	const ids = data?.map((d) => d.id);
+	const ids = data?.map((d) => d.record.id).filter((id) => id !== undefined);
 
 	const deleteAllMutation = useMutation(
 		recordMutations(qc).permanentDeleteAll(ids),
@@ -131,17 +131,17 @@ export default function TrashCard() {
 		);
 	}
 
-	data = (data as R[]).filter((d) =>
-		createFlags(d.flags).check(FLAGS.IS_DELETED),
+	data = data.filter((d) =>
+		createFlags(d.record.flags).check(FLAGS.IS_DELETED),
 	);
 
 	return (
-		<TrashComponent data={data as RUpdate[]}>
+		<TrashComponent data={data}>
 			{data.length > 0 ? (
 				<ul className="flex gap-4 flex-col">
 					{data.slice(0, 5).map((e) => (
-						<li key={e.id}>
-							<TrashEntryCard {...e} />
+						<li key={e.record.id}>
+							<TrashEntryCard {...e.record} />
 						</li>
 					))}
 				</ul>
