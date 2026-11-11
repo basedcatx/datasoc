@@ -268,7 +268,7 @@ export const recordMutations = (client: QueryClient) => ({
 			const { id } = data.record;
 			if (!id) {
 				console.log("Error(updateRecord): Invalid id");
-				return;
+				throw new Error("No ID provided");
 			}
 			client.setQueryData(recordKeys.id(id), data);
 			client.setQueryData(recordKeys.name(data.record.name), data);
@@ -283,13 +283,16 @@ export const recordMutations = (client: QueryClient) => ({
 			data: Omit<RUpdate, "id" | "record_type">;
 		}) => {
 			const { id } = data.record;
-			if (!id) return;
+			if (!id) throw new Error("No ID provided");
 			const rUpdate: RUpdate = {
 				...data,
 				record: { ...data.record, id },
 				id,
 			};
-			await updateRecord(rUpdate);
+			const res = await updateRecord(rUpdate);
+			if (!res) {
+				throw new Error("update_record affected no rows");
+			}
 			return rUpdate;
 		},
 	}),
