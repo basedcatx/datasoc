@@ -92,29 +92,18 @@ export async function fetchRecordByName(name: string): Promise<{ record: R }> {
 }
 
 export async function updateRecord(input: RUpdate): Promise<boolean> {
-	try {
-		const embedding = await generateContentEmbedding(
-			input.record.name,
-			input.record.content,
-		);
-		input.embedding = embedding;
-		// console.log(input);
-		return await invoke<boolean>("update_record", {
-			input,
-		});
-	} catch (e) {
-		console.error(e);
-		return false;
-	}
+	const embedding = await generateContentEmbedding(
+		input.record.name,
+		input.record.content,
+	);
+	input.embedding = embedding;
+	return await invoke<boolean>("update_record", {
+		input,
+	});
 }
 
 export async function deleteRecord(id: number) {
-	try {
-		return await invoke<boolean>("delete_record", { input: id });
-	} catch (e) {
-		console.error(e);
-		return e;
-	}
+	return await invoke<boolean>("delete_record", { input: id });
 }
 
 export async function hybridSearchRecords(input: RSearch) {
