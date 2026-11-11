@@ -48,21 +48,21 @@ function InfoCardSection() {
 			<HomeInfoCard
 				type="Draft"
 				value={data
-					.filter((d: R) => !createFlags(d.flags).check(FLAGS.IS_COMPLETED))
+					.filter((d) => !createFlags(d.record.flags).check(FLAGS.IS_COMPLETED))
 					.length.toString()}
 				icon={<DraftingCompass />}
 			></HomeInfoCard>
 			<HomeInfoCard
 				type="Completed"
 				value={data
-					.filter((d: R) => createFlags(d.flags).check(FLAGS.IS_COMPLETED))
+					.filter((d) => createFlags(d.record.flags).check(FLAGS.IS_COMPLETED))
 					.length.toString()}
 				icon={<LucideCheck />}
 			></HomeInfoCard>
 			<HomeInfoCard
 				type="Starred"
 				value={data
-					.filter((d: R) => createFlags(d.flags).check(FLAGS.IS_FAVORITE))
+					.filter((d) => createFlags(d.record.flags).check(FLAGS.IS_FAVORITE))
 					.length.toString()}
 				icon={<HeartIcon className="fill-primary" />}
 			></HomeInfoCard>
