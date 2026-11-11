@@ -74,7 +74,7 @@ export const recordMutations = (client: QueryClient) => ({
 		},
 
 		mutationFn: async () => {
-			return deleteRecord(id).then((r) => console.log(r));
+			return await deleteRecord(id);
 		},
 	}),
 
