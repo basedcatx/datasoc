@@ -164,19 +164,23 @@ export default function Sidebar() {
 		if (id) return navigate({ to: `/view/${id}` });
 	};
 
-	const recent = [...(data as R[])]
-		.sort(
-			(a, b) =>
-				new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime(),
-		)
+	const recent = [...data]
+		.sort((a, b) => {
+			const aTime = a.record.created_at;
+			const bTime = b.record.created_at;
+			if (!aTime || !bTime) return 0;
+			return new Date(bTime).getTime() - new Date(aTime).getTime();
+		})
 		.slice(0, 3);
 
-	const starred = [...(data as R[])]
-		.sort(
-			(a, b) =>
-				new Date(a.created_at!).getTime() - new Date(b.created_at!).getTime(),
-		)
-		.filter((r) => createFlags(r.flags).check(FLAGS.IS_FAVORITE))
+	const starred = [...data]
+		.sort((a, b) => {
+			const aTime = a.record.created_at;
+			const bTime = b.record.created_at;
+			if (!aTime || !bTime) return 0;
+			return new Date(aTime).getTime() - new Date(bTime).getTime();
+		})
+		.filter((r) => createFlags(r.record.flags).check(FLAGS.IS_FAVORITE))
 		.slice(0, 3);
 
 	return (
