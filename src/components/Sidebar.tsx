@@ -18,7 +18,6 @@ import { cn } from "cn";
 import SearchComponent from "./SearchComponent";
 import { useQuery } from "@tanstack/react-query";
 import { recordQueries } from "#/lib/features/query";
-import type { R } from "#/lib/libs";
 import { Skeleton } from "./ui/skeleton";
 import { createFlags, FLAGS } from "../lib/utils";
 import type React from "react";
