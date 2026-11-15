@@ -11,6 +11,7 @@
     "core:default",
     "store:default",
     "fs:allow-read-dir",
+    "fs:allow-read-file",
     "fs:allow-applocaldata-read-recursive",
     "fs:allow-app-write-recursive",
     "fs:allow-applocaldata-write-recursive",
