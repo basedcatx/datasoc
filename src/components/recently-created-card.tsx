@@ -1,9 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import { Ghost } from "lucide-react";
+import { Ghost, Plus } from "lucide-react";
+import { useState } from "react";
 import { recordQueries } from "#/lib/features/query";
 import type { R } from "#/lib/libs";
 import { createFlags, FLAGS } from "#/lib/utils";
+import { AddRecordDialog } from "./add-record-dialog";
 import EntryCard from "./entrycard";
+import { Button } from "./ui/button";
 import { Skeleton } from "./ui/skeleton";
 
 function HomeFilter(data: { record: R }[]) {
@@ -20,6 +23,7 @@ function HomeFilter(data: { record: R }[]) {
 }
 
 export default function RecentlyCreatedCard() {
+	const [addOpen, setAddOpen] = useState(false);
 	const { data, isPending, error } = useQuery({
 		...recordQueries.all(),
 		select: HomeFilter,
@@ -55,11 +59,25 @@ export default function RecentlyCreatedCard() {
 						))}
 					</ul>
 				) : (
-					<div className="flex flex-col justify-center items-center shadow-none gap-4 h-full ">
-						<Ghost className="size-30 stroke-muted-foreground" />
-						<p className="text-muted-foreground text-lg shimmer">
-							No entry found. Click on new to populate
+					<div className="flex flex-col justify-center items-center gap-4 h-full p-8">
+						<Ghost className="size-32 stroke-muted-foreground" />
+						<p className="text-muted-foreground text-lg text-center">
+							No entries yet. Add your first document or PDF.
 						</p>
+						<Button
+							variant="outline"
+							size="lg"
+							onClick={() => setAddOpen(true)}
+							className="flex items-center gap-2"
+						>
+							<Plus className="size-4" />
+							Add entry
+						</Button>
+						<p className="text-muted-foreground text-sm text-center max-w-xs">
+							Documents are editable notes; PDFs are read-only and always start
+							as completed.
+						</p>
+						<AddRecordDialog open={addOpen} onOpenChange={setAddOpen} />
 					</div>
 				)}
 			</div>
