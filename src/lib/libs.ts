@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { RecordTypes } from "./utils";
 
 export interface R {
 	id?: number;
@@ -30,7 +31,7 @@ export interface RUpdate {
 }
 
 export interface RInsert {
-	record: R;
+	record: RNew;
 	embedding?: number[];
 }
 
@@ -59,7 +60,12 @@ async function generateContentEmbedding(
 
 export async function insertRecord(input: RInsert) {
 	const { record } = input;
-	const vec = await generateContentEmbedding(record.name, record.content);
+	// PDF content is a base64 string, so only the title is useful for search.
+	const text =
+		record.record_type === RecordTypes.PDF
+			? record.name
+			: `${record.name}\n${record.content}`;
+	const vec = await generateVector(text);
 	input.embedding = [...vec];
 	return await invoke<number>("create_record", { input });
 }
@@ -91,12 +97,20 @@ export async function fetchRecordByName(name: string): Promise<{ record: R }> {
 	}
 }
 
-export async function updateRecord(input: RUpdate): Promise<boolean> {
-	const embedding = await generateContentEmbedding(
-		input.record.name,
-		input.record.content,
-	);
-	input.embedding = embedding;
+export async function updateRecord(
+	input: RUpdate,
+	options?: { skipEmbedding?: boolean },
+): Promise<boolean> {
+	if (options?.skipEmbedding) {
+		input.embedding = [];
+	} else {
+		const embedding = await generateContentEmbedding(
+			input.record.name,
+			input.record.content,
+		);
+		input.embedding = embedding;
+	}
+
 	return await invoke<boolean>("update_record", {
 		input,
 	});
