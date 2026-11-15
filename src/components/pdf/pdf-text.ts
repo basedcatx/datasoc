@@ -6,7 +6,8 @@ import "./pdf-worker";
 const MAX_CHARS = 8_000;
 
 export async function extractPdfText(bytes: Uint8Array) {
-	const doc = await pdfjs.getDocument({ data: bytes }).promise;
+	const loadingTask = pdfjs.getDocument({ data: bytes });
+	const doc = await loadingTask.promise;
 
 	try {
 		const parts: string[] = [];
@@ -30,6 +31,6 @@ export async function extractPdfText(bytes: Uint8Array) {
 
 		return parts.join(" ").replace(/\s+/g, " ").trim().slice(0, MAX_CHARS);
 	} finally {
-		await doc.destroy().catch(() => undefined);
+		await loadingTask.destroy().catch(() => undefined);
 	}
 }
