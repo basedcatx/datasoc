@@ -375,7 +375,7 @@ pub async fn update_record(
             "UPDATE Records SET name = ?1,
                 content = CASE WHEN record_type = 1 THEN content ELSE ?2 END,
                 tags = ?3,
-                flags = ?4,
+                flags = CASE WHEN record_type = 1 THEN ?4 | 4 ELSE ?4 END,
                 meta = ?5,
                 content_html = CASE WHEN record_type = 1 THEN content_html ELSE ?7 END
              WHERE id = ?6",
