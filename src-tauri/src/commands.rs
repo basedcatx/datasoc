@@ -144,11 +144,13 @@ pub async fn create_record(input: RecordInsert, state: State<'_, AppState>) -> R
 
     let id = tx.last_insert_rowid();
 
-    tx.execute(
-        "INSERT OR REPLACE INTO RecordEmbedding(rowid, embedding) VALUES(?1, ?2)",
-        rusqlite::params![&id, &embedding.as_bytes()],
-    )
-    .map_err(|e| format!("An error occurred while executing query {e}"))?;
+    if !embedding.is_empty() {
+        tx.execute(
+            "INSERT OR REPLACE INTO RecordEmbedding(rowid, embedding) VALUES(?1, ?2)",
+            rusqlite::params![&id, &embedding.as_bytes()],
+        )
+        .map_err(|e| format!("An error occurred while executing query {e}"))?;
+    }
 
     tx.commit()
         .map_err(|e| format!("Failed to commit transaction {e}"))?;
@@ -364,16 +366,18 @@ pub async fn update_record(
         return Ok(false);
     }
 
-    tx.execute(
-        "INSERT OR REPLACE INTO RecordEmbedding VALUES(?1, ?2)",
-        rusqlite::params![&id, &embedding.as_bytes()],
-    )
-    .map_err(|e| format!("An error occurred while executing query {e}"))?;
+    if !embedding.is_empty() {
+        tx.execute(
+            "INSERT OR REPLACE INTO RecordEmbedding(rowid, embedding) VALUES(?1, ?2)",
+            rusqlite::params![&id, &embedding.as_bytes()],
+        )
+        .map_err(|e| format!("An error occurred while executing query {e}"))?;
+    }
 
     tx.commit()
         .map_err(|e| format!("Failed to commit transaction {e}"))?;
 
-    Ok(res > 0)
+    Ok(true)
 }
 
 #[tauri::command]
