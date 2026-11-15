@@ -65,7 +65,8 @@ export function PdfUploadDialog() {
 						name: name.trim(),
 						content: toBase64(candidate.bytes),
 						content_html: "",
-						flags: FLAGS.NONE_CLEAR_ALL,
+						// A PDF is a finished artifact, not a work in progress.
+						flags: FLAGS.IS_COMPLETED,
 						tags: [],
 						meta: [],
 						record_type: RecordTypes.PDF,
