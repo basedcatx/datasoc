@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/combobox";
 import { InputGroupAddon } from "@/components/ui/input-group";
 import { AddRecordDialog } from "./add-record-dialog";
-import LibraryEntryCard from "./library-entrycard";
+import RecordCard from "./record-card";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Input } from "./ui/input";
@@ -149,7 +149,7 @@ export default function LibraryCard() {
 						<ul className="flex gap-4 flex-col">
 							{data.map((e) => (
 								<li key={e.record.name} className="cv-list-item">
-									<LibraryEntryCard {...e.record} />
+									<RecordCard {...e.record} variant="list" />
 								</li>
 							))}
 						</ul>

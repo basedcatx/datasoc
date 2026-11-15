@@ -5,7 +5,7 @@ import { recordMutations, recordQueries } from "#/lib/features/query";
 import type { R, RUpdate } from "#/lib/libs";
 import { createFlags, FLAGS } from "#/lib/utils";
 import { AddRecordDialog } from "./add-record-dialog";
-import TrashEntryCard from "./trash-entrycard";
+import RecordCard from "./record-card";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -149,7 +149,7 @@ export default function TrashCard() {
 					<ul className="flex gap-4 flex-col">
 						{data.slice(0, 5).map((e) => (
 							<li key={e.record.id}>
-								<TrashEntryCard {...e.record} />
+								<RecordCard {...e.record} variant="trash" />
 							</li>
 						))}
 					</ul>

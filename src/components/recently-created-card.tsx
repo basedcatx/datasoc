@@ -5,7 +5,7 @@ import { recordQueries } from "#/lib/features/query";
 import type { R } from "#/lib/libs";
 import { createFlags, FLAGS } from "#/lib/utils";
 import { AddRecordDialog } from "./add-record-dialog";
-import EntryCard from "./entrycard";
+import RecordCard from "./record-card";
 import { Button } from "./ui/button";
 import { Skeleton } from "./ui/skeleton";
 
@@ -54,7 +54,7 @@ export default function RecentlyCreatedCard() {
 					<ul className="flex gap-4 flex-col">
 						{data.slice(0, 5).map((e) => (
 							<li key={e.record.name}>
-								<EntryCard {...e.record} />
+								<RecordCard {...e.record} variant="list" />
 							</li>
 						))}
 					</ul>
