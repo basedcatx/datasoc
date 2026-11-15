@@ -33,9 +33,10 @@ const navLinks = [
 
 function SidebarComponent({ children }: { children: React.ReactNode }) {
 	const location = useLocation();
-	const [isOpen, setIsOpen] = useState(
-		() => localStorage.getItem("datasoc.sidebarOpen") !== "false",
-	);
+	const [isOpen, setIsOpen] = useState(() => {
+		if (typeof window === "undefined") return true;
+		return localStorage.getItem("datasoc.sidebarOpen") !== "false";
+	});
 	const [addOpen, setAddOpen] = useState(false);
 	const [animate, setAnimate] = useState(false);
 
