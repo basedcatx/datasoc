@@ -1,3 +1,5 @@
+import type { R } from "./libs";
+
 export const isTauri = () =>
 	"__TAURI_INTERNALS__" in window || "__TAURI__" in window;
 
@@ -39,3 +41,18 @@ export const createFlags = (initial = 1) => {
 		},
 	};
 };
+
+export const snapshot = (
+	file: Pick<
+		R,
+		"name" | "content" | "content_html" | "flags" | "tags" | "meta"
+	>,
+) =>
+	JSON.stringify({
+		name: file.name,
+		content: file.content,
+		content_html: file.content_html,
+		flags: file.flags,
+		tags: file.tags,
+		meta: file.meta,
+	});
