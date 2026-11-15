@@ -367,7 +367,16 @@ pub async fn update_record(
         .map_err(|e| format!("Failed to create transaction {e}"))?;
 
     let res = tx.execute(
-            "UPDATE Records SET name = ?1, content = ?2, tags = ?3, flags = ?4, meta = ?5, content_html = ?7  WHERE id = ?6",
+            // PDFs are read only. Their content holds the base64 file, so an
+            // update must never overwrite it, even if the caller only had a
+            // list projection without content.
+            "UPDATE Records SET name = ?1,
+                content = CASE WHEN record_type = 1 THEN content ELSE ?2 END,
+                tags = ?3,
+                flags = ?4,
+                meta = ?5,
+                content_html = CASE WHEN record_type = 1 THEN content_html ELSE ?7 END
+             WHERE id = ?6",
             rusqlite::params![&name, &content, &tags_string, &flags, &meta_string, &id, &content_html ],
         )
         .map_err(|e| format!("An error occurred while executing query: {e}"))?;
