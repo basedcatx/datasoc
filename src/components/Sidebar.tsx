@@ -1,8 +1,10 @@
+import { useQuery } from "@tanstack/react-query";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import { cn } from "cn";
 import {
 	File,
 	Home,
 	Library,
-	LucidePencilLine,
 	LucideSearch,
 	LucideSettings,
 	PanelLeft,
@@ -10,21 +12,18 @@ import {
 	Search,
 	Trash,
 } from "lucide-react";
-import NavButton from "./nav-button";
-import NavSection from "./nav-section";
-import { Button } from "./ui/button";
-import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { cn } from "cn";
-import SearchComponent from "./SearchComponent";
-import { useQuery } from "@tanstack/react-query";
-import { recordQueries } from "#/lib/features/query";
-import { Skeleton } from "./ui/skeleton";
-import { createFlags, FLAGS } from "../lib/utils";
 import type React from "react";
 import { useState } from "react";
 import { usePresence } from "#/hooks/use-presence";
+import { recordQueries } from "#/lib/features/query";
+import { createFlags, FLAGS } from "../lib/utils";
+import { AddRecordDialog } from "./add-record-dialog";
+import NavButton from "./nav-button";
+import NavSection from "./nav-section";
+import SearchComponent from "./SearchComponent";
 import SettingsCard from "./SettingsCard";
-import { resetStore } from "#/integrations/tanstack-query/store-provider";
+import { Button } from "./ui/button";
+import { Skeleton } from "./ui/skeleton";
 
 const navLinks = [
 	{ text: "Home", path: "/", icon: Home },
@@ -35,6 +34,7 @@ const navLinks = [
 function SidebarComponent({ children }: { children: React.ReactNode }) {
 	const location = useLocation();
 	const [isOpen, setIsOpen] = useState(true);
+	const [addOpen, setAddOpen] = useState(false);
 
 	const { ref, state, mounted } = usePresence(isOpen);
 	if (location.pathname === "/splashscreen") return null;
@@ -89,14 +89,11 @@ function SidebarComponent({ children }: { children: React.ReactNode }) {
 							/>
 							<Button
 								size={"lg"}
-								asChild
 								className="p-4 rounded-full"
-								onClick={resetStore}
+								onClick={() => setAddOpen(true)}
 							>
-								<Link to="/editor">
-									<LucidePencilLine />
-									<p>New</p>
-								</Link>
+								<Plus />
+								<p>Add</p>
 							</Button>
 						</div>
 					)}
@@ -135,12 +132,10 @@ function SidebarComponent({ children }: { children: React.ReactNode }) {
 
 						<Button
 							variant={"secondary"}
-							onClick={resetStore}
+							onClick={() => setAddOpen(true)}
 							className="rounded-full"
 						>
-							<Link to="/editor">
-								<Plus className="size-6" />
-							</Link>
+							<Plus className="size-6" />
 						</Button>
 					</div>
 					<SettingsCard
@@ -152,6 +147,7 @@ function SidebarComponent({ children }: { children: React.ReactNode }) {
 					/>
 				</div>
 			)}
+			<AddRecordDialog open={addOpen} onOpenChange={setAddOpen} />
 		</nav>
 	);
 }
