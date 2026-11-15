@@ -13,7 +13,7 @@ import {
 	Trash,
 } from "lucide-react";
 import type React from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePresence } from "#/hooks/use-presence";
 import { recordQueries } from "#/lib/features/query";
 import { createFlags, FLAGS } from "../lib/utils";
@@ -33,8 +33,27 @@ const navLinks = [
 
 function SidebarComponent({ children }: { children: React.ReactNode }) {
 	const location = useLocation();
-	const [isOpen, setIsOpen] = useState(true);
+	const [isOpen, setIsOpen] = useState(
+		() => localStorage.getItem("datasoc.sidebarOpen") !== "false",
+	);
 	const [addOpen, setAddOpen] = useState(false);
+	const [animate, setAnimate] = useState(false);
+
+	useEffect(() => {
+		localStorage.setItem("datasoc.sidebarOpen", String(isOpen));
+	}, [isOpen]);
+
+	useEffect(() => {
+		const onKey = (e: KeyboardEvent) => {
+			if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "b") {
+				e.preventDefault();
+				setAnimate(true);
+				setIsOpen((prev) => !prev);
+			}
+		};
+		document.addEventListener("keydown", onKey);
+		return () => document.removeEventListener("keydown", onKey);
+	}, []);
 
 	const { ref, state, mounted } = usePresence(isOpen);
 	if (location.pathname === "/splashscreen") return null;
@@ -42,6 +61,7 @@ function SidebarComponent({ children }: { children: React.ReactNode }) {
 	return (
 		<nav
 			data-state={state}
+			data-animate={animate || undefined}
 			ref={ref}
 			className={cn(
 				"bg-card w-100 overflow-y-auto scrollbar-thin scrollbar-thumb-primary shrink-0 flex flex-col p-4 border-r gap-10 h-screen sidebar",
@@ -53,7 +73,10 @@ function SidebarComponent({ children }: { children: React.ReactNode }) {
 					<div className="flex justify-end sticky top-0">
 						<Button
 							variant={"ghost"}
-							onClick={() => setIsOpen(!isOpen)}
+							onClick={() => {
+								setAnimate(true);
+								setIsOpen(!isOpen);
+							}}
 							className="backdrop-blur-xs"
 						>
 							<PanelLeft className="size-6" />
@@ -101,7 +124,13 @@ function SidebarComponent({ children }: { children: React.ReactNode }) {
 			) : (
 				<div className="flex justify-between flex-col h-full items-center">
 					<div className="flex flex-col gap-10">
-						<Button variant={"ghost"} onClick={() => setIsOpen(!isOpen)}>
+						<Button
+							variant={"ghost"}
+							onClick={() => {
+								setAnimate(true);
+								setIsOpen(!isOpen);
+							}}
+						>
 							<PanelLeft className="size-6" />
 						</Button>
 
