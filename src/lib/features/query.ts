@@ -111,18 +111,13 @@ export const recordMutations = (client: QueryClient) => ({
 		},
 	}),
 
-	// Omitted record type because it can't be changed on update.
+	// Toggles one flag. The record type is sent along only so the cache keeps
+	// it; update_record never changes it.
 	//
 	changeFlag: (id: number) => ({
 		mutationKey: recordKeys.id(id),
 
-		onMutate: async ({
-			flag,
-			data,
-		}: {
-			flag: number;
-			data: Omit<R, "record_type">;
-		}) => {
+		onMutate: async ({ flag, data }: { flag: number; data: R }) => {
 			// Every record key starts with recordKeys.all, so this cancels both
 			// the list and the single-record request.
 			await client.cancelQueries({ queryKey: recordKeys.all });
@@ -140,14 +135,11 @@ export const recordMutations = (client: QueryClient) => ({
 			}
 
 			// Only change the flags. Reusing the cached record keeps fields the
-			// card doesn't carry (record_type, created_at) and avoids
-			// overwriting fresher data with a stale card.
+			// card doesn't carry (created_at) and avoids overwriting fresher
+			// data with a stale card.
 			client.setQueryData(recordKeys.id(id), {
 				record: {
-					...(prevId?.record ?? {
-						...data,
-						record_type: RecordTypes.DOCUMENT,
-					}),
+					...(prevId?.record ?? data),
 					flags: newFlag,
 				},
 			});
@@ -165,11 +157,11 @@ export const recordMutations = (client: QueryClient) => ({
 
 		onError: (
 			_: unknown,
-			__: { flag: number; data: Omit<R, "record_type"> },
+			__: { flag: number; data: R },
 			context?: {
 				prevId?: { record: R };
 				prevList?: { record: R }[];
-				data: Omit<R, "record_type">;
+				data: R;
 			},
 		) => {
 			if (context?.prevId) {
@@ -188,13 +180,7 @@ export const recordMutations = (client: QueryClient) => ({
 			client.invalidateQueries({ queryKey: recordKeys.all });
 		},
 
-		mutationFn: async ({
-			flag,
-			data,
-		}: {
-			flag: number;
-			data: Omit<R, "record_type">;
-		}) => {
+		mutationFn: async ({ flag, data }: { flag: number; data: R }) => {
 			const prev = data.flags;
 			const f = createFlags(prev);
 
