@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import {
 	ArrowDownAz,
 	ChevronDown,
@@ -8,6 +8,9 @@ import {
 	Plus,
 } from "lucide-react";
 import { useDeferredValue, useState } from "react";
+import { recordQueries } from "#/lib/features/query";
+import type { R } from "#/lib/libs";
+import { createFlags, FLAGS } from "#/lib/utils";
 import {
 	Combobox,
 	ComboboxCollection,
@@ -20,15 +23,12 @@ import {
 	ComboboxList,
 } from "@/components/ui/combobox";
 import { InputGroupAddon } from "@/components/ui/input-group";
+import { AddRecordDialog } from "./add-record-dialog";
 import LibraryEntryCard from "./library-entrycard";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Input } from "./ui/input";
 import { Skeleton } from "./ui/skeleton";
-import type { R } from "#/lib/libs";
-import { useQuery } from "@tanstack/react-query";
-import { recordQueries } from "#/lib/features/query";
-import { createFlags, FLAGS } from "#/lib/utils";
 
 function LibraryFilter(data: { record: R }[], filter: string, sort: string) {
 	const sortedData = [...data].sort((a, b) => {
@@ -60,8 +60,10 @@ function LibraryFilter(data: { record: R }[], filter: string, sort: string) {
 
 function LibraryComponent({
 	children,
+	onAddClick,
 }: {
 	children: (data: { record: R }[], isPending: boolean) => React.ReactNode;
+	onAddClick: () => void;
 }) {
 	const [sortby, setSortby] = useState<"ASC" | "DESC">("ASC");
 	const [nameFilter, setNameFilter] = useState("");
@@ -77,90 +79,101 @@ function LibraryComponent({
 	}
 
 	return (
-		<div>
-			<Card className="flex flex-col gap-4 p-8 rounded-none h-dvh overflow-y-auto bg-background">
-				<div className="flex justify-between items-center my-2">
-					<div className="flex gap-4 items-center mx-2">
-						<h6 className="text-xl text-muted-foreground">Library</h6>
-						<Link to={"/editor"}>
-							<Button className="flex p-4 cursor-pointer rounded-full">
+		<>
+			<div>
+				<Card className="flex flex-col gap-4 p-8 rounded-none h-dvh overflow-y-auto bg-background">
+					<div className="flex justify-between items-center my-2">
+						<div className="flex gap-4 items-center mx-2">
+							<h6 className="text-xl text-muted-foreground">Library</h6>
+							<Button
+								className="flex p-4 cursor-pointer rounded-full"
+								onClick={onAddClick}
+							>
 								<Plus />
 								<p className="text-lg">New</p>
 							</Button>
-						</Link>
-					</div>
+						</div>
 
-					<div className="flex gap-2">
-						<Input
-							className="max-w-xs"
-							placeholder="Type to filter..."
-							onChange={(e) => setNameFilter(e.target.value)}
-						/>
-						<Button
-							variant={"secondary"}
-							onClick={(e) => {
-								e.preventDefault();
-								setSortby((old) => {
-									if (old === "ASC") {
-										return "DESC";
-									}
-									return "ASC";
-								});
-							}}
-						>
-							<ArrowDownAz />
-							<p>Sort by: {sortby}</p>
-							{sortby === "ASC" ? <ChevronUp /> : <ChevronDown />}
-						</Button>
+						<div className="flex gap-2">
+							<Input
+								className="max-w-xs"
+								placeholder="Type to filter..."
+								onChange={(e) => setNameFilter(e.target.value)}
+							/>
+							<Button
+								variant={"secondary"}
+								onClick={(e) => {
+									e.preventDefault();
+									setSortby((old) => {
+										if (old === "ASC") {
+											return "DESC";
+										}
+										return "ASC";
+									});
+								}}
+							>
+								<ArrowDownAz />
+								<p>Sort by: {sortby}</p>
+								{sortby === "ASC" ? <ChevronUp /> : <ChevronDown />}
+							</Button>
+						</div>
 					</div>
-				</div>
-				{children(data, isPending)}
-			</Card>
-		</div>
+					{children(data, isPending)}
+				</Card>
+			</div>
+		</>
 	);
 }
 
 export default function LibraryCard() {
+	const [addOpen, setAddOpen] = useState(false);
+	const handleAddClick = () => setAddOpen(true);
 	return (
-		<LibraryComponent>
-			{(data, isPending) => {
-				if (isPending) {
-					return (
-						<>
-							<Skeleton className="w-full h-30" />
-							<Skeleton className="w-full h-30" />
-							<Skeleton className="w-full h-30" />
-							<Skeleton className="w-full h-30" />
-							<Skeleton className="w-full h-30" />
-							<Skeleton className="w-full h-30" />
-						</>
+		<>
+			<LibraryComponent onAddClick={handleAddClick}>
+				{(data, isPending) => {
+					if (isPending) {
+						return (
+							<>
+								<Skeleton className="w-full h-30" />
+								<Skeleton className="w-full h-30" />
+								<Skeleton className="w-full h-30" />
+								<Skeleton className="w-full h-30" />
+								<Skeleton className="w-full h-30" />
+								<Skeleton className="w-full h-30" />
+							</>
+						);
+					}
+
+					return data.length > 0 ? (
+						<ul className="flex gap-4 flex-col">
+							{data.map((e) => (
+								<li key={e.record.name} className="cv-list-item">
+									<LibraryEntryCard {...e.record} />
+								</li>
+							))}
+						</ul>
+					) : (
+						<div className="flex flex-col justify-center h-screen items-center gap-8">
+							<Ghost className="size-30 stroke-muted-foreground" />
+
+							<p className="text-muted-foreground shimmer text-lg text-wrap w-60 text-center">
+								No record found. Click on new to create one
+							</p>
+
+							<Button
+								className="flex items-center w-xs p-4 cursor-pointer rounded-full"
+								onClick={handleAddClick}
+							>
+								<Plus />
+								<p className="text-lg">New</p>
+							</Button>
+						</div>
 					);
-				}
-
-				return data.length > 0 ? (
-					<ul className="flex gap-4 flex-col">
-						{data.map((e) => (
-							<li key={e.record.name} className="cv-list-item">
-								<LibraryEntryCard {...e.record} />
-							</li>
-						))}
-					</ul>
-				) : (
-					<div className="flex flex-col justify-center h-screen items-center gap-8">
-						<Ghost className="size-30 stroke-muted-foreground" />
-
-						<p className="text-muted-foreground shimmer text-lg text-wrap w-60 text-center">
-							No record found. Click on new to create one
-						</p>
-
-						<Button className="flex items-center w-xs p-4 cursor-pointer rounded-full">
-							<Plus />
-							<p className="text-lg">New</p>
-						</Button>
-					</div>
-				);
-			}}
-		</LibraryComponent>
+				}}
+			</LibraryComponent>
+			<AddRecordDialog open={addOpen} onOpenChange={setAddOpen} />
+		</>
 	);
 }
 

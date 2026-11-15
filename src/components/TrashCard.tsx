@@ -1,8 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Ghost, LoaderIcon, LucideTrash, Plus, Trash2Icon } from "lucide-react";
+import { Ghost, LoaderIcon, LucideTrash, Plus } from "lucide-react";
+import { useState } from "react";
 import { recordMutations, recordQueries } from "#/lib/features/query";
 import type { R, RUpdate } from "#/lib/libs";
 import { createFlags, FLAGS } from "#/lib/utils";
+import { AddRecordDialog } from "./add-record-dialog";
 import TrashEntryCard from "./trash-entrycard";
 import {
 	AlertDialog,
@@ -112,6 +114,7 @@ function TrashComponent({
 
 export default function TrashCard() {
 	let { data, isError, error, isPending } = useQuery(recordQueries.all());
+	const [addOpen, setAddOpen] = useState(false);
 	if (isError || !data) {
 		return <div>An error occurred (Trash): {error?.message}</div>;
 	}
@@ -140,29 +143,35 @@ export default function TrashCard() {
 	);
 
 	return (
-		<TrashComponent data={data}>
-			{data.length > 0 ? (
-				<ul className="flex gap-4 flex-col">
-					{data.slice(0, 5).map((e) => (
-						<li key={e.record.id}>
-							<TrashEntryCard {...e.record} />
-						</li>
-					))}
-				</ul>
-			) : (
-				<div className="flex flex-col justify-center h-screen items-center gap-8">
-					<Ghost className="size-30 stroke-muted-foreground" />
+		<>
+			<TrashComponent data={data}>
+				{data.length > 0 ? (
+					<ul className="flex gap-4 flex-col">
+						{data.slice(0, 5).map((e) => (
+							<li key={e.record.id}>
+								<TrashEntryCard {...e.record} />
+							</li>
+						))}
+					</ul>
+				) : (
+					<div className="flex flex-col justify-center h-screen items-center gap-8">
+						<Ghost className="size-30 stroke-muted-foreground" />
 
-					<p className="text-muted-foreground shimmer text-lg text-wrap w-80 text-center">
-						No record found in the trash. Click on new to create one
-					</p>
+						<p className="text-muted-foreground shimmer text-lg text-wrap w-80 text-center">
+							No record found in the trash. Click on new to create one
+						</p>
 
-					<Button className="flex items-center p-4 cursor-pointer rounded-full">
-						<Plus />
-						<p className="text-lg">New</p>
-					</Button>
-				</div>
-			)}
-		</TrashComponent>
+						<Button
+							className="flex items-center p-4 cursor-pointer rounded-full"
+							onClick={() => setAddOpen(true)}
+						>
+							<Plus />
+							<p className="text-lg">New</p>
+						</Button>
+					</div>
+				)}
+			</TrashComponent>
+			<AddRecordDialog open={addOpen} onOpenChange={setAddOpen} />
+		</>
 	);
 }

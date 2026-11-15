@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import {
 	ArrowDownAz,
 	ChevronDown,
@@ -7,6 +8,9 @@ import {
 	SearchSlash,
 } from "lucide-react";
 import { useState } from "react";
+import { recordQueries } from "#/lib/features/query";
+import type { R } from "#/lib/libs";
+import { createFlags, FLAGS } from "#/lib/utils";
 import {
 	Combobox,
 	ComboboxCollection,
@@ -19,14 +23,11 @@ import {
 	ComboboxList,
 } from "@/components/ui/combobox";
 import { InputGroupAddon } from "@/components/ui/input-group";
+import { AddRecordDialog } from "./add-record-dialog";
 import LibraryEntryCard from "./library-entrycard";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Skeleton } from "./ui/skeleton";
-import type { R } from "#/lib/libs";
-import { useQuery } from "@tanstack/react-query";
-import { recordQueries } from "#/lib/features/query";
-import { createFlags, FLAGS } from "#/lib/utils";
 
 function Component({
 	children,
@@ -111,46 +112,53 @@ export default function SearchCard({
 	query: string;
 	page: string;
 }) {
+	const [addOpen, setAddOpen] = useState(false);
 	return (
-		<Component query={query} page={page}>
-			{(data, isPending) => {
-				if (isPending) {
-					return (
-						<>
-							<Skeleton className="w-full h-30" />
-							<Skeleton className="w-full h-30" />
-							<Skeleton className="w-full h-30" />
-							<Skeleton className="w-full h-30" />
-							<Skeleton className="w-full h-30" />
-							<Skeleton className="w-full h-30" />
-						</>
+		<>
+			<Component query={query} page={page}>
+				{(data, isPending) => {
+					if (isPending) {
+						return (
+							<>
+								<Skeleton className="w-full h-30" />
+								<Skeleton className="w-full h-30" />
+								<Skeleton className="w-full h-30" />
+								<Skeleton className="w-full h-30" />
+								<Skeleton className="w-full h-30" />
+								<Skeleton className="w-full h-30" />
+							</>
+						);
+					}
+
+					return data.length > 0 ? (
+						<ul className="flex gap-4 flex-col">
+							{data.map((e) => (
+								<li key={e.record.name} className="cv-list-item">
+									<LibraryEntryCard {...e.record} />
+								</li>
+							))}
+						</ul>
+					) : (
+						<div className="flex flex-col justify-center h-screen items-center gap-4">
+							<SearchSlash className="size-30 stroke-muted-foreground" />
+
+							<p className="text-muted-foreground shimmer text-lg">
+								No record found. Click on new to create one
+							</p>
+
+							<Button
+								className="flex items-center w-xs p-4 cursor-pointer rounded-full"
+								onClick={() => setAddOpen(true)}
+							>
+								<Plus />
+								<p className="text-lg">New</p>
+							</Button>
+						</div>
 					);
-				}
-
-				return data.length > 0 ? (
-					<ul className="flex gap-4 flex-col">
-						{data.map((e) => (
-							<li key={e.record.name} className="cv-list-item">
-								<LibraryEntryCard {...e.record} />
-							</li>
-						))}
-					</ul>
-				) : (
-					<div className="flex flex-col justify-center h-screen items-center gap-4">
-						<SearchSlash className="size-30 stroke-muted-foreground" />
-
-						<p className="text-muted-foreground shimmer text-lg">
-							No record found. Click on new to create one
-						</p>
-
-						<Button className="flex items-center w-xs p-4 cursor-pointer rounded-full">
-							<Plus />
-							<p className="text-lg">New</p>
-						</Button>
-					</div>
-				);
-			}}
-		</Component>
+				}}
+			</Component>
+			<AddRecordDialog open={addOpen} onOpenChange={setAddOpen} />
+		</>
 	);
 }
 
