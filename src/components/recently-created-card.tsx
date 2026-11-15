@@ -1,18 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { Ghost, Upload } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import { toast } from "sonner";
 import { recordQueries } from "#/lib/features/query";
 import type { R } from "#/lib/libs";
-import { cn } from "#/lib/tiptap-utils";
+import { isPdfBuffer, openPdfUpload } from "#/lib/pdf";
 import { createFlags, FLAGS } from "#/lib/utils";
 import EntryCard from "./entrycard";
 import { Input } from "./ui/input";
 import { Skeleton } from "./ui/skeleton";
-import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { readFile } from "@tauri-apps/plugin-fs";
-import { basename } from "@tauri-apps/api/path";
-import { fileTypeFromBuffer } from "file-type";
 
 function HomeFilter(data: { record: R }[]) {
 	return [...data]
@@ -27,69 +23,8 @@ function HomeFilter(data: { record: R }[]) {
 		.filter((d) => !createFlags(d.record.flags).check(FLAGS.IS_DELETED));
 }
 
-const validateAndProcessFile = async (
-	file: Uint8Array<ArrayBuffer>,
-	path: string,
-): Promise<string> => {
-	if (!file) {
-		return "Invalid file selected, please choose a valid pdf file";
-	}
-
-	const fileName = await basename(path);
-	const typeInfo = await fileTypeFromBuffer(file);
-
-	console.log(typeInfo?.mime, typeInfo?.ext);
-
-	if (
-		typeInfo &&
-		!(typeInfo.mime === "application/pdf" && typeInfo.ext === "pdf")
-	) {
-		return "Invalid file detected, please input a valid pdf document";
-	}
-
-	await processPdfFile(file, fileName);
-	return "";
-};
-
-const processPdfFile = async (
-	buffer: Uint8Array<ArrayBuffer>,
-	name: string,
-) => {
-	console.log("Processing pdf fie: ", name);
-};
-
 export default function RecentlyCreatedCard() {
-	const [isDragging, setIsDragging] = useState(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
-
-	useEffect(() => {
-		let unlisten: (() => void) | undefined;
-		async function setupDropZone() {
-			const appWindow = getCurrentWebviewWindow();
-			unlisten = await appWindow.onDragDropEvent((e) => {
-				if (e.payload.type === "over") {
-					setIsDragging(true);
-				} else if (e.payload.type === "drop") {
-					setIsDragging(false);
-					const paths = e.payload.paths;
-					if (paths && paths.length > 0) {
-						readFile(paths[0]).then((buffer) =>
-							validateAndProcessFile(buffer, paths[0]).then((res) => {
-								if (res.length > 0) {
-									toast.error(res);
-								}
-							}),
-						);
-					}
-				}
-			});
-		}
-
-		setupDropZone();
-		return () => {
-			if (unlisten) unlisten();
-		};
-	}, []);
 
 	const { data, isPending, error } = useQuery({
 		...recordQueries.all(),
@@ -118,10 +53,23 @@ export default function RecentlyCreatedCard() {
 		fileInputRef.current?.click();
 	};
 
-	const handleInputChange = (list: FileList | null) => {
+	const handleInputChange = async (list: FileList | null) => {
 		if (!list || list.length === 0) return;
-		validateAndProcessFile(list[0]);
-		if (fileInputRef.current) fileInputRef.current.value = "";
+
+		const file = list[0];
+		try {
+			const bytes = new Uint8Array(await file.arrayBuffer());
+			if (!isPdfBuffer(bytes)) {
+				toast.error("Only PDF files can be uploaded");
+				return;
+			}
+
+			openPdfUpload({ fileName: file.name, bytes });
+		} catch (e) {
+			toast.error(`Could not read the selected file: ${e}`);
+		} finally {
+			if (fileInputRef.current) fileInputRef.current.value = "";
+		}
 	};
 
 	return (
@@ -130,17 +78,14 @@ export default function RecentlyCreatedCard() {
 				onClick={handleFileInputClick}
 				type="button"
 				tabIndex={0}
-				className={cn(
-					"w-full  cursor-pointer border-dashed p-4 border-2 dark:bg-secondary dark:text-secondary-foreground bg-secondary-foreground text-secondary flex justify-center items-center flex-col",
-					isDragging && "bg-red-600",
-				)}
+				className="w-full cursor-pointer border-dashed p-4 border-2 dark:bg-secondary dark:text-secondary-foreground bg-secondary-foreground text-secondary flex justify-center items-center flex-col"
 			>
 				<Input
 					type="file"
 					ref={fileInputRef}
 					onChange={(e) => {
 						e.preventDefault();
-						handleInputChange(e.target.files);
+						void handleInputChange(e.target.files);
 					}}
 					accept="application/pdf, .pdf"
 					className="hidden"
