@@ -16,6 +16,7 @@ import {
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
+import { Spinner } from "#/components/ui/spinner";
 import { recordMutations } from "#/lib/features/query";
 import {
 	closePdfUpload,
@@ -150,10 +151,16 @@ export function PdfUploadDialog() {
 								<div className="mx-auto w-fit overflow-hidden bg-white shadow-sm">
 									<Document
 										file={file}
+										// Same default as the viewer: suspense renders nothing
+										// until the promise resolves.
+										suspense={false}
 										loading={
-											<p className="p-8 text-muted-foreground text-sm">
-												Loading preview...
-											</p>
+											<div
+												className="flex items-center justify-center py-16"
+												style={{ width: 280 }}
+											>
+												<Spinner className="size-8 text-muted-foreground" />
+											</div>
 										}
 										onLoadSuccess={({ numPages }) => setPages(numPages)}
 										onLoadError={() => setPreviewFailed(true)}
