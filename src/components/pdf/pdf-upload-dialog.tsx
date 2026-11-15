@@ -36,6 +36,7 @@ export function PdfUploadDialog() {
 	const [name, setName] = useState("");
 	const [pages, setPages] = useState(0);
 	const [previewFailed, setPreviewFailed] = useState(false);
+	const [extracting, setExtracting] = useState(false);
 
 	const createRecordMutation = useMutation({
 		...recordMutations(qc).createNewRecord(),
@@ -56,7 +57,21 @@ export function PdfUploadDialog() {
 	);
 
 	const handleUpload = async () => {
-		if (!candidate || !name.trim()) return;
+		if (!candidate || !name.trim() || extracting) return;
+
+		// Extracted text makes the PDF searchable by its body, not just its
+		// title. Extraction is best effort: a scanned or broken file still
+		// uploads, it just falls back to the title embedding.
+		setExtracting(true);
+		let searchText: string | undefined;
+		try {
+			const { extractPdfText } = await import("./pdf-text");
+			searchText = await extractPdfText(candidate.bytes.slice());
+		} catch (e) {
+			console.error("Failed to extract PDF text", e);
+		} finally {
+			setExtracting(false);
+		}
 
 		try {
 			const result = await createRecordMutation.mutateAsync({
@@ -72,6 +87,7 @@ export function PdfUploadDialog() {
 						record_type: RecordTypes.PDF,
 					},
 				},
+				searchText,
 			});
 
 			closePdfUpload();
@@ -93,7 +109,9 @@ export function PdfUploadDialog() {
 		<AlertDialog
 			open={!!candidate}
 			onOpenChange={(open) => {
-				if (!open && !createRecordMutation.isPending) closePdfUpload();
+				if (!open && !createRecordMutation.isPending && !extracting) {
+					closePdfUpload();
+				}
 			}}
 		>
 			<AlertDialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-2xl">
@@ -183,17 +201,24 @@ export function PdfUploadDialog() {
 					<Button
 						variant="outline"
 						onClick={closePdfUpload}
-						disabled={createRecordMutation.isPending}
+						disabled={createRecordMutation.isPending || extracting}
 					>
 						Cancel
 					</Button>
 					<Button
 						onClick={handleUpload}
 						disabled={
-							!candidate || !name.trim() || createRecordMutation.isPending
+							!candidate ||
+							!name.trim() ||
+							createRecordMutation.isPending ||
+							extracting
 						}
 					>
-						{createRecordMutation.isPending ? "Uploading..." : "Upload"}
+						{extracting
+							? "Reading text..."
+							: createRecordMutation.isPending
+								? "Uploading..."
+								: "Upload"}
 					</Button>
 				</AlertDialogFooter>
 			</AlertDialogContent>

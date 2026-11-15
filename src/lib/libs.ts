@@ -58,13 +58,16 @@ async function generateContentEmbedding(
 	return await generateVector(`${name}\n${content}`);
 }
 
-export async function insertRecord(input: RInsert) {
+export async function insertRecord(input: RInsert, searchText?: string) {
 	const { record } = input;
-	// PDF content is a base64 string, so only the title is useful for search.
+	// PDF content is a base64 string, so its title is the fallback. When the
+	// upload dialog managed to extract the document text, prefer that.
 	const text =
-		record.record_type === RecordTypes.PDF
-			? record.name
-			: `${record.name}\n${record.content}`;
+		searchText && searchText.trim().length > 0
+			? `${record.name}\n${searchText}`
+			: record.record_type === RecordTypes.PDF
+				? record.name
+				: `${record.name}\n${record.content}`;
 	const vec = await generateVector(text);
 	input.embedding = [...vec];
 	return await invoke<number>("create_record", { input });

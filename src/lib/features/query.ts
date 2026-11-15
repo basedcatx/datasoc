@@ -266,11 +266,17 @@ export const recordMutations = (client: QueryClient) => ({
 			client.invalidateQueries({ queryKey: recordKeys.all });
 		},
 
-		mutationFn: async ({ data }: { data: RInsert }) => {
+		mutationFn: async ({
+			data,
+			searchText,
+		}: {
+			data: RInsert;
+			searchText?: string;
+		}) => {
 			const input: RInsert = {
 				record: { ...data.record },
 			};
-			const id = await insertRecord(input);
+			const id = await insertRecord(input, searchText);
 			if (id === -1) throw new Error("create new record returned -1");
 			const record = await fetchRecordById(id);
 			client.setQueryData(recordKeys.id(id), record);
