@@ -54,6 +54,9 @@ export function PdfViewer({
 		return () => observer.disconnect();
 	}, []);
 
+	// Reset pagination when a different document is opened. The setters are
+	// stable; content is the only real input, even though it is not read.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: reset on content change
 	useEffect(() => {
 		setPage(1);
 		setPages(0);
@@ -136,9 +139,7 @@ export function PdfViewer({
 							error={
 								<div className="flex flex-col items-center gap-2 p-10 text-destructive">
 									<FileWarning className="size-6" />
-									<p className="text-sm">
-										This PDF could not be displayed.
-									</p>
+									<p className="text-sm">This PDF could not be displayed.</p>
 								</div>
 							}
 							onLoadSuccess={({ numPages }) => {
