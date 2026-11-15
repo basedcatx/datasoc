@@ -12,21 +12,28 @@ import {
 } from "#/components/ui/alert-dialog";
 import {
 	appStore,
-	initialStoreState,
+	resetStore,
 } from "#/integrations/tanstack-query/store-provider";
 import { useSelector } from "@tanstack/react-store";
+import { useLayoutEffect } from "react";
 
 export const Route = createFileRoute("/editor/")({
 	component: RouteComponent,
 });
 
 function RouteComponent() {
-	const file = useSelector(appStore, (state) => state.file);
+	const dirty = useSelector(appStore, (state) => state.dirty);
 
 	const { status, proceed, reset } = useBlocker({
-		shouldBlockFn: () => file.content.length > 0,
+		shouldBlockFn: () => dirty,
 		withResolver: true,
 	});
+
+	// Entering /editor always starts a fresh note, so a previously opened
+	// record can't be overwritten by accident.
+	useLayoutEffect(() => {
+		resetStore();
+	}, []);
 
 	return (
 		<div>
@@ -45,9 +52,8 @@ function Dialog({
 	proceed: (() => void) | undefined;
 	reset: (() => void) | undefined;
 }) {
-	const handleClearState = () => {
-		appStore.setState((prev) => ({ ...prev, file: initialStoreState.file }));
-	};
+	const handleClearState = resetStore;
+
 	return (
 		<AlertDialog open={status === "blocked"}>
 			<AlertDialogContent>

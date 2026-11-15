@@ -25,6 +25,7 @@ import type React from "react";
 import { useState } from "react";
 import { usePresence } from "#/hooks/use-presence";
 import SettingsCard from "./SettingsCard";
+import { resetStore } from "#/integrations/tanstack-query/store-provider";
 
 const navLinks = [
 	{ text: "Home", path: "/", icon: Home },
@@ -87,7 +88,12 @@ function SidebarComponent({ children }: { children: React.ReactNode }) {
 									</Button>
 								}
 							/>
-							<Button size={"lg"} asChild className="p-4 rounded-full">
+							<Button
+								size={"lg"}
+								asChild
+								className="p-4 rounded-full"
+								onClick={resetStore}
+							>
 								<Link to="/editor">
 									<LucidePencilLine />
 									<p>New</p>
@@ -128,7 +134,11 @@ function SidebarComponent({ children }: { children: React.ReactNode }) {
 							</Button>
 						</SearchComponent>
 
-						<Button variant={"secondary"} className="rounded-full">
+						<Button
+							variant={"secondary"}
+							onClick={resetStore}
+							className="rounded-full"
+						>
 							<Link to="/editor">
 								<Plus className="size-6" />
 							</Link>
