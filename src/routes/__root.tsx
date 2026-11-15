@@ -19,6 +19,8 @@ import { TauriQueryInspector } from "#/integrations/tanstack-query/tauri-query-i
 import { ThemeProvider } from "next-themes";
 import { SessionProvider } from "next-auth/react";
 import { Toaster } from "sonner";
+import { PdfDropOverlay } from "#/components/pdf/pdf-drop-overlay";
+import { PdfUploadDialogClient } from "#/components/pdf/pdf-upload-dialog-client";
 
 interface MyRouterContext {
 	queryClient: QueryClient;
@@ -66,6 +68,8 @@ function RootDocument() {
 					disableTransitionOnChange
 				>
 					<Toaster richColors />
+					<PdfDropOverlay />
+					<PdfUploadDialogClient />
 					<SessionProvider>
 						<div className="h-full w-full flex">
 							<Sidebar />
