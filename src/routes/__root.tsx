@@ -1,26 +1,25 @@
 import { TanStackDevtools } from "@tanstack/react-devtools";
+import type { QueryClient } from "@tanstack/react-query";
 import {
+	createRootRouteWithContext,
 	HeadContent,
 	Outlet,
 	Scripts,
-	createRootRouteWithContext,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
-import Footer from "../components/Footer";
-import Sidebar from "../components/Sidebar";
-
-import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
-
-import appCss from "../styles.css?url";
-
-import { TooltipProvider } from "#/components/ui/tooltip";
-import type { QueryClient } from "@tanstack/react-query";
-import { TauriQueryInspector } from "#/integrations/tanstack-query/tauri-query-inspector";
-import { ThemeProvider } from "next-themes";
 import { SessionProvider } from "next-auth/react";
+import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
 import { PdfDropOverlay } from "#/components/pdf/pdf-drop-overlay";
 import { PdfUploadDialogClient } from "#/components/pdf/pdf-upload-dialog-client";
+import { RecordDetailPane } from "#/components/record-detail-pane";
+import { RecordListPane } from "#/components/record-list-pane";
+import { TooltipProvider } from "#/components/ui/tooltip";
+import { TauriQueryInspector } from "#/integrations/tanstack-query/tauri-query-inspector";
+import Footer from "../components/Footer";
+import Sidebar from "../components/Sidebar";
+import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
+import appCss from "../styles.css?url";
 
 interface MyRouterContext {
 	queryClient: QueryClient;
@@ -73,10 +72,20 @@ function RootDocument() {
 					<SessionProvider>
 						<div className="h-full w-full flex">
 							<Sidebar />
-							<div className="flex-1 min-w-0">
-								<TooltipProvider>
-									<Outlet />
-								</TooltipProvider>
+							{/* Three-pane layout on wide screens: list + detail */}
+							<div className="hidden lg:flex lg:w-1/3 border-r border-border min-w-0">
+								<RecordListPane />
+							</div>
+							<div className="flex-1 min-w-0 relative">
+								{/* On wide screens, show detail pane; on narrow, show full page route */}
+								<div className="hidden lg:flex flex-col h-full">
+									<RecordDetailPane />
+								</div>
+								<div className="lg:hidden">
+									<TooltipProvider>
+										<Outlet />
+									</TooltipProvider>
+								</div>
 							</div>
 						</div>
 					</SessionProvider>
