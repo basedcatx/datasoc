@@ -175,7 +175,9 @@ pub async fn fetch_records(state: State<'_, AppState>) -> Result<Vec<RecordSearc
         .map_err(|e| format!("db lock poisoned {e}"))?;
 
     let mut stmt = db
-        .prepare("SELECT name, content, tags, flags, meta, content_html, createdAt, updatedAt, id, record_type FROM Records")
+        // List payloads never need a PDF body, which is base64 and can be
+        // hundreds of kilobytes. The viewer fetches the full row by id.
+        .prepare("SELECT name, CASE WHEN record_type = 1 THEN '' ELSE content END AS content, tags, flags, meta, content_html, createdAt, updatedAt, id, record_type FROM Records")
         .map_err(|e| e.to_string())?;
 
     let record_iter = stmt
@@ -289,7 +291,7 @@ pub async fn fetch_record_by_name(
         .map_err(|e| format!("db lock poisoned {e}"))?;
 
     let mut stmt = db
-        .prepare("SELECT name, content, tags, flags, meta, content_html, createdAt, updatedAt, id, record_type FROM Records WHERE UPPER(name) LIKE UPPER(?1)")
+        .prepare("SELECT name, CASE WHEN record_type = 1 THEN '' ELSE content END AS content, tags, flags, meta, content_html, createdAt, updatedAt, id, record_type FROM Records WHERE UPPER(name) LIKE UPPER(?1)")
         .map_err(|e| e.to_string())?;
 
     let record = stmt
@@ -438,8 +440,9 @@ pub async fn hybrid_search(
 
     let fused = rrf_fuse(&bm25_res, &vec_res, K_RRF);
 
+    // Search results feed cards, so keep the same projection as the list.
     let mut stmt = conn
-        .prepare("SELECT name, content, tags, flags, meta, content_html, createdAt, updatedAt, id, record_type FROM Records WHERE id = ?1")
+        .prepare("SELECT name, CASE WHEN record_type = 1 THEN '' ELSE content END AS content, tags, flags, meta, content_html, createdAt, updatedAt, id, record_type FROM Records WHERE id = ?1")
         .map_err(|e| e.to_string())?;
 
     let mut res: Vec<RecordSearch> = Vec::new();
