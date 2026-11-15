@@ -1,14 +1,14 @@
 import {
+	BookOpen,
+	FileText,
 	Heart,
 	LucideArrowUpRight,
-	Pencil,
 	Search,
 	SquarePen,
-	Tags,
 	Trash,
 } from "lucide-react";
 import type { R } from "#/lib/libs";
-import { createFlags, FLAGS } from "#/lib/utils";
+import { createFlags, FLAGS, RecordTypes } from "#/lib/utils";
 import { Badge } from "./ui/badge";
 import { Card } from "./ui/card";
 import {
@@ -18,6 +18,7 @@ import {
 	ContextMenuSeparator,
 	ContextMenuTrigger,
 } from "./ui/context-menu";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { recordMutations } from "#/lib/features/query";
 import { appStore } from "#/integrations/tanstack-query/store-provider";
@@ -32,9 +33,11 @@ export default function LibraryEntryCard({
 	content_html,
 	id,
 	meta,
+	record_type,
 }: R) {
 	const qc = useQueryClient();
 	const nav = useNavigate();
+	const isPdf = record_type === RecordTypes.PDF;
 
 	const addToFavMutation = useMutation({
 		...recordMutations(qc).changeFlag(id!),
@@ -69,6 +72,7 @@ export default function LibraryEntryCard({
 				created_at,
 				content_html,
 				meta,
+				record_type,
 			},
 		});
 	};
@@ -85,6 +89,7 @@ export default function LibraryEntryCard({
 				created_at,
 				content_html,
 				meta,
+				record_type,
 			},
 		});
 	};
@@ -97,12 +102,27 @@ export default function LibraryEntryCard({
 				<Link to="/view/$reportId" params={{ reportId: id!.toString() }}>
 					<Card className="p-6 hover:bg-muted rounded-md dark:hover:bg-input/50 cursor-pointer">
 						<div className="flex justify-between items-center">
-							<div className="max-md-w-[70%]">
-								<p className="text-nowrap w-full text-ellipsis font-bold text-lg">
-									{name}
-								</p>
+							<div className="max-md-w-[70%] min-w-0">
+								<div className="flex min-w-0 items-center gap-2">
+									<p className="truncate font-bold text-lg">{name}</p>
+									<Tooltip>
+										<TooltipTrigger asChild>
+											<Badge variant="outline" className="shrink-0 gap-1 p-2">
+												{isPdf ? <BookOpen /> : <FileText />}
+												{isPdf ? "PDF" : "Doc"}
+											</Badge>
+										</TooltipTrigger>
+										<TooltipContent>
+											{isPdf
+												? "PDF document, view only"
+												: "Text document, editable"}
+										</TooltipContent>
+									</Tooltip>
+								</div>
 								<p className="text-wrap truncate w-full text-ellipsis">
-									{content.split(" ").slice(0, 20).join(" ")}
+									{isPdf
+										? "PDF document · view only"
+										: content.split(" ").slice(0, 20).join(" ")}
 								</p>
 							</div>
 						</div>
@@ -131,10 +151,12 @@ export default function LibraryEntryCard({
 				</Link>
 			</ContextMenuTrigger>
 			<ContextMenuContent className="px-2 text-xl">
-				<ContextMenuItem onClick={handlePreview}>
-					<LucideArrowUpRight />
-					Open in preview
-				</ContextMenuItem>
+				{!isPdf && (
+					<ContextMenuItem onClick={handlePreview}>
+						<LucideArrowUpRight />
+						Open in preview
+					</ContextMenuItem>
+				)}
 
 				<ContextMenuItem onClick={handleSearchSimilar}>
 					<Search />
@@ -153,11 +175,15 @@ export default function LibraryEntryCard({
 						</div>
 					)}
 				</ContextMenuItem>
-				<ContextMenuSeparator />
-				<ContextMenuItem onClick={handleEdit}>
-					<SquarePen />
-					Edit
-				</ContextMenuItem>
+				{!isPdf && (
+					<>
+						<ContextMenuSeparator />
+						<ContextMenuItem onClick={handleEdit}>
+							<SquarePen />
+							Edit
+						</ContextMenuItem>
+					</>
+				)}
 				<ContextMenuSeparator />
 				<ContextMenuItem variant="destructive" onClick={handleDelete}>
 					<Trash />
