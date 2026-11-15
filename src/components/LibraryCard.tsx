@@ -67,12 +67,33 @@ function LibraryComponent({
 }) {
 	const [sortby, setSortby] = useState<"ASC" | "DESC">("ASC");
 	const [nameFilter, setNameFilter] = useState("");
+	const [tagFilter, setTagFilter] = useState<string | null>(null);
 	const deferredNameFilter = useDeferredValue(nameFilter);
 
-	const { data, isPending, isError, error } = useQuery({
-		...recordQueries.all(),
-		select: (data) => LibraryFilter(data, deferredNameFilter, sortby),
-	});
+	const {
+		data: rawData,
+		isPending,
+		isError,
+		error,
+	} = useQuery(recordQueries.all());
+
+	const allTags = (() => {
+		const tags = new Set<string>();
+		for (const r of rawData ?? []) {
+			for (const t of r.record.tags) {
+				tags.add(t);
+			}
+		}
+		return Array.from(tags).sort();
+	})();
+
+	const data = (() => {
+		let filtered = LibraryFilter(rawData ?? [], deferredNameFilter, sortby);
+		if (tagFilter) {
+			filtered = filtered.filter((r) => r.record.tags.includes(tagFilter!));
+		}
+		return filtered;
+	})();
 
 	if (isError || !data) {
 		return <div>An error occurred: {error?.message}</div>;
@@ -118,6 +139,29 @@ function LibraryComponent({
 							</Button>
 						</div>
 					</div>
+					{allTags.length > 0 && (
+						<div className="flex flex-wrap gap-2 my-4">
+							<Button
+								variant={tagFilter === null ? "default" : "outline"}
+								size="sm"
+								onClick={() => setTagFilter(null)}
+								className="rounded-full px-3 py-1.5 text-xs"
+							>
+								All tags
+							</Button>
+							{allTags.map((tag) => (
+								<Button
+									key={tag}
+									variant={tagFilter === tag ? "default" : "outline"}
+									size="sm"
+									onClick={() => setTagFilter(tagFilter === tag ? null : tag)}
+									className="rounded-full px-3 py-1.5 text-xs"
+								>
+									#{tag}
+								</Button>
+							))}
+						</div>
+					)}
 					{children(data, isPending)}
 				</Card>
 			</div>
