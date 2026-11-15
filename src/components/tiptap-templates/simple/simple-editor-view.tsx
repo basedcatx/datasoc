@@ -52,17 +52,16 @@ import { handleImageUpload, MAX_FILE_SIZE } from "#/lib/tiptap-utils";
 // --- Styles ---
 import "#/components/tiptap-templates/simple/simple-editor.scss";
 
-import { Input } from "#/components/ui/input";
 import { LucideOption } from "lucide-react";
+import { Input } from "#/components/ui/input";
 
 const SEARCH_AND_REPLACE_SCROLL_OPTIONS: ScrollIntoViewOptions = {
 	block: "center",
 };
 
-import { Drawer, DrawerContent, DrawerTrigger } from "#/components/ui/drawer";
-
 import EditorDrawerCard from "#/components/editor-drawer-card";
 import { Button as BTN } from "#/components/ui/button";
+import { Drawer, DrawerContent, DrawerTrigger } from "#/components/ui/drawer";
 
 const MainToolbarContent = ({
 	onSearchAndReplaceClick,
@@ -187,7 +186,7 @@ export function SimpleEditorView({
 	//other configurations
 	editor.setEditable(false);
 	return (
-		<div className="simple-editor-wrapper">
+		<div className="simple-editor-wrapper simple-editor-viewer">
 			<EditorContext.Provider value={{ editor }}>
 				<Toolbar
 					ref={toolbarRef}
