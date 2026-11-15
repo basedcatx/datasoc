@@ -11,6 +11,7 @@ use sql::zerocopy::IntoBytes as AsBytes;
 use tauri::State;
 
 const K_RRF: u32 = 60;
+const FLAG_IS_COMPLETED: u32 = 1 << 2;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Record {
@@ -126,6 +127,15 @@ pub async fn create_record(input: RecordInsert, state: State<'_, AppState>) -> R
             },
         embedding,
     } = &input;
+
+    // A PDF is a finished artifact, so it is completed no matter what the
+    // caller sent. Keeping the rule here means no upload path can create a
+    // draft by forgetting the flag.
+    let flags = if *record_type == 1 {
+        *flags | FLAG_IS_COMPLETED
+    } else {
+        *flags
+    };
 
     let tags_string =
         serde_json::to_string(&tags).map_err(|_| "Failed to convert tags too string")?;
