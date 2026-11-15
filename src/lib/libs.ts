@@ -71,12 +71,7 @@ export async function insertRecord(input: RInsert) {
 }
 
 export async function fetchRecords(): Promise<{ record: R }[]> {
-	try {
-		return await invoke("fetch_records");
-	} catch (e) {
-		console.log("ERROR: ", e);
-		return [];
-	}
+	return await invoke("fetch_records");
 }
 
 export async function fetchRecordById(id: number): Promise<{ record: R }> {
@@ -124,12 +119,7 @@ export async function hybridSearchRecords(input: RSearch) {
 	const embedding = await generateVector(input.text);
 	const limit = input.limit || 50;
 
-	try {
-		return await invoke<RSearchResult[]>("hybrid_search", {
-			input: { ...input, embedding, limit },
-		});
-	} catch (e) {
-		console.error(e);
-		return [];
-	}
+	return await invoke<RSearchResult[]>("hybrid_search", {
+		input: { ...input, embedding, limit },
+	});
 }
