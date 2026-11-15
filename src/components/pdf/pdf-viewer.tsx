@@ -158,6 +158,14 @@ export function PdfViewer({
 							<Page
 								pageNumber={page}
 								width={width}
+								loading={
+									<div
+										className="flex items-center justify-center py-24"
+										style={{ width }}
+									>
+										<Spinner className="size-10 text-muted-foreground" />
+									</div>
+								}
 								renderAnnotationLayer={false}
 								renderTextLayer={false}
 							/>
