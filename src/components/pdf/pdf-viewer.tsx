@@ -5,6 +5,7 @@ import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 import { fromBase64 } from "#/lib/pdf";
 import { Button } from "../ui/button";
+import { Spinner } from "../ui/spinner";
 import "./pdf-worker";
 
 const MIN_WIDTH = 320;
@@ -25,6 +26,7 @@ export function PdfViewer({
 	const [pages, setPages] = useState(0);
 	const [page, setPage] = useState(1);
 	const [width, setWidth] = useState(initialWidth);
+	const [loadError, setLoadError] = useState<string | null>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
 
 	const file = useMemo(() => {
@@ -55,6 +57,7 @@ export function PdfViewer({
 	useEffect(() => {
 		setPage(1);
 		setPages(0);
+		setLoadError(null);
 	}, [content]);
 
 	if (!file) {
@@ -103,29 +106,62 @@ export function PdfViewer({
 
 			<div ref={containerRef} className="flex-1 overflow-auto p-6">
 				<div className="mx-auto w-fit overflow-hidden rounded-md bg-white shadow-lg">
-					<Document
-						file={file}
-						loading={
-							<p className="p-10 text-muted-foreground text-sm">
-								Loading PDF...
+					{loadError ? (
+						<div
+							className="flex flex-col items-center gap-2 p-10 text-destructive"
+							style={{ width }}
+						>
+							<FileWarning className="size-6" />
+							<p className="text-sm">This PDF could not be displayed.</p>
+							<p className="max-w-full break-words text-center text-muted-foreground text-xs">
+								{loadError}
 							</p>
-						}
-						error={
-							<div className="flex flex-col items-center gap-2 p-10 text-destructive">
-								<FileWarning className="size-6" />
-								<p className="text-sm">This PDF could not be displayed.</p>
-							</div>
-						}
-						onLoadSuccess={({ numPages }) => setPages(numPages)}
-						onLoadError={() => setPages(0)}
-					>
-						<Page
-							pageNumber={page}
-							width={width}
-							renderAnnotationLayer={false}
-							renderTextLayer={false}
-						/>
-					</Document>
+						</div>
+					) : (
+						<Document
+							file={file}
+							// react-pdf loads through React suspense by default. Without a
+							// boundary fallback that commits nothing, so the viewer showed
+							// a blank screen. The flags below only render when suspense is
+							// off.
+							suspense={false}
+							loading={
+								<div
+									className="flex items-center justify-center py-24"
+									style={{ width }}
+								>
+									<Spinner className="size-10 text-muted-foreground" />
+								</div>
+							}
+							error={
+								<div className="flex flex-col items-center gap-2 p-10 text-destructive">
+									<FileWarning className="size-6" />
+									<p className="text-sm">
+										This PDF could not be displayed.
+									</p>
+								</div>
+							}
+							onLoadSuccess={({ numPages }) => {
+								setPages(numPages);
+								setLoadError(null);
+							}}
+							onLoadError={(err) => {
+								setPages(0);
+								setLoadError(err.message);
+							}}
+							onSourceError={(err) => {
+								setPages(0);
+								setLoadError(err.message);
+							}}
+						>
+							<Page
+								pageNumber={page}
+								width={width}
+								renderAnnotationLayer={false}
+								renderTextLayer={false}
+							/>
+						</Document>
+					)}
 				</div>
 			</div>
 		</div>
