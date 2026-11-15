@@ -10,6 +10,7 @@ import {
 	SquarePen,
 	Trash,
 } from "lucide-react";
+import { toast } from "sonner";
 import { appStore } from "#/integrations/tanstack-query/store-provider";
 import { recordMutations } from "#/lib/features/query";
 import type { R } from "#/lib/libs";
@@ -57,20 +58,51 @@ export default function RecordCard({
 
 	const handleAddOrRemoveFav = () => {
 		if (!id) return;
-		addToFavMutation.mutate({
-			flag: FLAGS.IS_FAVORITE,
-			data: {
-				name,
-				content,
-				tags,
-				id,
-				flags,
-				created_at,
-				content_html,
-				meta,
-				record_type,
+		const wasFavorite = flag.check(FLAGS.IS_FAVORITE);
+		addToFavMutation.mutate(
+			{
+				flag: FLAGS.IS_FAVORITE,
+				data: {
+					name,
+					content,
+					tags,
+					id,
+					flags,
+					created_at,
+					content_html,
+					meta,
+					record_type,
+				},
 			},
-		});
+			{
+				onSuccess: () => {
+					toast.success(
+						wasFavorite ? "Removed from favorites" : "Added to favorites",
+						{
+							action: {
+								label: "Undo",
+								onClick: () => {
+									addToFavMutation.mutate({
+										flag: FLAGS.IS_FAVORITE,
+										data: {
+											name,
+											content,
+											tags,
+											id,
+											flags,
+											created_at,
+											content_html,
+											meta,
+											record_type,
+										},
+									});
+								},
+							},
+						},
+					);
+				},
+			},
+		);
 	};
 
 	const handleEdit = () => {
@@ -78,37 +110,93 @@ export default function RecordCard({
 	};
 
 	const handleDelete = () => {
-		addToFavMutation.mutate({
-			flag: FLAGS.IS_DELETED,
-			data: {
-				name,
-				content,
-				tags,
-				id: id!,
-				flags,
-				created_at,
-				content_html,
-				meta,
-				record_type,
+		const wasDeleted = flag.check(FLAGS.IS_DELETED);
+		addToFavMutation.mutate(
+			{
+				flag: FLAGS.IS_DELETED,
+				data: {
+					name,
+					content,
+					tags,
+					id: id!,
+					flags,
+					created_at,
+					content_html,
+					meta,
+					record_type,
+				},
 			},
-		});
+			{
+				onSuccess: () => {
+					toast.success(wasDeleted ? "Restored" : "Deleted", {
+						action: {
+							label: "Undo",
+							onClick: () => {
+								addToFavMutation.mutate({
+									flag: FLAGS.IS_DELETED,
+									data: {
+										name,
+										content,
+										tags,
+										id: id!,
+										flags,
+										created_at,
+										content_html,
+										meta,
+										record_type,
+									},
+								});
+							},
+						},
+					});
+				},
+			},
+		);
 	};
 
 	const handleRestore = () => {
-		addToFavMutation.mutate({
-			flag: FLAGS.IS_DELETED,
-			data: {
-				name,
-				content,
-				tags,
-				id: id!,
-				flags,
-				created_at,
-				content_html,
-				meta,
-				record_type,
+		const wasDeleted = flag.check(FLAGS.IS_DELETED);
+		addToFavMutation.mutate(
+			{
+				flag: FLAGS.IS_DELETED,
+				data: {
+					name,
+					content,
+					tags,
+					id: id!,
+					flags,
+					created_at,
+					content_html,
+					meta,
+					record_type,
+				},
 			},
-		});
+			{
+				onSuccess: () => {
+					toast.success(wasDeleted ? "Restored" : "Deleted", {
+						action: {
+							label: "Undo",
+							onClick: () => {
+								addToFavMutation.mutate({
+									flag: FLAGS.IS_DELETED,
+									data: {
+										name,
+										content,
+										tags,
+										id: id!,
+										flags,
+										created_at,
+										content_html,
+										meta,
+										record_type,
+									},
+								});
+							},
+						},
+					});
+				},
+			},
+		);
 	};
 
 	const handleSearchSimilar = () => {
