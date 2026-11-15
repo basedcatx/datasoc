@@ -1,5 +1,4 @@
 import { type QueryClient, queryOptions } from "@tanstack/react-query";
-import { appStore } from "#/integrations/tanstack-query/store-provider";
 import {
 	deleteRecord,
 	fetchRecordById,
@@ -117,17 +116,21 @@ export const recordMutations = (client: QueryClient) => ({
 	changeFlag: (id: number) => ({
 		mutationKey: recordKeys.id(id),
 
-		onMutate: ({
+		onMutate: async ({
 			flag,
 			data,
 		}: {
 			flag: number;
 			data: Omit<R, "record_type">;
 		}) => {
-			client.cancelQueries({ queryKey: [recordKeys.id(id), recordKeys.all] });
+			// Every record key starts with recordKeys.all, so this cancels both
+			// the list and the single-record request.
+			await client.cancelQueries({ queryKey: recordKeys.all });
 
-			const prev = data.flags;
-			const f = createFlags(prev);
+			const prevId = client.getQueryData<{ record: R }>(recordKeys.id(id));
+			const prevList = client.getQueryData<{ record: R }[]>(recordKeys.all);
+
+			const f = createFlags(data.flags);
 			let newFlag = FLAGS.NONE_CLEAR_ALL;
 
 			if (f.check(flag)) {
@@ -136,17 +139,48 @@ export const recordMutations = (client: QueryClient) => ({
 				newFlag = createFlags(f.value).set(flag).value;
 			}
 
-			client.setQueryData(recordKeys.id(id), () => ({
-				record: { ...data, flags: newFlag },
-			}));
-
-			client.setQueryData(recordKeys.all, (old: R[]) => {
-				const record = old.find((r) => r.id === data.id);
-				if (record) record.flags = newFlag;
-				return old;
+			// Only change the flags. Reusing the cached record keeps fields the
+			// card doesn't carry (record_type, created_at) and avoids
+			// overwriting fresher data with a stale card.
+			client.setQueryData(recordKeys.id(id), {
+				record: {
+					...(prevId?.record ?? {
+						...data,
+						record_type: RecordTypes.DOCUMENT,
+					}),
+					flags: newFlag,
+				},
 			});
 
-			return { data };
+			// The list cache holds { record } wrappers, not bare records.
+			client.setQueryData(recordKeys.all, (old: { record: R }[]) => {
+				if (!old) return old;
+				return old.map((r) =>
+					r.record.id === id ? { record: { ...r.record, flags: newFlag } } : r,
+				);
+			});
+
+			return { prevId, prevList, data };
+		},
+
+		onError: (
+			_: unknown,
+			__: { flag: number; data: Omit<R, "record_type"> },
+			context?: {
+				prevId?: { record: R };
+				prevList?: { record: R }[];
+				data: Omit<R, "record_type">;
+			},
+		) => {
+			if (context?.prevId) {
+				client.setQueryData(recordKeys.id(id), context.prevId);
+			} else {
+				client.removeQueries({ queryKey: recordKeys.id(id) });
+			}
+
+			if (context?.prevList) {
+				client.setQueryData(recordKeys.all, context.prevList);
+			}
 		},
 
 		onSettled: () => {
@@ -170,11 +204,19 @@ export const recordMutations = (client: QueryClient) => ({
 				f.set(flag);
 			}
 
-			return updateRecord({
-				...data,
-				id,
-				record: { ...data, flags: f.value },
-			}).then((r) => console.log(r));
+			// Flags don't change searchable text, and a PDF's content is
+			// base64, so never pay for an embedding call here.
+			const res = await updateRecord(
+				{
+					...data,
+					id,
+					record: { ...data, id, flags: f.value },
+				},
+				{ skipEmbedding: true },
+			);
+
+			if (!res) throw new Error("update_record affected no rows");
+			return res;
 		},
 	}),
 
@@ -217,38 +259,25 @@ export const recordMutations = (client: QueryClient) => ({
 
 		mutationFn: async ({ data }: { data: { update: RUpdate }[] }) => {
 			for (const d of data) {
-				await updateRecord({
-					...d.update,
-					record: {
-						...d.update.record,
-						flags: createFlags(d.update.record.flags).clear(FLAGS.IS_DELETED)
-							.value,
+				await updateRecord(
+					{
+						...d.update,
+						record: {
+							...d.update.record,
+							flags: createFlags(d.update.record.flags).clear(FLAGS.IS_DELETED)
+								.value,
+						},
 					},
-				});
+					{ skipEmbedding: true },
+				);
 			}
 			return true;
 		},
 	}),
 
 	createNewRecord: () => ({
-		onMutate: ({ data }: { data: RInsert }) => {
-			client.setQueryData(recordKeys.name(data.record.name), {
-				record: data.record,
-			});
-			return { data };
-		},
-
-		onSettled: (_: any, __: any, { data }: { data: RInsert }) => {
+		onSettled: () => {
 			client.invalidateQueries({ queryKey: recordKeys.all });
-			return { data };
-		},
-
-		onSuccess: ({ data }: { data: RInsert }) => {
-			appStore.setState((prev) => ({
-				...prev,
-				file: { ...prev.file, id: data.record.id ?? -1 },
-			}));
-			return { data };
 		},
 
 		mutationFn: async ({ data }: { data: RInsert }) => {
@@ -259,7 +288,7 @@ export const recordMutations = (client: QueryClient) => ({
 			if (id === -1) throw new Error("create new record returned -1");
 			const record = await fetchRecordById(id);
 			client.setQueryData(recordKeys.id(id), record);
-			return { data: record };
+			return record;
 		},
 	}),
 
@@ -270,8 +299,19 @@ export const recordMutations = (client: QueryClient) => ({
 				console.log("Error(updateRecord): Invalid id");
 				throw new Error("No ID provided");
 			}
-			client.setQueryData(recordKeys.id(id), data);
-			client.setQueryData(recordKeys.name(data.record.name), data);
+
+			// Omit<R, "record_type"> has no type field, so merge with whatever
+			// is cached instead of replacing the record and losing it.
+			const prev = client.getQueryData<{ record: R }>(recordKeys.id(id));
+			const next = {
+				record: {
+					...data.record,
+					record_type: prev?.record.record_type ?? RecordTypes.DOCUMENT,
+				},
+			};
+
+			client.setQueryData(recordKeys.id(id), next);
+			client.setQueryData(recordKeys.name(data.record.name), next);
 			return { data };
 		},
 		onSettled: () => {
