@@ -6,6 +6,7 @@ import {
 	ChevronUp,
 	LayoutGrid,
 	List,
+	LucideInbox,
 	Plus,
 } from "lucide-react";
 import { useDeferredValue, useState } from "react";
@@ -173,7 +174,7 @@ function LibraryComponent({
 							type="button"
 							onClick={() => setTagFilter(null)}
 							className={cn(
-								"rounded-md px-2 py-1 text-[12px] transition-colors",
+								"rounded-md px-2 py-1 text-sm transition-colors",
 								tagFilter === null
 									? "bg-accent text-foreground"
 									: "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
@@ -187,7 +188,7 @@ function LibraryComponent({
 								type="button"
 								onClick={() => setTagFilter(tagFilter === tag ? null : tag)}
 								className={cn(
-									"rounded-md px-2 py-1 text-[12px] transition-colors",
+									"rounded-md px-2 py-1 text-sm transition-colors",
 									tagFilter === tag
 										? "bg-accent text-foreground"
 										: "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
@@ -225,12 +226,12 @@ export default function LibraryCard() {
 					if (data.length === 0) {
 						return (
 							<div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-								<p className="text-sm text-muted-foreground">No records</p>
+								<LucideInbox />
+								<p className="text-sm text-muted-foreground">No records, click to create a new</p>
 								<Button
 									size="sm"
-									variant="ghost"
 									onClick={handleAddClick}
-									className="gap-2 text-muted-foreground"
+									className="gap-2"
 								>
 									<Plus className="size-4" />
 									New record
