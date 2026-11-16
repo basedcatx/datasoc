@@ -23,7 +23,7 @@ export default function NavSection({
 	return (
 		<Collapsible open={isOpen} onOpenChange={setIsOpen}>
 			<div className="flex items-center px-2">
-				<h3 className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground/70">
+				<h3 className="text-sm font-medium uppercase tracking-wide text-muted-foreground/70">
 					{sectionName}
 				</h3>
 				<CollapsibleTrigger className="ml-1 cursor-pointer text-muted-foreground/60 hover:text-muted-foreground">
@@ -44,7 +44,7 @@ export default function NavSection({
 							<li key={i.record.id ?? i.record.name} className="w-full min-w-0">
 								<button
 									type="button"
-									className="flex w-full min-w-0 items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground"
+									className="flex w-full min-w-0 items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground"
 									onClick={() => items.action(i.record.id)}
 									title={i.record.name}
 								>

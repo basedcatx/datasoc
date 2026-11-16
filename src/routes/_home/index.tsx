@@ -71,11 +71,10 @@ function RouteComponent() {
 								key={f.key}
 								type="button"
 								onClick={() => setFilter(f.key)}
-								className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[13px] transition-colors ${
-									active
-										? "bg-accent text-foreground"
-										: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
-								}`}
+								className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm transition-colors ${active
+									? "bg-accent text-foreground"
+									: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+									}`}
 							>
 								<span>{f.label}</span>
 								<span className="text-muted-foreground/70">

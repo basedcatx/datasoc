@@ -259,10 +259,10 @@ export function RecordRow({
 				}`}
 				title={isCompleted ? "Completed" : "Draft"}
 			/>
-			<span className="min-w-0 flex-1 truncate text-[14px] text-foreground/90">
+			<span className="min-w-0 flex-1 truncate text-sm text-foreground/90">
 				{record.name || "Untitled"}
 			</span>
-			<span className="shrink-0 text-[12px] text-muted-foreground/70">
+			<span className="shrink-0 text-sm text-muted-foreground/70">
 				{isPdf ? "PDF" : "Doc"}
 				{date ? ` · ${date}` : ""}
 			</span>

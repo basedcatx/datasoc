@@ -144,7 +144,7 @@ export default function RecordCard({
 	const isFavorite = flag.check(FLAGS.IS_FAVORITE);
 	const statusBadgeClass = cn(
 		"rounded-md font-medium",
-		dense ? "px-2 py-0.5 text-[11px]" : "px-2.5 py-1 text-xs",
+		dense ? "px-2 py-0.5 text-sm" : "px-2.5 py-1 text-xs",
 		isCompleted
 			? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/20"
 			: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/20",
@@ -164,7 +164,7 @@ export default function RecordCard({
 			variant="outline"
 			className={cn(
 				"shrink-0 gap-1.5 rounded-md border-muted-foreground/20 bg-background/60",
-				dense ? "px-2 py-0.5 text-[11px]" : "px-2 py-1 text-xs",
+				dense ? "px-2 py-0.5 text-sm" : "px-2 py-1 text-xs",
 			)}
 		>
 			{isPdf ? (
@@ -246,7 +246,7 @@ export default function RecordCard({
 							variant="secondary"
 							className={cn(
 								"rounded-md bg-muted/70",
-								dense ? "px-2 py-0.5 text-[11px]" : "px-2 py-0.5 text-xs",
+								dense ? "px-2 py-0.5 text-sm" : "px-2 py-0.5 text-xs",
 							)}
 						>
 							#{tag}

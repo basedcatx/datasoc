@@ -38,7 +38,7 @@ function NavRow({
 	return (
 		<div
 			className={cn(
-				"flex items-center gap-2.5 rounded-md px-2 py-1.5 text-[13px] text-muted-foreground transition-colors",
+				"flex items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-muted-foreground transition-colors",
 				"hover:bg-input/30 hover:text-foreground",
 				active && "bg-accent text-foreground",
 			)}
@@ -90,7 +90,7 @@ function SidebarComponent({ children }: { children: React.ReactNode }) {
 			>
 				{isOpen && (
 					<div className="flex items-center gap-2">
-						<span className="text-[14px] font-medium text-foreground/90">
+						<span className="text-sm font-medium text-foreground/90">
 							Datasoc
 						</span>
 					</div>
