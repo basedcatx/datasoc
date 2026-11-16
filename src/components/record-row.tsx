@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { save } from "@tauri-apps/plugin-dialog";
-import { writeFile, writeTextFile } from "@tauri-apps/plugin-fs";
+import { writeFile } from "@tauri-apps/plugin-fs";
 import { Copy, Download, RotateCcw, Trash, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { recordMutations } from "#/lib/features/query";
@@ -17,6 +17,37 @@ function formatDate(date?: Date | string | null) {
 		day: "numeric",
 		year: "numeric",
 	});
+}
+
+async function htmlToPdfBlob(html: string, title: string): Promise<Blob> {
+	const html2pdf = (await import("html2pdf.js")).default as any;
+	const container = document.createElement("div");
+	container.innerHTML = `<div style="font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; color: #111; padding: 24px; max-width: 800px;">
+		<h1 style="margin: 0 0 1.25rem 0; line-height: 1.3;">${title}</h1>
+		${html}
+	</div>`;
+	container.style.position = "fixed";
+	container.style.left = "-10000px";
+	container.style.top = "0";
+	container.style.width = "800px";
+	container.style.background = "#fff";
+	document.body.appendChild(container);
+	try {
+		const blob: Blob = await html2pdf()
+			.set({
+				margin: 10,
+				filename: `${title || "document"}.pdf`,
+				image: { type: "jpeg", quality: 0.98 },
+				html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
+				jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+				pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+			})
+			.from(container)
+			.outputPdf("blob");
+		return blob;
+	} finally {
+		container.remove();
+	}
 }
 
 export function RecordRow({
@@ -123,25 +154,30 @@ export function RecordRow({
 				return;
 			}
 
-			const text = full.content_html || full.content || "";
-			if (!text.trim()) {
+			const html = full.content_html || full.content || "";
+			if (!html.trim()) {
 				toast.error("No content to download");
 				return;
 			}
 
+			const pdfBlob = await htmlToPdfBlob(
+				html,
+				(baseName || "Document").replace(/[<>]/g, ""),
+			);
+
 			if (isTauri()) {
 				const path = await save({
-					defaultPath: `${baseName}.html`,
-					filters: [{ name: "HTML", extensions: ["html"] }],
+					defaultPath: `${baseName}.pdf`,
+					filters: [{ name: "PDF", extensions: ["pdf"] }],
 				});
 				if (!path) return;
-				await writeTextFile(path, text);
+				const bytes = new Uint8Array(await pdfBlob.arrayBuffer());
+				await writeFile(path, bytes);
 				toast.success("Saved");
 				return;
 			}
 
-			const blob = new Blob([text], { type: "text/html;charset=utf-8" });
-			triggerDownload(blob, `${baseName}.html`);
+			triggerDownload(pdfBlob, `${baseName}.pdf`);
 		} catch {
 			toast.error("Could not download");
 		}
