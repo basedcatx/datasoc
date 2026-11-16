@@ -14,7 +14,6 @@ export const initialStoreState = {
 	preview: {
 		content: "" as string,
 	},
-	selectedRecordId: -1 as number,
 };
 export const appStore = createStore(initialStoreState);
 export const resetStore = () =>
