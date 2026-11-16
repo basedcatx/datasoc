@@ -888,8 +888,6 @@ const settingsNavigation = [
 function SettingsSection({
 	id,
 	title,
-	description,
-	icon: Icon,
 	children,
 }: {
 	id: string;
