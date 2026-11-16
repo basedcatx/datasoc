@@ -12,8 +12,6 @@ import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
 import { PdfDropOverlay } from "#/components/pdf/pdf-drop-overlay";
 import { PdfUploadDialogClient } from "#/components/pdf/pdf-upload-dialog-client";
-import { RecordDetailPane } from "#/components/record-detail-pane";
-import { RecordListPane } from "#/components/record-list-pane";
 import { TooltipProvider } from "#/components/ui/tooltip";
 import { TauriQueryInspector } from "#/integrations/tanstack-query/tauri-query-inspector";
 import Footer from "../components/Footer";
@@ -70,27 +68,18 @@ function RootDocument() {
 					<PdfDropOverlay />
 					<PdfUploadDialogClient />
 					<SessionProvider>
-						<div className="h-full w-full flex">
+						<div className="flex h-full w-full bg-background">
 							<Sidebar />
-							<div className="flex-1 min-w-0 relative">
+							<div className="min-w-0 flex-1">
 								<TooltipProvider>
-									{/* Three-pane layout on wide screens: list + detail */}
-									<div className="hidden lg:flex lg:w-1/3 border-r border-border min-w-0">
-										<RecordListPane />
-									</div>
-									<div className="hidden lg:flex flex-col h-full">
-										<RecordDetailPane />
-									</div>
-									<div className="lg:hidden">
-										<Outlet />
-									</div>
+									<Outlet />
 								</TooltipProvider>
 							</div>
 						</div>
 					</SessionProvider>
 					<Footer />
 					{/* Would reactivate this only when needed */}
-					<TauriQueryInspector />
+					{/* <TauriQueryInspector /> */}
 					<TanStackDevtools
 						config={{
 							position: "bottom-right",
