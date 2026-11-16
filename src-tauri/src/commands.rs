@@ -155,7 +155,7 @@ pub async fn create_record(input: RecordInsert, state: State<'_, AppState>) -> R
 
     if !embedding.is_empty() {
         tx.execute(
-            "INSERT OR REPLACE INTO RecordEmbedding(rowid, embedding) VALUES(?1, ?2)",
+            "INSERT INTO RecordEmbedding(rowid, embedding) VALUES(?1, ?2)",
             rusqlite::params![&id, &embedding.as_bytes()],
         )
         .map_err(|e| format!("An error occurred while executing query {e}"))?;
@@ -396,11 +396,19 @@ pub async fn update_record(
     }
 
     if !embedding.is_empty() {
-        tx.execute(
-            "INSERT OR REPLACE INTO RecordEmbedding(rowid, embedding) VALUES(?1, ?2)",
-            rusqlite::params![&id, &embedding.as_bytes()],
-        )
-        .map_err(|e| format!("An error occurred while executing query {e}"))?;
+        let updated = tx
+            .execute(
+                "UPDATE RecordEmbedding SET embedding = ?2 WHERE rowid = ?1",
+                rusqlite::params![&id, &embedding.as_bytes()],
+            )
+            .map_err(|e| format!("An error occurred while executing query {e}"))?;
+        if updated == 0 {
+            tx.execute(
+                "INSERT INTO RecordEmbedding(rowid, embedding) VALUES(?1, ?2)",
+                rusqlite::params![&id, &embedding.as_bytes()],
+            )
+            .map_err(|e| format!("An error occurred while executing query {e}"))?;
+        }
     }
 
     tx.commit()
@@ -598,7 +606,7 @@ pub async fn import_records(json: String, state: State<'_, AppState>) -> Result<
         let id = tx.last_insert_rowid();
         if !embedding.is_empty() {
             tx.execute(
-                "INSERT OR REPLACE INTO RecordEmbedding(rowid, embedding) VALUES(?1, ?2)",
+                "INSERT INTO RecordEmbedding(rowid, embedding) VALUES(?1, ?2)",
                 rusqlite::params![&id, &embedding.as_bytes()],
             )
             .map_err(|e| format!("Embedding insert failed: {e}"))?;
