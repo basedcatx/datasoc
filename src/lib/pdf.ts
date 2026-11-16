@@ -24,6 +24,7 @@ export const isPdfBuffer = (bytes: Uint8Array) =>
 	bytes[4] === 0x2d;
 
 export const toBase64 = (bytes: Uint8Array) => {
+	// 32kb to avoid overfloading the call stack
 	const chunkSize = 0x8000;
 	let binary = "";
 

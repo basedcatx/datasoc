@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { FilePlus2, Plus } from "lucide-react";
+import { FilePlus2, LucideInbox, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { recordQueries } from "#/lib/features/query";
 import type { R } from "#/lib/libs";
@@ -64,21 +64,16 @@ export default function RecentlyCreatedCard({
 	if (items.length === 0) {
 		return (
 			<div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-				<div className="flex size-10 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-					<FilePlus2 className="size-5" />
-				</div>
-				<p className="text-sm text-muted-foreground">No records</p>
-				{filter === "all" && (
-					<Button
-						size="sm"
-						variant="ghost"
-						onClick={() => setAddOpen(true)}
-						className="gap-2 text-muted-foreground"
-					>
-						<Plus className="size-4" />
-						New record
-					</Button>
-				)}
+				<LucideInbox />
+				<p className="text-sm text-muted-foreground">No records, click to create a new</p>
+				<Button
+					size="sm"
+					onClick={() => setAddOpen(true)}
+					className="gap-2"
+				>
+					<Plus className="size-4" />
+					New record
+				</Button>
 				<AddRecordDialog open={addOpen} onOpenChange={setAddOpen} />
 			</div>
 		);

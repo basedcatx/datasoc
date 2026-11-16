@@ -49,7 +49,6 @@ export function AddRecordDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			{/* Kept outside the content so the picker survives the dialog closing. */}
 			<input
 				ref={fileInputRef}
 				type="file"
@@ -60,15 +59,15 @@ export function AddRecordDialog({
 					void handleFile(e.target.files);
 				}}
 			/>
-			<DialogContent className="sm:max-w-md gap-6 p-6">
+			<DialogContent className="sm:max-w-md gap-6 p-6 rounded-xl">
 				<DialogHeader className="space-y-2">
-					<DialogTitle>Add</DialogTitle>
+					<DialogTitle>New document</DialogTitle>
 					<DialogDescription>
 						Start a new note or upload a PDF to your library.
 					</DialogDescription>
 				</DialogHeader>
 
-				<div className="grid gap-4 sm:grid-cols-2">
+				<div className="grid gap-4 sm:grid-cols-2 my-5">
 					<Button
 						variant="outline"
 						className="h-auto flex-col items-start justify-start gap-3 whitespace-normal p-5 text-left"
@@ -78,7 +77,7 @@ export function AddRecordDialog({
 						<div className="space-y-1">
 							<span className="block font-medium">Document</span>
 							<span className="block text-muted-foreground text-xs">
-								Start a blank note
+								Start a blank document with the built-in editor
 							</span>
 						</div>
 					</Button>

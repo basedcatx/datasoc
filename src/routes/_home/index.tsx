@@ -53,9 +53,8 @@ function RouteComponent() {
 						Home
 					</h1>
 					<Button
-						variant="secondary"
 						size="sm"
-						className="gap-1.5 text-muted-foreground hover:text-foreground"
+						className="gap-1.5 hover:cursor-pointer"
 						onClick={() => setAddOpen(true)}
 					>
 						<Plus className="size-4" />
@@ -72,7 +71,7 @@ function RouteComponent() {
 								type="button"
 								onClick={() => setFilter(f.key)}
 								className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm transition-colors ${active
-									? "bg-accent text-foreground"
+									? "bg-secondary text-muted-foreground"
 									: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
 									}`}
 							>

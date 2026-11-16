@@ -139,9 +139,6 @@ export default function TrashCard() {
 				</ul>
 			) : (
 				<div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-					<div className="flex size-10 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-						<Trash2 className="size-5" />
-					</div>
 					<p className="text-sm text-muted-foreground">Trash is empty</p>
 				</div>
 			)}
