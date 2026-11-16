@@ -15,8 +15,6 @@ export const openPdfUpload = (candidate: PdfCandidate) =>
 export const closePdfUpload = () =>
 	pdfUploadStore.setState(() => ({ candidate: null }));
 
-// A PDF always starts with the "%PDF-" signature. Checking the bytes avoids
-// trusting a file extension or an empty OS-provided mime type.
 export const isPdfBuffer = (bytes: Uint8Array) =>
 	bytes.length >= 5 &&
 	bytes[0] === 0x25 &&
@@ -25,8 +23,6 @@ export const isPdfBuffer = (bytes: Uint8Array) =>
 	bytes[3] === 0x46 &&
 	bytes[4] === 0x2d;
 
-// Spread a whole file into fromCharCode and the call stack overflows on real
-// PDFs, so encode it in chunks.
 export const toBase64 = (bytes: Uint8Array) => {
 	const chunkSize = 0x8000;
 	let binary = "";

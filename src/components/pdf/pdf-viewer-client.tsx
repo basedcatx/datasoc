@@ -7,8 +7,6 @@ type ViewerProps = {
 	name: string;
 };
 
-// pdfjs touches document while its module loads, so it must never be part of
-// the server bundle's eager imports. Import the viewer only in the browser.
 export function PdfViewerClient(props: ViewerProps) {
 	const [Viewer, setViewer] = useState<ComponentType<ViewerProps> | null>(null);
 	const [error, setError] = useState<string | null>(null);
@@ -35,7 +33,7 @@ export function PdfViewerClient(props: ViewerProps) {
 			<div className="flex h-dvh flex-col items-center justify-center gap-4 text-muted-foreground">
 				<FileWarning className="size-10" />
 				<p>This PDF viewer could not be loaded.</p>
-				<p className="max-w-md break-words text-center text-xs">{error}</p>
+				<p className="max-w-md wrap-break-word text-center text-xs">{error}</p>
 			</div>
 		);
 	}
