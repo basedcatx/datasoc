@@ -3,8 +3,8 @@ mod db;
 mod embedding;
 use anyhow::Context;
 use commands::{
-    create_record, delete_record, fetch_record_by_id, fetch_record_by_name, fetch_records,
-    get_embedding, hybrid_search, update_record,
+    create_record, delete_record, export_records, fetch_record_by_id, fetch_record_by_name,
+    fetch_records, get_embedding, hybrid_search, import_records, update_record,
 };
 use s3::{creds::Credentials, Bucket};
 
@@ -29,6 +29,7 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             if cfg!(debug_assertions) {
                 app.handle()
@@ -84,7 +85,9 @@ pub fn run() {
             fetch_record_by_id,
             update_record,
             delete_record,
-            hybrid_search
+            hybrid_search,
+            export_records,
+            import_records
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

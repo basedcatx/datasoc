@@ -68,10 +68,11 @@ struct Tags(Vec<String>);
 #[derive(Serialize, Deserialize, Debug)]
 struct Meta(Vec<String>);
 
-#[tauri::command]
-pub async fn get_embedding(input: String, state: State<'_, AppState>) -> Result<Vec<f32>, String> {
-    let model = state.engine.model.lock().map_err(|e| e.to_string())?;
-
+fn compute_embedding(
+    model: &llama_cpp::sys::model::LlamaModel,
+    backend: &llama_cpp::sys::llama_backend::LlamaBackend,
+    input: &str,
+) -> Result<Vec<f32>, String> {
     let ctx_params = LlamaContextParams::default()
         .with_embeddings(true)
         .with_pooling_type(llama_cpp::sys::context::params::LlamaPoolingType::Mean)
@@ -80,34 +81,32 @@ pub async fn get_embedding(input: String, state: State<'_, AppState>) -> Result<
         .with_n_ubatch(2048);
 
     let mut ctx = model
-        .new_context(&state.engine.backend, ctx_params)
+        .new_context(backend, ctx_params)
         .map_err(|_| "Failed to create llama context")?;
 
     let n_ctx = (ctx.n_ctx() as usize).min(model.n_ctx_train() as usize);
-
     let mut token_list = model.vocab().tokenize(input.as_bytes(), true, true);
-
     token_list.truncate(n_ctx);
-
     if token_list.is_empty() {
-        return Err("Requies an input tokenn".to_string());
+        return Err("Requires an input token".to_string());
     }
 
     let mut output = Vec::with_capacity(1);
-
     let mut batch = LlamaBatch::new(n_ctx, 1);
-
     batch
         .add_sequence(&token_list, 0, false)
         .map_err(|e| e.to_string())?;
-
     batch_decode(&mut ctx, &mut batch, 1, &mut output).map_err(|e| e.to_string())?;
-
     if output.is_empty() {
         return Err("Failed to generate embedding".to_string());
     }
-
     Ok(output[0].clone())
+}
+
+#[tauri::command]
+pub async fn get_embedding(input: String, state: State<'_, AppState>) -> Result<Vec<f32>, String> {
+    let model = state.engine.model.lock().map_err(|e| e.to_string())?;
+    compute_embedding(&model, &state.engine.backend, &input)
 }
 
 #[tauri::command]
@@ -368,7 +367,8 @@ pub async fn update_record(
         .transaction()
         .map_err(|e| format!("Failed to create transaction {e}"))?;
 
-    let res = tx.execute(
+    let res = tx
+        .execute(
             // PDFs are read only. Their content holds the base64 file, so an
             // update must never overwrite it, even if the caller only had a
             // list projection without content.
@@ -379,7 +379,15 @@ pub async fn update_record(
                 meta = ?5,
                 content_html = CASE WHEN record_type = 1 THEN content_html ELSE ?7 END
              WHERE id = ?6",
-            rusqlite::params![&name, &content, &tags_string, &flags, &meta_string, &id, &content_html ],
+            rusqlite::params![
+                &name,
+                &content,
+                &tags_string,
+                &flags,
+                &meta_string,
+                &id,
+                &content_html
+            ],
         )
         .map_err(|e| format!("An error occurred while executing query: {e}"))?;
 
@@ -491,3 +499,112 @@ pub async fn hybrid_search(
 }
 
 // backup
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ExportBundle {
+    pub version: u32,
+    pub records: Vec<Record>,
+}
+
+#[tauri::command]
+pub async fn export_records(state: State<'_, AppState>) -> Result<String, String> {
+    let db = state
+        .db
+        .lock()
+        .map_err(|e| format!("db lock poisoned {e}"))?;
+    let mut stmt = db
+        .prepare("SELECT id, name, content, content_html, tags, flags, meta, record_type, createdAt, updatedAt FROM Records")
+        .map_err(|e| e.to_string())?;
+    let rows = stmt
+        .query_map([], |row| {
+            let tags_str: String = row.get(4)?;
+            let meta_str: String = row.get(6)?;
+            let tags: Tags = serde_json::from_str(&tags_str).map_err(|e| {
+                rusqlite::Error::FromSqlConversionFailure(
+                    4,
+                    rusqlite::types::Type::Text,
+                    Box::new(e),
+                )
+            })?;
+            let meta: Meta = serde_json::from_str(&meta_str).map_err(|e| {
+                rusqlite::Error::FromSqlConversionFailure(
+                    6,
+                    rusqlite::types::Type::Text,
+                    Box::new(e),
+                )
+            })?;
+            Ok(Record {
+                id: row.get(0)?,
+                name: row.get(1)?,
+                content: row.get(2)?,
+                content_html: row.get(3)?,
+                tags,
+                flags: row.get(5)?,
+                meta,
+                record_type: row.get(7)?,
+                created_at: row.get(8)?,
+                updated_at: row.get(9)?,
+            })
+        })
+        .map_err(|e| e.to_string())?;
+    let records = rows
+        .collect::<rusqlite::Result<Vec<_>>>()
+        .map_err(|e| e.to_string())?;
+    let bundle = ExportBundle {
+        version: 1,
+        records,
+    };
+    serde_json::to_string(&bundle).map_err(|e| e.to_string())
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct ImportBundle {
+    version: Option<u32>,
+    records: Vec<Record>,
+}
+
+#[tauri::command]
+pub async fn import_records(json: String, state: State<'_, AppState>) -> Result<u32, String> {
+    let bundle: ImportBundle =
+        serde_json::from_str(&json).map_err(|e| format!("Invalid export file: {e}"))?;
+    let mut imported: u32 = 0;
+    for rec in bundle.records {
+        let name = rec.name;
+        let content = rec.content;
+        let content_html = rec.content_html;
+        let record_type = rec.record_type.unwrap_or(0);
+        let flags = rec.flags;
+        let tags_string = serde_json::to_string(&rec.tags).map_err(|e| e.to_string())?;
+        let meta_string = serde_json::to_string(&rec.meta).map_err(|e| e.to_string())?;
+
+        let search_text = if record_type == 1 {
+            name.clone()
+        } else {
+            format!("{}\n{}", name, content)
+        };
+        let embedding = {
+            let model = state.engine.model.lock().map_err(|e| e.to_string())?;
+            compute_embedding(&model, &state.engine.backend, &search_text).unwrap_or_default()
+        };
+
+        let mut db = state.db.lock().map_err(|_| "Failed to get db lock")?;
+        let tx = db
+            .transaction()
+            .map_err(|e| format!("Failed to start transaction {e}"))?;
+        tx.execute(
+            "INSERT INTO Records(name, content, tags, flags, meta, content_html, record_type) VALUES(?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+            rusqlite::params![&name, &content, &tags_string, &flags, &meta_string, &content_html, &record_type],
+        ).map_err(|e| format!("Insert failed: {e}"))?;
+        let id = tx.last_insert_rowid();
+        if !embedding.is_empty() {
+            tx.execute(
+                "INSERT OR REPLACE INTO RecordEmbedding(rowid, embedding) VALUES(?1, ?2)",
+                rusqlite::params![&id, &embedding.as_bytes()],
+            )
+            .map_err(|e| format!("Embedding insert failed: {e}"))?;
+        }
+        tx.commit().map_err(|e| format!("Commit failed: {e}"))?;
+        imported += 1;
+    }
+    Ok(imported)
+}

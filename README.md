@@ -29,7 +29,7 @@ bunx tauri dev         # desktop app (needs Rust toolchain)
 
 You can get `huoxu/all-MiniLM-L6-v2-Q8_0` (8 bit quantized, better performance less accuracy, mostly unnoticable): [Download link](https://huggingface.co/huoxu/all-MiniLM-L6-v2-Q8_0-GGUF/resolve/main/all-minilm-l6-v2-q8_0.gguf?download=true)
 
-*Note: Ensure you rename to `minilm-16.gguf` and store it in `src-tauri/res/{name}`* I would make this so much easier later on. For now you can use just this embedding model to avoid mismatched dimensions or still you can edit the code and update your embedding's dimensions
+*Note: Ensure you rename the downloaded file to `minilm-l6.gguf` and store it in `src-tauri/res/minilm-l6.gguf`* (this is the path the app loads at startup). Using a different model may require updating embedding dimensions in code.
 
 
 ## Scripts
