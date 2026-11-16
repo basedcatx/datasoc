@@ -263,7 +263,6 @@ export default function Sidebar() {
 			{recent.length > 0 && (
 				<NavSection
 					sectionName="Recent"
-					icon={File}
 					items={{ data: recent, action: handleNavigateAction }}
 				/>
 			)}
@@ -271,7 +270,6 @@ export default function Sidebar() {
 			{starred.length > 0 && (
 				<NavSection
 					sectionName="Starred"
-					icon={File}
 					items={{ data: starred, action: handleNavigateAction }}
 				/>
 			)}
