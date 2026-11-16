@@ -116,7 +116,7 @@ function LibraryComponent({
 
 				<div className="flex flex-wrap items-center gap-2">
 					<Input
-						className="h-8 max-w-xs text-[13px]"
+						className="h-8 max-w-xs text-sm"
 						placeholder="Filter by name..."
 						value={nameFilter}
 						onChange={(e) => setNameFilter(e.target.value)}
@@ -128,7 +128,7 @@ function LibraryComponent({
 						onClick={() => setSortby((old) => (old === "ASC" ? "DESC" : "ASC"))}
 					>
 						<ArrowDownAz className="size-4" />
-						<span className="text-[13px]">{sortby}</span>
+						<span className="text-sm">{sortby}</span>
 						{sortby === "ASC" ? (
 							<ChevronUp className="size-3.5" />
 						) : (
