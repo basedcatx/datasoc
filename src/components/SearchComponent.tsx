@@ -9,6 +9,7 @@ import {
 	Trash,
 } from "lucide-react";
 import { useTheme } from "next-themes";
+import { Slot } from "radix-ui";
 import { type ReactNode, useEffect, useState } from "react";
 import { openPdfUpload } from "#/lib/pdf";
 import {
@@ -21,7 +22,6 @@ import {
 	CommandList,
 	CommandSeparator,
 } from "@/components/ui/command";
-import { Button } from "./ui/button";
 
 export default function SearchComponent({ children }: { children: ReactNode }) {
 	const [open, setOpen] = useState(false);
@@ -65,9 +65,7 @@ export default function SearchComponent({ children }: { children: ReactNode }) {
 
 	return (
 		<>
-			<Button onClick={() => setOpen(true)} variant="ghost">
-				{children}
-			</Button>
+			<Slot.Root onClick={() => setOpen(true)}>{children}</Slot.Root>
 
 			<CommandDialog
 				open={open}

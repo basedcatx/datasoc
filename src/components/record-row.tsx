@@ -22,15 +22,22 @@ function formatDate(date?: Date | string | null) {
 async function htmlToPdfBlob(html: string, title: string): Promise<Blob> {
 	const html2pdf = (await import("html2pdf.js")).default as any;
 	const container = document.createElement("div");
+	const safeTitle = title
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;");
 	container.innerHTML = `<div style="font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; color: #111; padding: 24px; max-width: 800px;">
-		<h1 style="margin: 0 0 1.25rem 0; line-height: 1.3;">${title}</h1>
+		<h1 style="margin: 0 0 1.25rem 0; line-height: 1.3;">${safeTitle}</h1>
 		${html}
 	</div>`;
 	container.style.position = "fixed";
-	container.style.left = "-10000px";
+	container.style.left = "-10000vw";
 	container.style.top = "0";
 	container.style.width = "800px";
 	container.style.background = "#fff";
+	container.style.opacity = "0";
+	container.style.pointerEvents = "none";
+	container.style.zIndex = "-1";
 	document.body.appendChild(container);
 	try {
 		const blob: Blob = await html2pdf()
@@ -38,7 +45,13 @@ async function htmlToPdfBlob(html: string, title: string): Promise<Blob> {
 				margin: 10,
 				filename: `${title || "document"}.pdf`,
 				image: { type: "jpeg", quality: 0.98 },
-				html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
+				html2canvas: {
+					scale: 2,
+					useCORS: true,
+					backgroundColor: "#ffffff",
+					scrollX: 0,
+					scrollY: 0,
+				},
 				jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
 				pagebreak: { mode: ["avoid-all", "css", "legacy"] },
 			})
@@ -160,10 +173,16 @@ export function RecordRow({
 				return;
 			}
 
-			const pdfBlob = await htmlToPdfBlob(
-				html,
-				(baseName || "Document").replace(/[<>]/g, ""),
-			);
+			const toastId = toast.loading("Preparing PDF...");
+			let pdfBlob: Blob;
+			try {
+				pdfBlob = await htmlToPdfBlob(
+					html,
+					(baseName || "Document").replace(/[<>]/g, ""),
+				);
+			} finally {
+				toast.dismiss(toastId);
+			}
 
 			if (isTauri()) {
 				const path = await save({
