@@ -49,8 +49,6 @@ export function PdfUploadDialog() {
 		setPreviewFailed(false);
 	}, [candidate]);
 
-	// pdf.js transfers the buffer it is given to its worker, so preview a copy.
-	// Without this, candidate.bytes would be detached before toBase64 runs.
 	const file = useMemo(
 		() => (candidate ? { data: candidate.bytes.slice() } : null),
 		[candidate],
@@ -59,9 +57,6 @@ export function PdfUploadDialog() {
 	const handleUpload = async () => {
 		if (!candidate || !name.trim() || extracting) return;
 
-		// Extracted text makes the PDF searchable by its body, not just its
-		// title. Extraction is best effort: a scanned or broken file still
-		// uploads, it just falls back to the title embedding.
 		setExtracting(true);
 		let searchText: string | undefined;
 		try {
@@ -80,7 +75,7 @@ export function PdfUploadDialog() {
 						name: name.trim(),
 						content: toBase64(candidate.bytes),
 						content_html: "",
-						// A PDF is a finished artifact, not a work in progress.
+						// A PDF is always completed
 						flags: FLAGS.IS_COMPLETED,
 						tags: [],
 						meta: [],
@@ -91,7 +86,7 @@ export function PdfUploadDialog() {
 			});
 
 			closePdfUpload();
-			toast.success("PDF uploaded");
+			toast.success("PDF document uploaded");
 
 			const id = result.record.id;
 			if (id) {
@@ -170,9 +165,6 @@ export function PdfUploadDialog() {
 								<div className="mx-auto w-fit overflow-hidden bg-white shadow-sm">
 									<Document
 										file={file}
-										// Same default as the viewer: suspense renders nothing
-										// until the promise resolves.
-										suspense={false}
 										loading={
 											<div
 												className="flex items-center justify-center py-16"

@@ -134,7 +134,7 @@ export default function SearchCard({
 						<ul className="flex gap-4 flex-col">
 							{data.map((e) => (
 								<li key={e.record.name} className="cv-list-item">
-									<RecordCard {...e.record} variant="search" />
+									<RecordCard {...e.record} variant={"list"} />
 								</li>
 							))}
 						</ul>
