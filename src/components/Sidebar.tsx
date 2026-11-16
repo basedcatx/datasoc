@@ -2,23 +2,21 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { cn } from "cn";
 import {
+	Box,
 	File,
 	Home,
 	Library,
-	LucideSearch,
-	LucideSettings,
 	PanelLeft,
 	Plus,
 	Search,
+	Settings,
 	Trash,
 } from "lucide-react";
 import type React from "react";
 import { useEffect, useState } from "react";
-import { usePresence } from "#/hooks/use-presence";
 import { recordQueries } from "#/lib/features/query";
 import { createFlags, FLAGS } from "../lib/utils";
 import { AddRecordDialog } from "./add-record-dialog";
-import NavButton from "./nav-button";
 import NavSection from "./nav-section";
 import SearchComponent from "./SearchComponent";
 import SettingsCard from "./SettingsCard";
@@ -31,6 +29,26 @@ const navLinks = [
 	{ text: "Trash", path: "/trash", icon: Trash },
 ];
 
+function NavRow({
+	active,
+	children,
+}: {
+	active?: boolean;
+	children: React.ReactNode;
+}) {
+	return (
+		<div
+			className={cn(
+				"flex items-center gap-2.5 rounded-md px-2 py-1.5 text-[13px] text-muted-foreground transition-colors",
+				"hover:bg-input/30 hover:text-foreground",
+				active && "bg-accent text-foreground",
+			)}
+		>
+			{children}
+		</div>
+	);
+}
+
 function SidebarComponent({ children }: { children: React.ReactNode }) {
 	const location = useLocation();
 	const [isOpen, setIsOpen] = useState(() => {
@@ -38,7 +56,6 @@ function SidebarComponent({ children }: { children: React.ReactNode }) {
 		return localStorage.getItem("datasoc.sidebarOpen") !== "false";
 	});
 	const [addOpen, setAddOpen] = useState(false);
-	const [animate, setAnimate] = useState(false);
 
 	useEffect(() => {
 		localStorage.setItem("datasoc.sidebarOpen", String(isOpen));
@@ -48,7 +65,6 @@ function SidebarComponent({ children }: { children: React.ReactNode }) {
 		const onKey = (e: KeyboardEvent) => {
 			if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "b") {
 				e.preventDefault();
-				setAnimate(true);
 				setIsOpen((prev) => !prev);
 			}
 		};
@@ -56,128 +72,147 @@ function SidebarComponent({ children }: { children: React.ReactNode }) {
 		return () => document.removeEventListener("keydown", onKey);
 	}, []);
 
-	const { ref, state, mounted } = usePresence(isOpen);
 	if (location.pathname === "/splashscreen") return null;
 
 	return (
 		<nav
-			data-state={state}
-			data-animate={animate || undefined}
-			ref={ref}
 			className={cn(
-				"bg-card w-100 overflow-y-auto scrollbar-thin scrollbar-thumb-primary shrink-0 flex flex-col p-4 border-r gap-10 h-screen sidebar",
-				!isOpen && "p-3 flex flex-col gap-12 h-screen w-20",
+				"flex h-screen shrink-0 flex-col overflow-y-auto border-r border-border bg-sidebar text-sidebar-foreground",
+				isOpen ? "w-60 p-3" : "w-14 items-center p-2",
 			)}
 		>
-			{mounted ? (
-				<>
-					<div className="flex justify-end sticky top-0">
-						<Button
-							variant={"ghost"}
-							onClick={() => {
-								setAnimate(true);
-								setIsOpen(!isOpen);
-							}}
-							className="backdrop-blur-xs"
-						>
-							<PanelLeft className="size-6" />
-						</Button>
+			<div
+				className={cn(
+					"mb-4 flex items-center",
+					isOpen ? "justify-between px-1" : "justify-center",
+				)}
+			>
+				{isOpen && (
+					<div className="flex items-center gap-2">
+						<span className="text-[14px] font-medium text-foreground/90">
+							Datasoc
+						</span>
 					</div>
-					<div className="flex justify-between gap-4">
-						<ul className="flex gap-2">
-							{navLinks.map((l) => (
-								<li key={l.path}>
-									<NavButton icon={l.icon} navText={l.text} path={l.path} />
-								</li>
-							))}
-						</ul>
+				)}
+				<Button
+					variant="ghost"
+					size="icon"
+					onClick={() => setIsOpen(!isOpen)}
+					className="size-7 text-muted-foreground hover:text-foreground"
+					title="Toggle sidebar (⌘B)"
+				>
+					<PanelLeft className="size-4" />
+				</Button>
+			</div>
 
+			{isOpen ? (
+				<>
+					<div className="flex flex-col gap-3">
 						<SearchComponent>
-							<NavButton navText="Search" icon={LucideSearch} />
+							<button type="button" className="w-full text-left">
+								<div className="flex flex-row justify-between">
+									<span className="flex gap-2 items-center">
+										<Search className="size-4 shrink-0" />
+										<span className="flex-1">Search</span>
+									</span>
+									<span className="text-xs text-muted-foreground/60">⌘K</span>
+								</div>
+							</button>
 						</SearchComponent>
+						{navLinks.map((l) => {
+							const active = location.pathname === l.path;
+							return (
+								<Link key={l.path} to={l.path} className="block">
+									<NavRow active={active}>
+										<l.icon className="size-4 shrink-0" />
+										<span>{l.text}</span>
+									</NavRow>
+								</Link>
+							);
+						})}
 					</div>
-					{isOpen && children}
-					{isOpen && (
-						<div className="flex justify-around items-center p-4">
-							<SettingsCard
-								Trigger={
-									<Button
-										variant={"outline"}
-										size={"lg"}
-										className="p-4 rounded-full"
-									>
-										<LucideSettings />
-										<p>Settings</p>
-									</Button>
-								}
-							/>
-							<Button
-								size={"lg"}
-								className="p-4 rounded-full"
-								onClick={() => setAddOpen(true)}
-							>
-								<Plus />
-								<p>Add</p>
-							</Button>
-						</div>
-					)}
+
+					<div className="mt-5 flex flex-1 flex-col gap-4 overflow-y-auto">
+						{children}
+					</div>
+
+					<div className="mt-3 flex flex-col gap-0.5 border-t border-border pt-3">
+						<SettingsCard
+							Trigger={
+								<button type="button" className="w-full text-left">
+									<NavRow>
+										<Settings className="size-4 shrink-0" />
+										<span>Settings</span>
+									</NavRow>
+								</button>
+							}
+						/>
+						<button
+							type="button"
+							className="w-full text-left"
+							onClick={() => setAddOpen(true)}
+						>
+							<NavRow>
+								<Plus className="size-4 shrink-0" />
+								<span>New</span>
+							</NavRow>
+						</button>
+					</div>
 				</>
 			) : (
-				<div className="flex justify-between flex-col h-full items-center">
-					<div className="flex flex-col gap-10">
+				<div className="flex h-full flex-col items-center gap-2 pt-1">
+					<SearchComponent>
 						<Button
-							variant={"ghost"}
-							onClick={() => {
-								setAnimate(true);
-								setIsOpen(!isOpen);
-							}}
+							variant="ghost"
+							size="icon"
+							className="size-8 text-muted-foreground"
+							title="Search (⌘K)"
 						>
-							<PanelLeft className="size-6" />
+							<Search className="size-4" />
 						</Button>
-
-						<ul className="flex flex-col gap-3 items-center">
-							{navLinks.map((l) => (
-								<li key={l.path}>
-									<Button
-										asChild
-										variant={"ghost"}
-										aria-current={
-											location.pathname === l.path ? "page" : undefined
-										}
-										className={cn(
-											location.pathname === l.path &&
-												"bg-secondary-foreground/5 p-2",
-										)}
-									>
-										<Link to={l.path}>
-											<l.icon className="size-6" />
-										</Link>
-									</Button>
-								</li>
-							))}
-						</ul>
-
-						<SearchComponent>
-							<Button variant={"secondary"} className="rounded-full">
-								<Search className="size-6" />
+					</SearchComponent>
+					{navLinks.map((l) => {
+						const active = location.pathname === l.path;
+						return (
+							<Button
+								key={l.path}
+								asChild
+								variant="ghost"
+								size="icon"
+								className={cn(
+									"size-8 text-muted-foreground hover:text-foreground",
+									active && "bg-accent text-foreground",
+								)}
+							>
+								<Link to={l.path} title={l.text}>
+									<l.icon className="size-4" />
+								</Link>
 							</Button>
-						</SearchComponent>
-
+						);
+					})}
+					<div className="mt-auto flex flex-col items-center gap-2 pb-1">
+						<SettingsCard
+							Trigger={
+								<Button
+									variant="ghost"
+									size="icon"
+									className="size-8 text-muted-foreground"
+									title="Settings"
+								>
+									<Settings className="size-4" />
+								</Button>
+							}
+						/>
 						<Button
-							variant={"secondary"}
+							variant="ghost"
+							size="icon"
+							className="size-8 text-muted-foreground"
 							onClick={() => setAddOpen(true)}
-							className="rounded-full"
+							title="New"
 						>
-							<Plus className="size-6" />
+							<Plus className="size-4" />
 						</Button>
 					</div>
-					<SettingsCard
-						Trigger={
-							<Button variant={"outline"} className="rounded-full">
-								<LucideSettings className="size-6" />
-							</Button>
-						}
-					/>
 				</div>
 			)}
 			<AddRecordDialog open={addOpen} onOpenChange={setAddOpen} />

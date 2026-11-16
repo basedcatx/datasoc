@@ -1,32 +1,22 @@
 import { useQuery } from "@tanstack/react-query";
+import { cn } from "cn";
 import {
 	ArrowDownAz,
 	ChevronDown,
 	ChevronUp,
-	Filter,
-	Ghost,
+	LayoutGrid,
+	List,
 	Plus,
 } from "lucide-react";
 import { useDeferredValue, useState } from "react";
 import { recordQueries } from "#/lib/features/query";
 import type { R } from "#/lib/libs";
+import { getPreferences, setPreferences } from "#/lib/preferences";
 import { createFlags, FLAGS } from "#/lib/utils";
-import {
-	Combobox,
-	ComboboxCollection,
-	ComboboxContent,
-	ComboboxEmpty,
-	ComboboxGroup,
-	ComboboxInput,
-	ComboboxItem,
-	ComboboxLabel,
-	ComboboxList,
-} from "@/components/ui/combobox";
-import { InputGroupAddon } from "@/components/ui/input-group";
 import { AddRecordDialog } from "./add-record-dialog";
 import RecordCard from "./record-card";
+import { RecordRow } from "./record-row";
 import { Button } from "./ui/button";
-import { Card } from "./ui/card";
 import { Input } from "./ui/input";
 import { Skeleton } from "./ui/skeleton";
 
@@ -62,12 +52,19 @@ function LibraryComponent({
 	children,
 	onAddClick,
 }: {
-	children: (data: { record: R }[], isPending: boolean) => React.ReactNode;
+	children: (
+		data: { record: R }[],
+		isPending: boolean,
+		view: "list" | "grid",
+	) => React.ReactNode;
 	onAddClick: () => void;
 }) {
 	const [sortby, setSortby] = useState<"ASC" | "DESC">("ASC");
 	const [nameFilter, setNameFilter] = useState("");
 	const [tagFilter, setTagFilter] = useState<string | null>(null);
+	const [view, setView] = useState<"list" | "grid">(
+		() => getPreferences().defaultView,
+	);
 	const deferredNameFilter = useDeferredValue(nameFilter);
 
 	const {
@@ -100,72 +97,111 @@ function LibraryComponent({
 	}
 
 	return (
-		<>
-			<div>
-				<Card className="flex flex-col gap-4 p-8 rounded-none h-dvh overflow-y-auto bg-background">
-					<div className="flex justify-between items-center my-2">
-						<div className="flex gap-4 items-center mx-2">
-							<h6 className="text-xl text-muted-foreground">Library</h6>
-							<Button
-								className="flex p-4 cursor-pointer rounded-full"
-								onClick={onAddClick}
-							>
-								<Plus />
-								<p className="text-lg">New</p>
-							</Button>
-						</div>
+		<div className="h-dvh w-full overflow-y-auto bg-background">
+			<div className="flex w-full flex-col gap-4 px-4 py-6">
+				<header className="flex items-center justify-between gap-3">
+					<h1 className="text-xl font-medium tracking-tight text-foreground">
+						Library
+					</h1>
+					<Button
+						variant="ghost"
+						size="sm"
+						className="gap-1.5 text-muted-foreground hover:text-foreground"
+						onClick={onAddClick}
+					>
+						<Plus className="size-4" />
+						New
+					</Button>
+				</header>
 
-						<div className="flex gap-2">
-							<Input
-								className="max-w-xs"
-								placeholder="Type to filter..."
-								onChange={(e) => setNameFilter(e.target.value)}
-							/>
-							<Button
-								variant={"secondary"}
-								onClick={(e) => {
-									e.preventDefault();
-									setSortby((old) => {
-										if (old === "ASC") {
-											return "DESC";
-										}
-										return "ASC";
-									});
-								}}
-							>
-								<ArrowDownAz />
-								<p>Sort by: {sortby}</p>
-								{sortby === "ASC" ? <ChevronUp /> : <ChevronDown />}
-							</Button>
-						</div>
+				<div className="flex flex-wrap items-center gap-2">
+					<Input
+						className="h-8 max-w-xs text-[13px]"
+						placeholder="Filter by name..."
+						value={nameFilter}
+						onChange={(e) => setNameFilter(e.target.value)}
+					/>
+					<Button
+						variant="ghost"
+						size="sm"
+						className="gap-1.5 text-muted-foreground hover:text-foreground"
+						onClick={() => setSortby((old) => (old === "ASC" ? "DESC" : "ASC"))}
+					>
+						<ArrowDownAz className="size-4" />
+						<span className="text-[13px]">{sortby}</span>
+						{sortby === "ASC" ? (
+							<ChevronUp className="size-3.5" />
+						) : (
+							<ChevronDown className="size-3.5" />
+						)}
+					</Button>
+					<div className="ml-auto flex items-center gap-1">
+						<Button
+							variant={view === "list" ? "secondary" : "ghost"}
+							size="icon"
+							className="size-8"
+							onClick={() => {
+								if (view !== "list") {
+									setView("list");
+									setPreferences({ defaultView: "list" });
+								}
+							}}
+							title="List view"
+						>
+							<List className="size-4" />
+						</Button>
+						<Button
+							variant={view === "grid" ? "secondary" : "ghost"}
+							size="icon"
+							className="size-8"
+							onClick={() => {
+								if (view !== "grid") {
+									setView("grid");
+									setPreferences({ defaultView: "grid" });
+								}
+							}}
+							title="Grid view"
+						>
+							<LayoutGrid className="size-4" />
+						</Button>
 					</div>
-					{allTags.length > 0 && (
-						<div className="flex flex-wrap gap-2 my-4">
-							<Button
-								variant={tagFilter === null ? "default" : "outline"}
-								size="sm"
-								onClick={() => setTagFilter(null)}
-								className="rounded-full px-3 py-1.5 text-xs"
+				</div>
+
+				{allTags.length > 0 && (
+					<div className="flex flex-wrap gap-1">
+						<button
+							type="button"
+							onClick={() => setTagFilter(null)}
+							className={cn(
+								"rounded-md px-2 py-1 text-[12px] transition-colors",
+								tagFilter === null
+									? "bg-accent text-foreground"
+									: "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
+							)}
+						>
+							All
+						</button>
+						{allTags.map((tag) => (
+							<button
+								key={tag}
+								type="button"
+								onClick={() => setTagFilter(tagFilter === tag ? null : tag)}
+								className={cn(
+									"rounded-md px-2 py-1 text-[12px] transition-colors",
+									tagFilter === tag
+										? "bg-accent text-foreground"
+										: "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
+								)}
 							>
-								All tags
-							</Button>
-							{allTags.map((tag) => (
-								<Button
-									key={tag}
-									variant={tagFilter === tag ? "default" : "outline"}
-									size="sm"
-									onClick={() => setTagFilter(tagFilter === tag ? null : tag)}
-									className="rounded-full px-3 py-1.5 text-xs"
-								>
-									#{tag}
-								</Button>
-							))}
-						</div>
-					)}
-					{children(data, isPending)}
-				</Card>
+								#{tag}
+							</button>
+						))}
+					</div>
+				)}
+
+				{children(data, isPending, view)}
 			</div>
-		</>
+		</div>
 	);
 }
 
@@ -175,93 +211,59 @@ export default function LibraryCard() {
 	return (
 		<>
 			<LibraryComponent onAddClick={handleAddClick}>
-				{(data, isPending) => {
+				{(data, isPending, view) => {
 					if (isPending) {
 						return (
-							<>
-								<Skeleton className="w-full h-30" />
-								<Skeleton className="w-full h-30" />
-								<Skeleton className="w-full h-30" />
-								<Skeleton className="w-full h-30" />
-								<Skeleton className="w-full h-30" />
-								<Skeleton className="w-full h-30" />
-							</>
+							<div className="flex flex-col ">
+								<Skeleton className="h-10 w-full rounded-none" />
+								<Skeleton className="h-10 w-full rounded-none" />
+								<Skeleton className="h-10 w-full rounded-none" />
+							</div>
 						);
 					}
 
-					return data.length > 0 ? (
-						<ul className="flex gap-4 flex-col">
+					if (data.length === 0) {
+						return (
+							<div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+								<p className="text-sm text-muted-foreground">No records</p>
+								<Button
+									size="sm"
+									variant="ghost"
+									onClick={handleAddClick}
+									className="gap-2 text-muted-foreground"
+								>
+									<Plus className="size-4" />
+									New record
+								</Button>
+							</div>
+						);
+					}
+
+					if (view === "grid") {
+						return (
+							<ul className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+								{data.map((e) => (
+									<li key={e.record.id ?? e.record.name} className="min-w-0">
+										<RecordCard {...e.record} variant="grid" />
+									</li>
+								))}
+							</ul>
+						);
+					}
+
+					return (
+						<ul className="flex flex-col">
 							{data.map((e) => (
-								<li key={e.record.name} className="cv-list-item">
-									<RecordCard {...e.record} variant="list" />
-								</li>
+								<RecordRow
+									key={e.record.id ?? e.record.name}
+									record={e.record}
+								/>
 							))}
 						</ul>
-					) : (
-						<div className="flex flex-col justify-center h-screen items-center gap-8">
-							<Ghost className="size-30 stroke-muted-foreground" />
-
-							<p className="text-muted-foreground shimmer text-lg text-wrap w-60 text-center">
-								No record found. Click on new to create one
-							</p>
-
-							<Button
-								className="flex items-center w-xs p-4 cursor-pointer rounded-full"
-								onClick={handleAddClick}
-							>
-								<Plus />
-								<p className="text-lg">New</p>
-							</Button>
-						</div>
 					);
 				}}
 			</LibraryComponent>
 			<AddRecordDialog open={addOpen} onOpenChange={setAddOpen} />
 		</>
-	);
-}
-
-export function ComboxboxInputGroup({
-	dispatch,
-}: {
-	dispatch: (action: any) => void;
-}) {
-	const filters = [
-		{
-			value: "Status",
-			items: ["Completed", "Drafted"],
-		},
-	] as const;
-
-	return (
-		<Combobox
-			items={filters}
-			onInputValueChange={(value) => {
-				dispatch({ type: "changefilter", filterby: value });
-			}}
-		>
-			<ComboboxInput placeholder="Filter list by">
-				<InputGroupAddon contentEditable={false}>
-					<Filter />
-				</InputGroupAddon>
-			</ComboboxInput>
-			<ComboboxContent alignOffset={-28} className="w-60">
-				<ComboboxEmpty>No filter selected</ComboboxEmpty>
-				<ComboboxList className={"flex flex-col gap-4"}>
-					{(group) => (
-						<ComboboxGroup key={group.value} items={group.items}>
-							<ComboboxLabel>{group.value}</ComboboxLabel>
-							<ComboboxCollection>
-								{(item) => (
-									<ComboboxItem key={item} value={item} className={"px-4"}>
-										{item}
-									</ComboboxItem>
-								)}
-							</ComboboxCollection>
-						</ComboboxGroup>
-					)}
-				</ComboboxList>
-			</ComboboxContent>
-		</Combobox>
 	);
 }

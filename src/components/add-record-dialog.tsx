@@ -60,36 +60,40 @@ export function AddRecordDialog({
 					void handleFile(e.target.files);
 				}}
 			/>
-			<DialogContent className="sm:max-w-md">
-				<DialogHeader>
+			<DialogContent className="sm:max-w-md gap-6 p-6">
+				<DialogHeader className="space-y-2">
 					<DialogTitle>Add</DialogTitle>
 					<DialogDescription>
 						Start a new note or upload a PDF to your library.
 					</DialogDescription>
 				</DialogHeader>
 
-				<div className="grid gap-3 sm:grid-cols-2">
+				<div className="grid gap-4 sm:grid-cols-2">
 					<Button
 						variant="outline"
-						className="h-auto flex-col items-start justify-start gap-2 whitespace-normal p-4 text-left"
+						className="h-auto flex-col items-start justify-start gap-3 whitespace-normal p-5 text-left"
 						onClick={handleDocument}
 					>
 						<NotebookPen className="size-6" />
-						<span className="font-medium">Document</span>
-						<span className="text-muted-foreground text-xs">
-							Start a blank note
-						</span>
+						<div className="space-y-1">
+							<span className="block font-medium">Document</span>
+							<span className="block text-muted-foreground text-xs">
+								Start a blank note
+							</span>
+						</div>
 					</Button>
 					<Button
 						variant="outline"
-						className="h-auto flex-col items-start justify-start gap-2 whitespace-normal p-4 text-left"
+						className="h-auto flex-col items-start justify-start gap-3 whitespace-normal p-5 text-left"
 						onClick={() => fileInputRef.current?.click()}
 					>
 						<FileText className="size-6" />
-						<span className="font-medium">PDF</span>
-						<span className="text-muted-foreground text-xs">
-							Upload a PDF file
-						</span>
+						<div className="space-y-1">
+							<span className="block font-medium">PDF</span>
+							<span className="block text-muted-foreground text-xs">
+								Upload a PDF file
+							</span>
+						</div>
 					</Button>
 				</div>
 			</DialogContent>
