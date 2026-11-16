@@ -72,20 +72,19 @@ function RootDocument() {
 					<SessionProvider>
 						<div className="h-full w-full flex">
 							<Sidebar />
-							{/* Three-pane layout on wide screens: list + detail */}
-							<div className="hidden lg:flex lg:w-1/3 border-r border-border min-w-0">
-								<RecordListPane />
-							</div>
 							<div className="flex-1 min-w-0 relative">
-								{/* On wide screens, show detail pane; on narrow, show full page route */}
-								<div className="hidden lg:flex flex-col h-full">
-									<RecordDetailPane />
-								</div>
-								<div className="lg:hidden">
-									<TooltipProvider>
+								<TooltipProvider>
+									{/* Three-pane layout on wide screens: list + detail */}
+									<div className="hidden lg:flex lg:w-1/3 border-r border-border min-w-0">
+										<RecordListPane />
+									</div>
+									<div className="hidden lg:flex flex-col h-full">
+										<RecordDetailPane />
+									</div>
+									<div className="lg:hidden">
 										<Outlet />
-									</TooltipProvider>
-								</div>
+									</div>
+								</TooltipProvider>
 							</div>
 						</div>
 					</SessionProvider>

@@ -10,7 +10,7 @@ import {
 	SquarePen,
 	Trash,
 } from "lucide-react";
-import { toast } from "sonner";
+import { useEffect, useState } from "react";
 import { appStore } from "#/integrations/tanstack-query/store-provider";
 import { recordMutations } from "#/lib/features/query";
 import type { R } from "#/lib/libs";
@@ -27,6 +27,8 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 type RecordCardVariant = "list" | "grid" | "trash" | "search";
+
+const COVER_WIDTH = 160;
 
 export default function RecordCard({
 	name,
@@ -58,51 +60,20 @@ export default function RecordCard({
 
 	const handleAddOrRemoveFav = () => {
 		if (!id) return;
-		const wasFavorite = flag.check(FLAGS.IS_FAVORITE);
-		addToFavMutation.mutate(
-			{
-				flag: FLAGS.IS_FAVORITE,
-				data: {
-					name,
-					content,
-					tags,
-					id,
-					flags,
-					created_at,
-					content_html,
-					meta,
-					record_type,
-				},
+		addToFavMutation.mutate({
+			flag: FLAGS.IS_FAVORITE,
+			data: {
+				name,
+				content,
+				tags,
+				id,
+				flags,
+				created_at,
+				content_html,
+				meta,
+				record_type,
 			},
-			{
-				onSuccess: () => {
-					toast.success(
-						wasFavorite ? "Removed from favorites" : "Added to favorites",
-						{
-							action: {
-								label: "Undo",
-								onClick: () => {
-									addToFavMutation.mutate({
-										flag: FLAGS.IS_FAVORITE,
-										data: {
-											name,
-											content,
-											tags,
-											id,
-											flags,
-											created_at,
-											content_html,
-											meta,
-											record_type,
-										},
-									});
-								},
-							},
-						},
-					);
-				},
-			},
-		);
+		});
 	};
 
 	const handleEdit = () => {
@@ -110,93 +81,37 @@ export default function RecordCard({
 	};
 
 	const handleDelete = () => {
-		const wasDeleted = flag.check(FLAGS.IS_DELETED);
-		addToFavMutation.mutate(
-			{
-				flag: FLAGS.IS_DELETED,
-				data: {
-					name,
-					content,
-					tags,
-					id: id!,
-					flags,
-					created_at,
-					content_html,
-					meta,
-					record_type,
-				},
+		addToFavMutation.mutate({
+			flag: FLAGS.IS_DELETED,
+			data: {
+				name,
+				content,
+				tags,
+				id: id!,
+				flags,
+				created_at,
+				content_html,
+				meta,
+				record_type,
 			},
-			{
-				onSuccess: () => {
-					toast.success(wasDeleted ? "Restored" : "Deleted", {
-						action: {
-							label: "Undo",
-							onClick: () => {
-								addToFavMutation.mutate({
-									flag: FLAGS.IS_DELETED,
-									data: {
-										name,
-										content,
-										tags,
-										id: id!,
-										flags,
-										created_at,
-										content_html,
-										meta,
-										record_type,
-									},
-								});
-							},
-						},
-					});
-				},
-			},
-		);
+		});
 	};
 
 	const handleRestore = () => {
-		const wasDeleted = flag.check(FLAGS.IS_DELETED);
-		addToFavMutation.mutate(
-			{
-				flag: FLAGS.IS_DELETED,
-				data: {
-					name,
-					content,
-					tags,
-					id: id!,
-					flags,
-					created_at,
-					content_html,
-					meta,
-					record_type,
-				},
+		addToFavMutation.mutate({
+			flag: FLAGS.IS_DELETED,
+			data: {
+				name,
+				content,
+				tags,
+				id: id!,
+				flags,
+				created_at,
+				content_html,
+				meta,
+				record_type,
 			},
-			{
-				onSuccess: () => {
-					toast.success(wasDeleted ? "Restored" : "Deleted", {
-						action: {
-							label: "Undo",
-							onClick: () => {
-								addToFavMutation.mutate({
-									flag: FLAGS.IS_DELETED,
-									data: {
-										name,
-										content,
-										tags,
-										id: id!,
-										flags,
-										created_at,
-										content_html,
-										meta,
-										record_type,
-									},
-								});
-							},
-						},
-					});
-				},
-			},
-		);
+		});
 	};
 
 	const handleSearchSimilar = () => {
@@ -218,63 +133,122 @@ export default function RecordCard({
 		isCompleted && "bg-primary text-primary-foreground",
 	);
 
-	const cardContent = (
-		<Card className={cardClass}>
-			<div className="flex justify-between items-center">
-				<div className="max-md-w-[70%] min-w-0">
-					<div className="flex min-w-0 items-center gap-2">
-						<p className="truncate font-bold text-lg">{name}</p>
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<Badge variant="outline" className="shrink-0 gap-1 p-2">
-									{isPdf ? <BookOpen /> : <FileText />}
-									{isPdf ? "PDF" : "Doc"}
-								</Badge>
-							</TooltipTrigger>
-							<TooltipContent>
-								{isPdf ? "PDF document, view only" : "Text document, editable"}
-							</TooltipContent>
-						</Tooltip>
-					</div>
-					<p className="text-wrap truncate w-full text-ellipsis">
-						{isPdf
-							? "PDF document · view only"
-							: content.split(" ").slice(0, 20).join(" ")}
-					</p>
-				</div>
-				<ArrowUpRight className="size-5" />
-			</div>
-			<div className="flex justify-between items-center">
-				<div className="flex gap-3">
-					<Badge className={badgeClass}>
-						{isCompleted ? "Completed" : "Draft"}
-					</Badge>
-					<ul className="flex gap-1">
-						{tags.slice(0, 3).map((tag) => (
-							<li key={tag}>
-								<Badge variant="secondary" className="p-3">
-									{tag}
-								</Badge>
-							</li>
-						))}
-					</ul>
-				</div>
-				<p className="text-muted-foreground">
-					Created @ {new Date(created_at!).toDateString()}
-				</p>
-			</div>
-		</Card>
+	// Reading progress for PDFs: last page read persisted by the viewer.
+	let lastReadPage: number | null = null;
+	if (isPdf) {
+		const saved = localStorage.getItem(`datasoc.pdf-page-${name}`);
+		if (saved) {
+			const savedPage = parseInt(saved, 10);
+			if (!Number.isNaN(savedPage) && savedPage > 0) {
+				lastReadPage = savedPage;
+			}
+		}
+	}
+
+	const fileBadge = (
+		<Badge variant="outline" className="shrink-0 gap-1 p-2">
+			{isPdf ? <BookOpen /> : <FileText />}
+			{isPdf ? "PDF" : "Doc"}
+		</Badge>
 	);
+
+	const fileTooltip = isPdf
+		? "PDF document, view only"
+		: "Text document, editable";
+
+	const previewText = isPdf
+		? "PDF document · view only"
+		: content.split(" ").slice(0, 20).join(" ");
+
+	const createdText = new Date(created_at!).toDateString();
 
 	return (
 		<ContextMenu>
 			<ContextMenuTrigger className="w-full">
 				{!isTrash ? (
 					<Link to={"/view/$reportId"} params={{ reportId: id!.toString() }}>
-						{cardContent}
+						<Card className={cardClass}>
+							{isPdf && <PdfCover />}
+							<div className="flex justify-between items-center">
+								<div className="max-md-w-[70%] min-w-0">
+									<div className="flex min-w-0 items-center gap-2">
+										<p className="truncate font-bold text-lg">{name}</p>
+										<Tooltip>
+											<TooltipTrigger asChild>{fileBadge}</TooltipTrigger>
+											<TooltipContent>{fileTooltip}</TooltipContent>
+										</Tooltip>
+									</div>
+									<p className="text-wrap truncate w-full text-ellipsis">
+										{previewText}
+									</p>
+								</div>
+								<ArrowUpRight className="size-5" />
+							</div>
+							<div className="flex justify-between items-center">
+								<div className="flex gap-3">
+									<Badge className={badgeClass}>
+										{isCompleted ? "Completed" : "Draft"}
+									</Badge>
+									<ul className="flex gap-1">
+										{tags.slice(0, 3).map((tag) => (
+											<li key={tag}>
+												<Badge variant="secondary" className="p-3">
+													{tag}
+												</Badge>
+											</li>
+										))}
+									</ul>
+								</div>
+								<p className="text-muted-foreground">Created @ {createdText}</p>
+							</div>
+							{lastReadPage !== null && (
+								<p className="mt-2 text-xs text-muted-foreground">
+									Last read: page {lastReadPage}
+								</p>
+							)}
+						</Card>
 					</Link>
 				) : (
-					cardContent
+					<Card className={cardClass}>
+						{isPdf && <PdfCover />}
+						<div className="flex justify-between items-center">
+							<div className="max-md-w-[70%] min-w-0">
+								<div className="flex min-w-0 items-center gap-2">
+									<p className="truncate font-bold text-lg">{name}</p>
+									<Tooltip>
+										<TooltipTrigger asChild>{fileBadge}</TooltipTrigger>
+										<TooltipContent>{fileTooltip}</TooltipContent>
+									</Tooltip>
+								</div>
+								<p className="text-wrap truncate w-full text-ellipsis">
+									{previewText}
+								</p>
+							</div>
+							<ArrowUpRight className="size-5" />
+						</div>
+						<div className="flex justify-between items-center">
+							<div className="flex gap-3">
+								<Badge className={badgeClass}>
+									{isCompleted ? "Completed" : "Draft"}
+								</Badge>
+								<ul className="flex gap-1">
+									{tags.slice(0, 3).map((tag) => (
+										<li key={tag}>
+											<Badge variant="secondary" className="p-3">
+												{tag}
+											</Badge>
+										</li>
+									))}
+								</ul>
+							</div>
+							<p className="text-muted-foreground">Created @ {createdText}</p>
+						</div>
+						{lastReadPage !== null && (
+							<p className="mt-2 text-xs text-muted-foreground">
+								Last read: page {lastReadPage}
+							</p>
+						)}
+					</Card>
 				)}
 			</ContextMenuTrigger>
 			<ContextMenuContent className="px-2 text-xl">
@@ -331,4 +305,34 @@ export default function RecordCard({
 			</ContextMenuContent>
 		</ContextMenu>
 	);
+
+	function PdfCover() {
+		const [Page, setPage] = useState<React.ComponentType<any> | null>(null);
+
+		useEffect(() => {
+			if (typeof window === "undefined") return;
+			import("react-pdf").then((mod) => setPage(mod.Page));
+		}, []);
+
+		if (!Page) return null;
+
+		return (
+			<div className="flex justify-center mb-3" style={{ width: COVER_WIDTH }}>
+				<div
+					className="overflow-hidden rounded-md border border-input shadow-sm"
+					style={{
+						width: COVER_WIDTH,
+						height: COVER_WIDTH * (792 / 612),
+					}}
+				>
+					<Page
+						pageNumber={1}
+						width={COVER_WIDTH}
+						renderAnnotationLayer={false}
+						renderTextLayer={false}
+					/>
+				</div>
+			</div>
+		);
+	}
 }
