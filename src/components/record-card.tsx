@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { cn } from "cn";
 import {
@@ -10,12 +10,17 @@ import {
 	SquarePen,
 	Trash,
 } from "lucide-react";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import {
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+	useSyncExternalStore,
+} from "react";
 import { appStore } from "#/integrations/tanstack-query/store-provider";
-import { recordMutations } from "#/lib/features/query";
+import { recordMutations, recordQueries } from "#/lib/features/query";
 import type { R } from "#/lib/libs";
 import {
-	defaultPreferences,
 	getPreferences,
 	subscribePreferences,
 } from "#/lib/preferences";
@@ -34,6 +39,98 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 type RecordCardVariant = "list" | "grid" | "trash" | "search";
 
 const COVER_WIDTH = 160;
+
+function PdfCover({ id, content }: { id: number; content: string }) {
+	const coverRef = useRef<HTMLDivElement>(null);
+	const [isVisible, setIsVisible] = useState(false);
+	const { data } = useQuery({
+		...recordQueries.id(id),
+		enabled: !content && isVisible,
+		staleTime: 0,
+	});
+	const pdfContent = content || data?.record.content || "";
+	const [Pdf, setPdf] = useState<
+		Pick<typeof import("react-pdf"), "Document" | "Page"> | null
+	>(null);
+
+	const file = useMemo(() => {
+		if (!pdfContent || !isVisible) return null;
+		try {
+			const binary = atob(pdfContent.replace(/\s/g, ""));
+			const bytes = new Uint8Array(binary.length);
+			for (let i = 0; i < binary.length; i++) {
+				bytes[i] = binary.charCodeAt(i);
+			}
+			return { data: bytes };
+		} catch {
+			return null;
+		}
+	}, [isVisible, pdfContent]);
+
+	useEffect(() => {
+		const element = coverRef.current;
+		if (!element) return;
+		if (typeof IntersectionObserver === "undefined") {
+			setIsVisible(true);
+			return;
+		}
+
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				if (entry.isIntersecting) {
+					setIsVisible(true);
+					observer.disconnect();
+				}
+			},
+			{ rootMargin: "200px" },
+		);
+		observer.observe(element);
+		return () => observer.disconnect();
+	}, []);
+
+	useEffect(() => {
+		if (typeof window === "undefined" || !file) return;
+		let cancelled = false;
+		Promise.all([import("react-pdf"), import("#/components/pdf/pdf-worker")])
+			.then(([mod]) => {
+				if (!cancelled) setPdf({ Document: mod.Document, Page: mod.Page });
+			})
+			.catch((error: unknown) => {
+				if (!cancelled) console.error("Failed to load PDF cover renderer", error);
+			});
+		return () => {
+			cancelled = true;
+		};
+	}, [file]);
+
+	const Document = Pdf?.Document;
+	const Page = Pdf?.Page;
+
+	return (
+		<div
+			ref={coverRef}
+			aria-hidden="true"
+			className="pointer-events-none absolute inset-y-0 right-0 z-0 flex w-[min(40%,160px)] justify-end overflow-hidden opacity-[0.12]"
+		>
+			{Document && Page && file && (
+				<div className="relative">
+					<Document file={file} loading={null} error={null}>
+						<Page
+							pageNumber={1}
+							width={COVER_WIDTH}
+							renderAnnotationLayer={false}
+							renderTextLayer={false}
+							onLoadError={(error) =>
+								console.error("Failed to render PDF cover", error)
+							}
+						/>
+					</Document>
+					<div className="absolute inset-0 bg-gradient-to-l from-transparent to-card/90" />
+				</div>
+			)}
+		</div>
+	);
+}
 
 export default function RecordCard({
 	name,
@@ -135,7 +232,7 @@ export default function RecordCard({
 
 	const isGrid = variant === "grid";
 	const cardClass = cn(
-		"group relative w-full overflow-hidden border bg-card/60 text-card-foreground transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:border-primary/30 hover:bg-card",
+		"group relative w-full overflow-hidden bg-card/60 text-card-foreground transition-all duration-200 hover:shadow-md hover:border-primary/30 hover:bg-card",
 		dense ? "p-4 gap-3" : "p-5 gap-4",
 		isGrid && "h-full",
 	);
@@ -177,28 +274,30 @@ export default function RecordCard({
 	);
 
 	const fileTooltip = isPdf
-		? "PDF document, view only"
-		: "Text document, editable";
+		? "PDF document"
+		: "Text document";
 	const previewText = isPdf
 		? "PDF document · view only"
 		: (content || "")
-				.replace(/\s+/g, " ")
-				.trim()
-				.split(" ")
-				.slice(0, isGrid ? 18 : 24)
-				.join(" ") || "No content yet";
+			.replace(/\s+/g, " ")
+			.trim()
+			.split(" ")
+			.slice(0, isGrid ? 18 : 24)
+			.join(" ") || "No content yet";
 	const createdText = created_at
 		? new Date(created_at).toLocaleDateString(undefined, {
-				month: "short",
-				day: "numeric",
-				year: "numeric",
-			})
+			month: "short",
+			day: "numeric",
+			year: "numeric",
+		})
 		: "";
 
 	const CardBody = (
 		<Card className={cardClass}>
-			{showPdfCover && <PdfCover />}
-			<div className="flex items-start justify-between gap-3">
+			{showPdfCover && id !== undefined && (
+				<PdfCover id={id} content={content} />
+			)}
+			<div className="relative z-10 flex items-start justify-between gap-3">
 				<div className="min-w-0 flex-1 space-y-1.5">
 					<div className="flex min-w-0 items-center gap-2">
 						<p
@@ -232,7 +331,7 @@ export default function RecordCard({
 			</div>
 			<div
 				className={cn(
-					"flex flex-wrap items-center justify-between gap-2",
+					"relative z-10 flex flex-wrap items-center justify-between gap-2",
 					dense ? "pt-0" : "pt-1",
 				)}
 			>
@@ -335,68 +434,4 @@ export default function RecordCard({
 			</ContextMenuContent>
 		</ContextMenu>
 	);
-
-	function PdfCover() {
-		const [Pdf, setPdf] = useState<{
-			Document: React.ComponentType<any>;
-			Page: React.ComponentType<any>;
-		} | null>(null);
-
-		const file = (() => {
-			if (!content || typeof content !== "string") return null;
-			try {
-				const clean = content.replace(/\s/g, "");
-				if (!clean) return null;
-				const binary = atob(clean);
-				const bytes = new Uint8Array(binary.length);
-				for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-				return { data: bytes };
-			} catch {
-				return null;
-			}
-		})();
-
-		const ready = !!file;
-		useEffect(() => {
-			if (typeof window === "undefined" || !ready) return;
-			let cancelled = false;
-			Promise.all([import("react-pdf"), import("#/components/pdf/pdf-worker")])
-				.then(([mod]) => {
-					if (!cancelled) setPdf({ Document: mod.Document, Page: mod.Page });
-				})
-				.catch(() => {});
-			return () => {
-				cancelled = true;
-			};
-		}, [ready]);
-
-		if (!Pdf || !file) return null;
-		const { Document, Page } = Pdf;
-
-		return (
-			<div className="mb-3 flex justify-center">
-				<div
-					className="overflow-hidden rounded-md border border-input bg-muted/20"
-					style={{
-						width: COVER_WIDTH,
-						height: COVER_WIDTH * (792 / 612),
-					}}
-				>
-					<Document
-						file={file}
-						loading={null}
-						error={null}
-						onLoadError={() => {}}
-					>
-						<Page
-							pageNumber={1}
-							width={COVER_WIDTH}
-							renderAnnotationLayer={false}
-							renderTextLayer={false}
-						/>
-					</Document>
-				</div>
-			</div>
-		);
-	}
 }
