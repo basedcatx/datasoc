@@ -52,7 +52,8 @@ import { handleImageUpload, MAX_FILE_SIZE } from "#/lib/tiptap-utils";
 // --- Styles ---
 import "#/components/tiptap-templates/simple/simple-editor.scss";
 
-import { LucideOption } from "lucide-react";
+import { Download } from "lucide-react";
+import { Button } from "#/components/tiptap-ui-primitive/button";
 import { Input } from "#/components/ui/input";
 
 const SEARCH_AND_REPLACE_SCROLL_OPTIONS: ScrollIntoViewOptions = {
@@ -60,7 +61,6 @@ const SEARCH_AND_REPLACE_SCROLL_OPTIONS: ScrollIntoViewOptions = {
 };
 
 import EditorDrawerCard from "#/components/editor-drawer-card";
-import { Button as BTN } from "#/components/ui/button";
 import { Drawer, DrawerContent, DrawerTrigger } from "#/components/ui/drawer";
 
 const MainToolbarContent = ({
@@ -68,6 +68,7 @@ const MainToolbarContent = ({
 	isSearchAndReplaceOpen,
 	searchAndReplaceButtonRef,
 	name,
+	onExportClick,
 }: {
 	onHighlighterClick: () => void;
 	onLinkClick: () => void;
@@ -77,6 +78,7 @@ const MainToolbarContent = ({
 	isMobile: boolean;
 	name: string;
 	editor: any;
+	onExportClick: () => void;
 }) => {
 	return (
 		<div className="flex items-center justify-between flex-row w-full">
@@ -93,6 +95,14 @@ const MainToolbarContent = ({
 					data-active-state={isSearchAndReplaceOpen ? "on" : "off"}
 					onClick={onSearchAndReplaceClick}
 				/>
+				<Button
+					data-style="ghost"
+					onClick={onExportClick}
+					aria-label="Export to PDF"
+					tooltip="Export to PDF"
+				>
+					<Download className="tiptap-button-icon" />
+				</Button>
 			</ToolbarGroup>
 		</div>
 	);
@@ -183,6 +193,71 @@ export function SimpleEditorView({
 		openSearchAndReplace();
 	}, [closeSearchAndReplace, isSearchAndReplaceOpen, openSearchAndReplace]);
 
+	const exportToPdf = useCallback(() => {
+		const html = editor?.getHTML() ?? content ?? "";
+		const rawTitle = name || "Document";
+		const escapeHtml = (s: string) =>
+			s
+				.replace(/&/g, "&amp;")
+				.replace(/</g, "&lt;")
+				.replace(/>/g, "&gt;")
+				.replace(/"/g, "&quot;");
+		const title = escapeHtml(rawTitle);
+
+		const doc = `<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>${title}</title>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; max-width: 800px; margin: 40px auto; padding: 0 24px; color: #111; }
+    h1,h2,h3 { line-height: 1.3; }
+    img { max-width: 100%; height: auto; }
+    pre { background: #f5f5f5; padding: 12px; overflow-x: auto; }
+    code { font-family: ui-monospace, monospace; }
+    blockquote { border-left: 3px solid #ddd; margin-left: 0; padding-left: 1em; color: #444; }
+    @media print { body { margin: 24px; } }
+  </style>
+</head>
+<body>
+  <h1 style="margin-bottom: 1.5rem;">${title}</h1>
+  ${html}
+</body>
+</html>`;
+
+		const iframe = document.createElement("iframe");
+		iframe.style.position = "fixed";
+		iframe.style.right = "0";
+		iframe.style.bottom = "0";
+		iframe.style.width = "0";
+		iframe.style.height = "0";
+		iframe.style.border = "0";
+		document.body.appendChild(iframe);
+
+		const frameWindow = iframe.contentWindow;
+		if (!frameWindow) {
+			document.body.removeChild(iframe);
+			return;
+		}
+
+		const cleanup = () => {
+			setTimeout(() => {
+				if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+			}, 1000);
+		};
+
+		frameWindow.document.open();
+		frameWindow.document.write(doc);
+		frameWindow.document.close();
+
+		frameWindow.onafterprint = cleanup;
+		setTimeout(() => {
+			frameWindow.focus();
+			frameWindow.print();
+			cleanup();
+		}, 300);
+	}, [editor, content, name]);
+
 	//other configurations
 	editor.setEditable(false);
 	return (
@@ -207,6 +282,7 @@ export function SimpleEditorView({
 						isMobile={isMobile}
 						editor={editor}
 						name={name}
+						onExportClick={exportToPdf}
 					/>
 				</Toolbar>
 
