@@ -19,48 +19,70 @@ function formatDate(date?: Date | string | null) {
 	});
 }
 
-async function htmlToPdfBlob(html: string, title: string): Promise<Blob> {
-	const html2pdf = (await import("html2pdf.js")).default as any;
-	const container = document.createElement("div");
-	const safeTitle = title
-		.replace(/&/g, "&amp;")
-		.replace(/</g, "&lt;")
-		.replace(/>/g, "&gt;");
-	container.innerHTML = `<div style="font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; color: #111; padding: 24px; max-width: 800px;">
-		<h1 style="margin: 0 0 1.25rem 0; line-height: 1.3;">${safeTitle}</h1>
-		${html}
-	</div>`;
-	container.style.position = "fixed";
-	container.style.left = "-10000vw";
-	container.style.top = "0";
-	container.style.width = "800px";
-	container.style.background = "#fff";
-	container.style.opacity = "0";
-	container.style.pointerEvents = "none";
-	container.style.zIndex = "-1";
-	document.body.appendChild(container);
-	try {
-		const blob: Blob = await html2pdf()
-			.set({
-				margin: 10,
-				filename: `${title || "document"}.pdf`,
-				image: { type: "jpeg", quality: 0.98 },
-				html2canvas: {
-					scale: 2,
-					useCORS: true,
-					backgroundColor: "#ffffff",
-					scrollX: 0,
-					scrollY: 0,
-				},
-				jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-				pagebreak: { mode: ["avoid-all", "css", "legacy"] },
-			})
-			.from(container)
-			.outputPdf("blob");
-		return blob;
-	} finally {
-		container.remove();
+function printHtmlAsPdf(html: string, name: string) {
+	const rawTitle = name || "Document";
+	const escapeHtml = (s: string) =>
+		s
+			.replace(/&/g, "&amp;")
+			.replace(/</g, "&lt;")
+			.replace(/>/g, "&gt;")
+			.replace(/"/g, "&quot;");
+	const title = escapeHtml(rawTitle);
+
+	const doc = `<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>${title}</title>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; max-width: 800px; margin: 40px auto; padding: 0 24px; color: #111; }
+    h1,h2,h3 { line-height: 1.3; }
+    img { max-width: 100%; height: auto; }
+    pre { background: #f5f5f5; padding: 12px; overflow-x: auto; }
+    code { font-family: ui-monospace, monospace; }
+    blockquote { border-left: 3px solid #ddd; margin-left: 0; padding-left: 1em; color: #444; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ddd; padding: 6px 8px; }
+    @media print { body { margin: 24px; } }
+  </style>
+</head>
+<body>
+  <h1 style="margin-bottom: 1.5rem;">${title}</h1>
+  ${html}
+</body>
+</html>`;
+
+	const iframe = document.createElement("iframe");
+	iframe.style.position = "fixed";
+	iframe.style.right = "0";
+	iframe.style.bottom = "0";
+	iframe.style.width = "0";
+	iframe.style.height = "0";
+	iframe.style.border = "0";
+	document.body.appendChild(iframe);
+
+	const frameWindow = iframe.contentWindow;
+	if (!frameWindow) {
+		document.body.removeChild(iframe);
+		return;
 	}
+
+	const cleanup = () => {
+		setTimeout(() => {
+			if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+		}, 1000);
+	};
+
+	frameWindow.document.open();
+	frameWindow.document.write(doc);
+	frameWindow.document.close();
+
+	frameWindow.onafterprint = cleanup;
+	setTimeout(() => {
+		frameWindow.focus();
+		frameWindow.print();
+		cleanup();
+	}, 300);
 }
 
 export function RecordRow({
@@ -173,30 +195,7 @@ export function RecordRow({
 				return;
 			}
 
-			const toastId = toast.loading("Preparing PDF...");
-			let pdfBlob: Blob;
-			try {
-				pdfBlob = await htmlToPdfBlob(
-					html,
-					(baseName || "Document").replace(/[<>]/g, ""),
-				);
-			} finally {
-				toast.dismiss(toastId);
-			}
-
-			if (isTauri()) {
-				const path = await save({
-					defaultPath: `${baseName}.pdf`,
-					filters: [{ name: "PDF", extensions: ["pdf"] }],
-				});
-				if (!path) return;
-				const bytes = new Uint8Array(await pdfBlob.arrayBuffer());
-				await writeFile(path, bytes);
-				toast.success("Saved");
-				return;
-			}
-
-			triggerDownload(pdfBlob, `${baseName}.pdf`);
+			printHtmlAsPdf(html, baseName);
 		} catch {
 			toast.error("Could not download");
 		}
