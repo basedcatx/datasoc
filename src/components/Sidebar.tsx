@@ -141,6 +141,9 @@ function SidebarComponent({ children }: { children: React.ReactNode }) {
 									<Button
 										asChild
 										variant={"ghost"}
+										aria-current={
+											location.pathname === l.path ? "page" : undefined
+										}
 										className={cn(
 											location.pathname === l.path &&
 												"bg-secondary-foreground/5 p-2",

@@ -21,6 +21,7 @@ export default function NavButton({
 		<Button
 			onClick={onClick}
 			asChild={path !== undefined}
+			aria-current={isActive ? "page" : undefined}
 			className={cn(
 				"flex gap-3 rounded-full w-fit p-4 cursor-pointer",
 				isActive && "bg-primary w-30",
