@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Ghost, LoaderIcon, LucideTrash, Plus, Trash2Icon } from "lucide-react";
+import { RotateCcw, Trash2 } from "lucide-react";
 import { recordMutations, recordQueries } from "#/lib/features/query";
-
-import TrashEntryCard from "./trash-entrycard";
+import type { R, RUpdate } from "#/lib/libs";
+import { createFlags, FLAGS } from "#/lib/utils";
+import { RecordRow } from "./record-row";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -10,153 +11,138 @@ import {
 	AlertDialogContent,
 	AlertDialogDescription,
 	AlertDialogFooter,
-	AlertDialogMedia,
 	AlertDialogTitle,
 	AlertDialogTrigger,
 } from "./ui/alert-dialog";
 import { Button } from "./ui/button";
-import { Card } from "./ui/card";
 import { Skeleton } from "./ui/skeleton";
-import type { R, RUpdate } from "#/lib/libs";
-import { createFlags, FLAGS } from "#/lib/utils";
 
 function TrashComponent({
 	children,
 	data,
 }: {
 	children: React.ReactNode;
-	data?: RUpdate[];
+	data?: { record: R }[];
 }) {
 	const qc = useQueryClient();
-	const ids = data?.map((d) => d.id);
+	const ids = data?.map((d) => d.record.id).filter((id) => id !== undefined);
+	const count = data?.length ?? 0;
 
 	const deleteAllMutation = useMutation(
 		recordMutations(qc).permanentDeleteAll(ids),
 	);
-
 	const restoreAllMutation = useMutation(
 		recordMutations(qc).restoreAllDeleted(),
 	);
 
-	const handleDeleteAll = () => {
-		deleteAllMutation.mutate();
-	};
-
-	// TODO: Refactor this entire codebase and create a new key for trash entries ["record", "trash"] and ["record", "trash", id]
-
+	const handleDeleteAll = () => deleteAllMutation.mutate();
 	const handleRestoreAll = () => {
-		if (!data) return {};
-		restoreAllMutation.mutate({ data });
+		if (!data) return;
+		const dataUpdates = data
+			.filter((d) => d.record.id != null)
+			.map((d) => ({
+				update: { ...d, id: d.record.id as number },
+			})) satisfies { update: RUpdate }[];
+		if (dataUpdates.length > 0)
+			restoreAllMutation.mutate({ data: dataUpdates });
 	};
 
 	return (
-		<div>
-			<Card className="flex flex-col gap-4 p-8 rounded-none h-screen overflow-y-auto bg-background">
-				<div className="flex justify-between items-center my-2">
-					<div className="flex gap-4 items-center justify-between w-full">
-						<h6 className="text-xl text-muted-foreground">Trash</h6>
-						<div className="flex gap-3">
-							<AlertDialog>
-								<AlertDialogTrigger asChild>
-									<Button
-										variant={"outline"}
-										className="flex cursor-pointer p-3 rounded-full"
+		<div className="flex w-full flex-col gap-4 px-4 py-6">
+			<div className="flex items-center justify-between gap-3">
+				<h1 className="text-xl font-medium tracking-tight text-foreground">
+					Trash
+				</h1>
+				{count > 0 && (
+					<div className="flex items-center gap-2">
+						<AlertDialog>
+							<AlertDialogTrigger asChild>
+								<Button variant="destructive" size="sm" className="gap-2">
+									<Trash2 className="size-4" />
+									Delete all
+								</Button>
+							</AlertDialogTrigger>
+							<AlertDialogContent size="sm">
+								<AlertDialogTitle>Delete all records?</AlertDialogTitle>
+								<AlertDialogDescription>
+									This will permanently delete everything in trash.
+								</AlertDialogDescription>
+								<AlertDialogFooter>
+									<AlertDialogCancel size="default" variant="outline">
+										Cancel
+									</AlertDialogCancel>
+									<AlertDialogAction
+										size="default"
+										variant="destructive"
+										onClick={handleDeleteAll}
 									>
-										<LucideTrash className="size-4" />
-										<p>Delete all</p>
-									</Button>
-								</AlertDialogTrigger>
-								<AlertDialogContent size="sm">
-									<AlertDialogTrigger>
-										<AlertDialogTitle>Delete records?</AlertDialogTitle>
-										<AlertDialogDescription>
-											This would parmanently delete all records in the trash
-										</AlertDialogDescription>
-									</AlertDialogTrigger>
-									<AlertDialogFooter>
-										<AlertDialogCancel variant="outline">
-											Cancel
-										</AlertDialogCancel>
-										<AlertDialogAction
-											variant="destructive"
-											onClick={handleDeleteAll}
-										>
-											Delete
-										</AlertDialogAction>
-									</AlertDialogFooter>
-								</AlertDialogContent>
-							</AlertDialog>
-
-							<Button
-								variant={"default"}
-								type="button"
-								onClick={handleRestoreAll}
-								className="flex p-3 cursor-pointer rounded-full"
-							>
-								<LoaderIcon className="size-4" />
-								<p>Restore all</p>
-							</Button>
-						</div>
+										Delete
+									</AlertDialogAction>
+								</AlertDialogFooter>
+							</AlertDialogContent>
+						</AlertDialog>
+						<Button
+							variant="ghost"
+							size="sm"
+							onClick={handleRestoreAll}
+							className="gap-2 text-muted-foreground hover:text-foreground"
+						>
+							<RotateCcw className="size-4" />
+							Restore all
+						</Button>
 					</div>
-				</div>
-
-				{children}
-			</Card>
+				)}
+			</div>
+			{children}
 		</div>
 	);
 }
 
 export default function TrashCard() {
 	let { data, isError, error, isPending } = useQuery(recordQueries.all());
-	if (isError || !data) {
-		return <div>An error occurred (Trash): {error?.message}</div>;
-	}
 
 	if (isPending) {
 		return (
 			<TrashComponent>
-				<Skeleton className="w-full h-30" />
-				<Skeleton className="w-full h-30" />
-				<Skeleton className="w-full h-30" />
-				<Skeleton className="w-full h-30" />
+				<div className="flex flex-col">
+					<Skeleton className="h-10 w-full rounded-none" />
+					<Skeleton className="h-10 w-full rounded-none" />
+					<Skeleton className="h-10 w-full rounded-none" />
+				</div>
 			</TrashComponent>
 		);
 	}
 
-	if (!data) {
+	if (isError || !data) {
 		return (
-			<div className="text-destructive">
-				Error: something went wrong invalid data in Library
+			<div className="text-sm text-muted-foreground">
+				Something went wrong: {error?.message}
 			</div>
 		);
 	}
 
-	data = (data as R[]).filter((d) =>
-		createFlags(d.flags).check(FLAGS.IS_DELETED),
+	data = data.filter((d) =>
+		createFlags(d.record.flags).check(FLAGS.IS_DELETED),
 	);
 
 	return (
-		<TrashComponent data={data as RUpdate[]}>
+		<TrashComponent data={data}>
 			{data.length > 0 ? (
-				<ul className="flex gap-4 flex-col">
-					{data.slice(0, 5).map((e) => (
-						<li key={e.id}>
-							<TrashEntryCard {...e} />
-						</li>
+				<ul className="flex flex-col">
+					{data.map((e) => (
+						<RecordRow
+							key={e.record.id ?? e.record.name}
+							record={e.record}
+							variant="trash"
+						/>
 					))}
 				</ul>
 			) : (
-				<div className="flex flex-col justify-center h-screen items-center gap-8">
-					<Ghost className="size-30 stroke-muted-foreground" />
-
-					<p className="text-muted-foreground shimmer text-lg text-wrap w-80 text-center">
-						No record found in the trash. Click on new to create one
-					</p>
-
-					<Button className="flex items-center p-4 cursor-pointer rounded-full">
-						<Plus />
-						<p className="text-lg">New</p>
-					</Button>
+				<div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+					<div className="flex size-10 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+						<Trash2 className="size-5" />
+					</div>
+					<p className="text-sm text-muted-foreground">Trash is empty</p>
 				</div>
 			)}
 		</TrashComponent>

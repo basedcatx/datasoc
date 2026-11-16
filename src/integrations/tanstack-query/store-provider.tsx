@@ -1,6 +1,7 @@
 import { createStore } from "@tanstack/react-store";
 
 export const initialStoreState = {
+	dirty: false,
 	file: {
 		name: "",
 		content: "",
@@ -15,3 +16,5 @@ export const initialStoreState = {
 	},
 };
 export const appStore = createStore(initialStoreState);
+export const resetStore = () =>
+	appStore.setState(() => structuredClone(initialStoreState));

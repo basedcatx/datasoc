@@ -1,78 +1,94 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import { FilePlus2, Plus } from "lucide-react";
+import { useMemo, useState } from "react";
 import { recordQueries } from "#/lib/features/query";
-import EntryCard from "./entrycard";
+import type { R } from "#/lib/libs";
+import { createFlags, FLAGS } from "#/lib/utils";
+import { AddRecordDialog } from "./add-record-dialog";
+import { RecordRow } from "./record-row";
 import { Button } from "./ui/button";
 import { Skeleton } from "./ui/skeleton";
-import { createFlags, FLAGS } from "#/lib/utils";
-import type { R } from "#/lib/libs";
-import { Ghost, Plus } from "lucide-react";
 
-function HomeFilter(data: R[]) {
-	return [...data]
-		.sort(
-			(a: R, b: R) =>
-				new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime(),
-		)
-		.filter((d: R) => !createFlags(d.flags).check(FLAGS.IS_DELETED));
+export type HomeFilter = "all" | "drafts" | "completed" | "starred";
+
+function matchesFilter(record: R, filter: HomeFilter) {
+	const flag = createFlags(record.flags);
+	if (filter === "drafts") return !flag.check(FLAGS.IS_COMPLETED);
+	if (filter === "completed") return flag.check(FLAGS.IS_COMPLETED);
+	if (filter === "starred") return flag.check(FLAGS.IS_FAVORITE);
+	return true;
 }
 
-export default function RecentlyCreatedCard() {
-	const { data, isPending, error } = useQuery({
-		...recordQueries.all(),
-		select: HomeFilter,
-	});
+export default function RecentlyCreatedCard({
+	filter = "all",
+}: {
+	filter?: HomeFilter;
+}) {
+	const [addOpen, setAddOpen] = useState(false);
+	const { data, isPending, error } = useQuery(recordQueries.all());
 
-	if (!data) {
-		return <div>Something went wrong, invalid data: {error?.message}</div>;
-	}
+	const items = useMemo(() => {
+		if (!data) return [];
+		return [...data]
+			.filter((d) => !createFlags(d.record.flags).check(FLAGS.IS_DELETED))
+			.filter((d) => matchesFilter(d.record, filter))
+			.sort((a, b) => {
+				const aTime = a.record.created_at
+					? new Date(a.record.created_at).getTime()
+					: 0;
+				const bTime = b.record.created_at
+					? new Date(b.record.created_at).getTime()
+					: 0;
+				return bTime - aTime;
+			});
+	}, [data, filter]);
 
 	if (isPending) {
 		return (
-			<div>
-				<div className="flex flex-col gap-4 rounded-xl">
-					<Skeleton className="w-full h-30" />
-					<Skeleton className="w-full h-30" />
-					<Skeleton className="w-full h-30" />
-					<Skeleton className="w-full h-30" />
-					<Skeleton className="w-full h-30" />
+			<div className="flex flex-col divide-y divide-border/60">
+				<Skeleton className="h-10 w-full rounded-none" />
+				<Skeleton className="h-10 w-full rounded-none" />
+				<Skeleton className="h-10 w-full rounded-none" />
+			</div>
+		);
+	}
+
+	if (error) {
+		return (
+			<div className="text-sm text-muted-foreground">
+				Something went wrong: {error.message}
+			</div>
+		);
+	}
+
+	if (items.length === 0) {
+		return (
+			<div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+				<div className="flex size-10 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+					<FilePlus2 className="size-5" />
 				</div>
+				<p className="text-sm text-muted-foreground">No records</p>
+				{filter === "all" && (
+					<Button
+						size="sm"
+						variant="ghost"
+						onClick={() => setAddOpen(true)}
+						className="gap-2 text-muted-foreground"
+					>
+						<Plus className="size-4" />
+						New record
+					</Button>
+				)}
+				<AddRecordDialog open={addOpen} onOpenChange={setAddOpen} />
 			</div>
 		);
 	}
 
 	return (
-		<div className="flex flex-col h-full gap-3">
-			<div className="flex justify-between flex-row-reverse items-center ">
-				<Button
-					size={"lg"}
-					asChild
-					className="flex gap-2 rounded-full cursor-pointer"
-				>
-					<Link to={"/editor"}>
-						<Plus className="size-4" />
-						<p className="text-lg">New</p>
-					</Link>
-				</Button>
-			</div>
-			<div className="flex flex-col grow-1 h-full gap-4">
-				{data.length > 0 ? (
-					<ul className="flex gap-4 flex-col">
-						{data.slice(0, 5).map((e: R) => (
-							<li key={e.name}>
-								<EntryCard {...e} />
-							</li>
-						))}
-					</ul>
-				) : (
-					<div className="flex flex-col h-full justify-center items-center shadow-none gap-4 h-full ">
-						<Ghost className="size-30 stroke-muted-foreground" />
-						<p className="text-muted-foreground text-lg shimmer">
-							No entry found. Click on new to populate
-						</p>
-					</div>
-				)}
-			</div>
-		</div>
+		<ul className="flex flex-col">
+			{items.map((e) => (
+				<RecordRow key={e.record.id ?? e.record.name} record={e.record} />
+			))}
+		</ul>
 	);
 }

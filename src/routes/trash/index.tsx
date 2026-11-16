@@ -1,6 +1,6 @@
+import { createFileRoute } from "@tanstack/react-router";
 import PreviewCard from "#/components/PreviewCard";
 import TrashCard from "#/components/TrashCard";
-import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/trash/")({
 	component: RouteComponent,
@@ -8,7 +8,7 @@ export const Route = createFileRoute("/trash/")({
 
 function RouteComponent() {
 	return (
-		<div>
+		<div className="h-dvh w-full overflow-y-auto bg-background">
 			<TrashCard />
 			<PreviewCard />
 		</div>

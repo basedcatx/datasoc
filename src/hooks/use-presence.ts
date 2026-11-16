@@ -19,6 +19,7 @@ export const usePresence = (presence: boolean) => {
 
 		const aname = getComputedStyle(node);
 		if (!aname.animationName || aname.animationName === "none") {
+			setMounted(false);
 			return;
 		}
 

@@ -1,24 +1,23 @@
 import { TanStackDevtools } from "@tanstack/react-devtools";
+import type { QueryClient } from "@tanstack/react-query";
 import {
+	createRootRouteWithContext,
 	HeadContent,
 	Outlet,
 	Scripts,
-	createRootRouteWithContext,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
+import { SessionProvider } from "next-auth/react";
+import { ThemeProvider } from "next-themes";
+import { Toaster } from "sonner";
+import { PdfDropOverlay } from "#/components/pdf/pdf-drop-overlay";
+import { PdfUploadDialogClient } from "#/components/pdf/pdf-upload-dialog-client";
+import { TooltipProvider } from "#/components/ui/tooltip";
+import { TauriQueryInspector } from "#/integrations/tanstack-query/tauri-query-inspector";
 import Footer from "../components/Footer";
 import Sidebar from "../components/Sidebar";
-
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
-
 import appCss from "../styles.css?url";
-
-import { TooltipProvider } from "#/components/ui/tooltip";
-import type { QueryClient } from "@tanstack/react-query";
-import { TauriQueryInspector } from "#/integrations/tanstack-query/tauri-query-inspector";
-import { ThemeProvider } from "next-themes";
-import { SessionProvider } from "next-auth/react";
-import { Toaster } from "sonner";
 
 interface MyRouterContext {
 	queryClient: QueryClient;
@@ -66,10 +65,12 @@ function RootDocument() {
 					disableTransitionOnChange
 				>
 					<Toaster richColors />
+					<PdfDropOverlay />
+					<PdfUploadDialogClient />
 					<SessionProvider>
-						<div className="h-full w-full flex">
+						<div className="flex h-full w-full bg-background">
 							<Sidebar />
-							<div className="flex-1 min-w-0">
+							<div className="min-w-0 flex-1">
 								<TooltipProvider>
 									<Outlet />
 								</TooltipProvider>

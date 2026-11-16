@@ -1,14 +1,16 @@
-import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import {
 	ArrowDownAz,
 	ChevronDown,
 	ChevronUp,
 	Filter,
-	Ghost,
 	Plus,
 	SearchSlash,
 } from "lucide-react";
-import { useDeferredValue, useState } from "react";
+import { useState } from "react";
+import { recordQueries } from "#/lib/features/query";
+import type { R } from "#/lib/libs";
+import { createFlags, FLAGS } from "#/lib/utils";
 import {
 	Combobox,
 	ComboboxCollection,
@@ -21,22 +23,18 @@ import {
 	ComboboxList,
 } from "@/components/ui/combobox";
 import { InputGroupAddon } from "@/components/ui/input-group";
-import LibraryEntryCard from "./library-entrycard";
+import { AddRecordDialog } from "./add-record-dialog";
+import RecordCard from "./record-card";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
-import { Input } from "./ui/input";
 import { Skeleton } from "./ui/skeleton";
-import type { R } from "#/lib/libs";
-import { useQuery } from "@tanstack/react-query";
-import { recordQueries } from "#/lib/features/query";
-import { createFlags, FLAGS } from "#/lib/utils";
 
 function Component({
 	children,
 	query,
 	page,
 }: {
-	children: (data: R[], isPending: boolean) => React.ReactNode;
+	children: (data: { record: R }[], isPending: boolean) => React.ReactNode;
 	query: string;
 	page: string;
 }) {
@@ -48,7 +46,7 @@ function Component({
 			switch (page) {
 				case "starred": {
 					return data.filter((r) => {
-						const flag = createFlags(r.flags);
+						const flag = createFlags(r.record.flags);
 
 						return (
 							!flag.check(FLAGS.IS_DELETED) && flag.check(FLAGS.IS_FAVORITE)
@@ -57,12 +55,12 @@ function Component({
 				}
 				case "deleted": {
 					return data.filter((r) =>
-						createFlags(r.flags).check(FLAGS.IS_DELETED),
+						createFlags(r.record.flags).check(FLAGS.IS_DELETED),
 					);
 				}
 				default:
 					return data.filter(
-						(r) => !createFlags(r.flags).check(FLAGS.IS_DELETED),
+						(r) => !createFlags(r.record.flags).check(FLAGS.IS_DELETED),
 					);
 			}
 		},
@@ -114,46 +112,53 @@ export default function SearchCard({
 	query: string;
 	page: string;
 }) {
+	const [addOpen, setAddOpen] = useState(false);
 	return (
-		<Component query={query} page={page}>
-			{(data, isPending) => {
-				if (isPending) {
-					return (
-						<>
-							<Skeleton className="w-full h-30" />
-							<Skeleton className="w-full h-30" />
-							<Skeleton className="w-full h-30" />
-							<Skeleton className="w-full h-30" />
-							<Skeleton className="w-full h-30" />
-							<Skeleton className="w-full h-30" />
-						</>
+		<>
+			<Component query={query} page={page}>
+				{(data, isPending) => {
+					if (isPending) {
+						return (
+							<>
+								<Skeleton className="w-full h-30" />
+								<Skeleton className="w-full h-30" />
+								<Skeleton className="w-full h-30" />
+								<Skeleton className="w-full h-30" />
+								<Skeleton className="w-full h-30" />
+								<Skeleton className="w-full h-30" />
+							</>
+						);
+					}
+
+					return data.length > 0 ? (
+						<ul className="flex gap-4 flex-col">
+							{data.map((e) => (
+								<li key={e.record.name} className="cv-list-item">
+									<RecordCard {...e.record} variant="search" />
+								</li>
+							))}
+						</ul>
+					) : (
+						<div className="flex flex-col justify-center h-screen items-center gap-4">
+							<SearchSlash className="size-30 stroke-muted-foreground" />
+
+							<p className="text-muted-foreground shimmer text-lg">
+								No record found. Click on new to create one
+							</p>
+
+							<Button
+								className="flex items-center w-xs p-4 cursor-pointer rounded-full"
+								onClick={() => setAddOpen(true)}
+							>
+								<Plus />
+								<p className="text-lg">New</p>
+							</Button>
+						</div>
 					);
-				}
-
-				return data.length > 0 ? (
-					<ul className="flex gap-4 flex-col">
-						{data.map((e) => (
-							<li key={e.name} className="cv-list-item">
-								<LibraryEntryCard {...e} />
-							</li>
-						))}
-					</ul>
-				) : (
-					<div className="flex flex-col justify-center h-screen items-center gap-4">
-						<SearchSlash className="size-30 stroke-muted-foreground" />
-
-						<p className="text-muted-foreground shimmer text-lg">
-							No record found. Click on new to create one
-						</p>
-
-						<Button className="flex items-center w-xs p-4 cursor-pointer rounded-full">
-							<Plus />
-							<p className="text-lg">New</p>
-						</Button>
-					</div>
-				);
-			}}
-		</Component>
+				}}
+			</Component>
+			<AddRecordDialog open={addOpen} onOpenChange={setAddOpen} />
+		</>
 	);
 }
 

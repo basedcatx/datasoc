@@ -51,7 +51,6 @@ pub fn batch_decode(
 }
 
 pub fn normalize(inputs: &[f32]) -> Vec<f32> {
-    //l2 normalization
     let mag = inputs
         .iter()
         .fold(0.0, |acc, &val| val.mul_add(val, acc))
@@ -61,7 +60,7 @@ pub fn normalize(inputs: &[f32]) -> Vec<f32> {
         return inputs.to_vec();
     }
 
-    return inputs.iter().map(|&i| i / mag).collect();
+    inputs.iter().map(|&i| i / mag).collect()
 }
 
 pub fn init(model_path: std::path::PathBuf) -> anyhow::Result<EmbeddingEngine> {

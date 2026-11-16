@@ -2,6 +2,9 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { SimpleEditorView } from "#/components/tiptap-templates/simple/simple-editor-view";
 import { useQuery } from "@tanstack/react-query";
 import { recordQueries } from "#/lib/features/query";
+import { PdfViewerClient } from "#/components/pdf/pdf-viewer-client";
+import { Spinner } from "#/components/ui/spinner";
+import { RecordTypes } from "#/lib/utils";
 
 export const Route = createFileRoute("/view/$reportId")({
 	component: RouteComponent,
@@ -14,17 +17,23 @@ export const Route = createFileRoute("/view/$reportId")({
 
 function RouteComponent() {
 	const id = Route.useParams().reportId;
-	const { data, error, isError } = useQuery(recordQueries.id(Number(id)));
-
-	if (!data) {
-		return <div>No data found</div>;
-	}
+	const { data, error, isError, isPending } = useQuery(
+		recordQueries.id(Number(id)),
+	);
 
 	if (isError) {
 		return <div>{error.message}</div>;
 	}
 
-	const { name, content_html } = data;
+	if (isPending || !data) {
+		return <Spinner className="mx-auto my-auto size-10 h-full" />;
+	}
+
+	const { name, content, content_html, record_type } = data.record;
+
+	if (record_type === RecordTypes.PDF) {
+		return <PdfViewerClient key={id} content={content} name={name} />;
+	}
 
 	return (
 		<div>

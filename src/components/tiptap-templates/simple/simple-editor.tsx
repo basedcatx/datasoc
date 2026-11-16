@@ -53,9 +53,7 @@ import { TextAlignButton } from "#/components/tiptap-ui/text-align-button";
 import { UndoRedoButton } from "#/components/tiptap-ui/undo-redo-button";
 
 // --- Hooks ---
-import { useCursorVisibility } from "#/hooks/use-cursor-visibility";
 import { useIsBreakpoint } from "#/hooks/use-is-breakpoint";
-import { useWindowSize } from "#/hooks/use-window-size";
 
 // --- Components ---
 
@@ -65,7 +63,7 @@ import { MAX_FILE_SIZE } from "#/lib/tiptap-utils";
 // --- Styles ---
 import "#/components/tiptap-templates/simple/simple-editor.scss";
 
-import { LucidePencilLine, Save } from "lucide-react";
+import { LucidePencilLine } from "lucide-react";
 import { Input } from "#/components/ui/input";
 import { Badge } from "#/components/ui/badge";
 
@@ -90,14 +88,13 @@ import {
 	FieldGroup,
 	FieldLabel,
 } from "#/components/ui/field";
-import { appStore } from "#/integrations/tanstack-query/store-provider";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-	recordKeys,
-	recordMutations,
-	recordQueries,
-} from "#/lib/features/query";
-import { FLAGS } from "#/lib/utils";
+	appStore,
+	initialStoreState,
+} from "#/integrations/tanstack-query/store-provider";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { recordMutations, recordQueries } from "#/lib/features/query";
+import { RecordTypes, snapshot } from "#/lib/utils";
 import { Spinner } from "#/components/ui/spinner";
 import { toast } from "sonner";
 import type { R } from "#/lib/libs";
@@ -139,9 +136,13 @@ const MainToolbarContent = ({
 	};
 
 	return (
-		<div className={cn("xl:w-full z-50 max-xl:max-h-dvh flex overflow-x-auto sticky top-0 overflow-auto", bp && "no-scrollbar")}>
+		<div
+			className={cn(
+				"xl:w-full z-50 max-xl:max-h-dvh flex overflow-x-auto sticky top-0 overflow-auto",
+				bp && "no-scrollbar",
+			)}
+		>
 			<div className="flex items-center gap-2 justify-between max-xl:flex-col max-xl:gap-4 max-xl:p-2 xl:w-full">
-
 				{bp ? (
 					<AlertDialog>
 						<AlertDialogTrigger asChild>
@@ -178,7 +179,9 @@ const MainToolbarContent = ({
 									</Field>
 								</FieldGroup>
 								<AlertDialogFooter>
-									<AlertDialogCancel variant="outline">Cancel</AlertDialogCancel>
+									<AlertDialogCancel variant="outline">
+										Cancel
+									</AlertDialogCancel>
 									<AlertDialogAction type="submit">OK</AlertDialogAction>
 								</AlertDialogFooter>
 							</form>
@@ -198,7 +201,13 @@ const MainToolbarContent = ({
 				<ToolbarGroup className="max-xl:flex max-xl:flex-col">
 					<UndoRedoButton action="undo" editor={editor} />
 					<UndoRedoButton action="redo" editor={editor} />
-					<MarkButton disabled={false} data-disabled={false} type="save" editor={editor} onClick={onSaveClick} />
+					<MarkButton
+						disabled={false}
+						data-disabled={false}
+						type="save"
+						editor={editor}
+						onClick={onSaveClick}
+					/>
 				</ToolbarGroup>
 				<ToolbarSeparator orientation={bp ? "horizontal" : "vertical"} />
 				<ToolbarGroup className="max-xl:flex max-xl:flex-col">
@@ -246,8 +255,6 @@ const MainToolbarContent = ({
 
 					<MetadataDialog />
 				</ToolbarGroup>
-
-
 			</div>
 		</div>
 	);
@@ -255,20 +262,20 @@ const MainToolbarContent = ({
 
 export function SimpleEditor({ data }: { data?: R }) {
 	const isMobile = useIsBreakpoint();
-	const { height } = useWindowSize();
 	const [mobileView, setMobileView] = useState<"main" | "highlighter" | "link">(
 		"main",
 	);
 	const [isSearchAndReplaceOpen, setIsSearchAndReplaceOpen] = useState(false);
-	const toolbarRef = useRef<HTMLDivElement>(null);
 	const searchAndReplaceButtonRef = useRef<HTMLButtonElement>(null);
 
 	const qc = useQueryClient();
 	const [s, setS] = useState({ loading: false, msg: "" });
 	const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const savingRef = useRef(false);
+	const saveRef = useRef<() => Promise<boolean>>(async () => false);
+	const lastSavedRef = useRef(snapshot(initialStoreState.file));
 
-	const state = useSelector(appStore, (s) => s.file);
-
+	const state = useSelector(appStore, (s) => s);
 
 	const createNewRecordMutation = useMutation({
 		...recordMutations(qc).createNewRecord(),
@@ -278,65 +285,153 @@ export function SimpleEditor({ data }: { data?: R }) {
 		...recordMutations(qc).updateRecord(),
 	});
 
-	const fetchRecordByNameQuery = useQuery({
-		...recordQueries.id(state.id),
-		enabled: state.id !== -1,
-	});
-
 	const AUTOSAVE_INTERVAL_MS = 3000;
 
+	// Loading previous data
 	useEffect(() => {
-		if (data) {
-			appStore.setState((prev) => ({
-				...prev,
-				file: { ...prev.file, ...data },
-			}));
+		if (!data) return;
+		appStore.setState((prev) => ({
+			...prev,
+			file: { ...prev.file, ...data },
+			dirty: false,
+		}));
+		lastSavedRef.current = snapshot(data);
+	}, [data]);
+
+	const scheduleSave = () => {
+		if (timerRef.current) {
+			clearTimeout(timerRef.current);
 		}
-	}, [data])
+
+		timerRef.current = setTimeout(() => {
+			void saveRef.current();
+		}, AUTOSAVE_INTERVAL_MS);
+	};
 
 	const handleAutoSave = async () => {
-		console.log("state", state)
+		if (savingRef.current) return false;
 
-		if (!state.name || !state.content || !state.content_html) {
+		// Read the store here instead of closing over the render's state, so the
+		// timer always saves what the user has actually typed.
+		const file = appStore.state.file;
+
+		if (!file.name) {
 			setS({ loading: false, msg: "Idling..." });
-			toast.error("Unable to save, please ensure that the record's name is set, and it has some content")
-			return Promise.resolve(false);
+			toast.error("Unable to save, please set the record's name first");
+			return false;
 		}
 
+		savingRef.current = true;
+		let saved = false;
 
-		if (state.id === -1) {
-			setS({ loading: true, msg: "Creating new record..." });
+		try {
+			if (file.id === -1) {
+				setS({ loading: true, msg: "Creating new record..." });
 
-			createNewRecordMutation.mutate({
-				record: { ...state, id: undefined, flags: FLAGS.NONE_CLEAR_ALL },
-			});
+				const sent = { ...file };
+				const result = await createNewRecordMutation.mutateAsync({
+					data: {
+						record: {
+							name: sent.name,
+							content: sent.content,
+							content_html: sent.content_html,
+							flags: sent.flags,
+							meta: sent.meta,
+							tags: sent.tags,
+							record_type: RecordTypes.DOCUMENT,
+						},
+					},
+				});
 
-			setS({ loading: false, msg: "Idling..." });
-			return Promise.resolve(false);
+				if (result.record.id) {
+					appStore.setState((prev) => ({
+						...prev,
+						file: { ...prev.file, id: result.record.id ?? -1 },
+					}));
+				}
+
+				lastSavedRef.current = snapshot(sent);
+			} else {
+				setS({ loading: true, msg: "Updating record..." });
+
+				const current = await qc.ensureQueryData(recordQueries.id(file.id));
+				const sent = { ...file };
+
+				await updateRecordMutation.mutateAsync({
+					data: {
+						record: {
+							...current.record,
+							name: sent.name,
+							content: sent.content,
+							content_html: sent.content_html,
+							flags: sent.flags,
+							meta: sent.meta,
+							tags: sent.tags,
+						},
+					},
+				});
+
+				lastSavedRef.current = snapshot(sent);
+			}
+
+			saved = true;
+			setS({ loading: false, msg: "Saved to database" });
+		} catch (e) {
+			setS({ loading: false, msg: "Failed to save..." });
+			toast.error(`Failed to save record: ${e}`);
+		} finally {
+			savingRef.current = false;
+
+			const stillDirty = snapshot(appStore.state.file) !== lastSavedRef.current;
+
+			appStore.setState((prev) => ({
+				...prev,
+				dirty: stillDirty,
+			}));
+
+			// If the user typed while the request was in flight, save again.
+			if (saved && stillDirty) {
+				scheduleSave();
+			}
 		}
 
-		const uRecord = fetchRecordByNameQuery.data;
-
-		if (!uRecord) {
-			console.log(fetchRecordByNameQuery.error);
-			setS({ loading: false, msg: "Idling..." });
-			return Promise.resolve(false);
-		}
-
-		updateRecordMutation.mutate({
-			record: {
-				...uRecord,
-				name: state.name,
-				content: state.content,
-				content_html: state.content_html,
-				flags: state.flags,
-				meta: state.meta,
-				tags: state.tags,
-			},
-		});
-
-		return Promise.resolve(true);
+		return saved;
 	};
+
+	saveRef.current = handleAutoSave;
+
+	useEffect(() => {
+		const store = appStore.state;
+		const hasChanged = snapshot(store.file) !== lastSavedRef.current;
+
+		if (!hasChanged) return;
+
+		if (!store.dirty) {
+			appStore.setState((prev) => ({
+				...prev,
+				dirty: true,
+			}));
+		}
+
+		if (savingRef.current) return;
+
+		scheduleSave();
+	}, [
+		state.file.name,
+		state.file.content,
+		state.file.content_html,
+		state.file.flags,
+		state.file.meta,
+		state.file.tags,
+	]);
+
+	useEffect(() => {
+		return () => {
+			if (timerRef.current) {
+				clearTimeout(timerRef.current);
+			}
+		};
+	}, []);
 
 	const editor = useEditor({
 		immediatelyRender: true,
@@ -396,31 +491,9 @@ export function SimpleEditor({ data }: { data?: R }) {
 
 			appStore.setState((prev) => ({
 				...prev,
-				file: { ...prev.file, content_html: html, content: plainText },
+				file: { ...prev.file, content: plainText, content_html: html },
 			}));
-
-
-			if (timerRef.current) {
-				clearTimeout(timerRef.current);
-			}
-
-			setS({ loading: true, msg: "Auto saving..." });
-
-			timerRef.current = setTimeout(() => {
-				handleAutoSave().then((success) => {
-					if (success) {
-						setS({ loading: false, msg: "Saved to database" });
-					} else {
-						setS({ loading: false, msg: "Failed to save" });
-					}
-				})
-			}, AUTOSAVE_INTERVAL_MS);
 		},
-	});
-
-	const rect = useCursorVisibility({
-		editor,
-		overlayHeight: toolbarRef.current?.getBoundingClientRect().height ?? 0,
 	});
 
 	useEffect(() => {
@@ -461,7 +534,10 @@ export function SimpleEditor({ data }: { data?: R }) {
 						searchAndReplaceButtonRef={searchAndReplaceButtonRef}
 						isMobile={isMobile}
 						editor={editor}
-						onSaveClick={async () => { const res = await handleAutoSave(); if (res) toast.success("Saved successfully!"); else toast.error("Failed to save!"); }}
+						onSaveClick={async () => {
+							const res = await handleAutoSave();
+							if (res) toast.success("Saved successfully!");
+						}}
 					/>
 
 					<SearchAndReplace
@@ -471,8 +547,6 @@ export function SimpleEditor({ data }: { data?: R }) {
 						onClose={closeSearchAndReplace}
 						scrollIntoViewOptions={SEARCH_AND_REPLACE_SCROLL_OPTIONS}
 					/>
-
-
 
 					<EditorContent
 						editor={editor}

@@ -1,206 +1,269 @@
-import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { cn } from "cn";
 import {
 	ArrowDownAz,
 	ChevronDown,
 	ChevronUp,
-	Filter,
-	Ghost,
+	LayoutGrid,
+	List,
 	Plus,
 } from "lucide-react";
 import { useDeferredValue, useState } from "react";
-import {
-	Combobox,
-	ComboboxCollection,
-	ComboboxContent,
-	ComboboxEmpty,
-	ComboboxGroup,
-	ComboboxInput,
-	ComboboxItem,
-	ComboboxLabel,
-	ComboboxList,
-} from "@/components/ui/combobox";
-import { InputGroupAddon } from "@/components/ui/input-group";
-import LibraryEntryCard from "./library-entrycard";
+import { recordQueries } from "#/lib/features/query";
+import type { R } from "#/lib/libs";
+import { getPreferences, setPreferences } from "#/lib/preferences";
+import { createFlags, FLAGS } from "#/lib/utils";
+import { AddRecordDialog } from "./add-record-dialog";
+import RecordCard from "./record-card";
+import { RecordRow } from "./record-row";
 import { Button } from "./ui/button";
-import { Card } from "./ui/card";
 import { Input } from "./ui/input";
 import { Skeleton } from "./ui/skeleton";
-import type { R } from "#/lib/libs";
-import { useQuery } from "@tanstack/react-query";
-import { recordQueries } from "#/lib/features/query";
-import { createFlags, FLAGS } from "#/lib/utils";
 
-function LibraryFilter(data: R[], filter: string, sort: string) {
+function LibraryFilter(data: { record: R }[], filter: string, sort: string) {
 	const sortedData = [...data].sort((a, b) => {
-		if (!(a.updated_at && b.updated_at)) {
-			return (a.id ?? 0) - (b.id ?? 0);
+		if (!(a.record.updated_at && b.record.updated_at)) {
+			return (a.record.id ?? 0) - (b.record.id ?? 0);
 		}
 
 		if (sort === "ASC") {
 			return (
-				new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime()
+				new Date(a.record.updated_at).getTime() -
+				new Date(b.record.updated_at).getTime()
 			);
 		}
-		return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+		return (
+			new Date(b.record.updated_at).getTime() -
+			new Date(a.record.updated_at).getTime()
+		);
 	});
 
 	return sortedData
-		.filter((d: R) => !createFlags(d.flags).check(FLAGS.IS_DELETED))
-		.filter((d: R) => {
+		.filter((d) => !createFlags(d.record.flags).check(FLAGS.IS_DELETED))
+		.filter((d) => {
 			if (!filter) {
 				return d;
 			}
-			return d.name.toLowerCase().startsWith(filter.toLowerCase());
-		}) as R[];
+			return d.record.name.toLowerCase().startsWith(filter.toLowerCase());
+		});
 }
 
 function LibraryComponent({
 	children,
+	onAddClick,
 }: {
-	children: (data: R[], isPending: boolean) => React.ReactNode;
+	children: (
+		data: { record: R }[],
+		isPending: boolean,
+		view: "list" | "grid",
+	) => React.ReactNode;
+	onAddClick: () => void;
 }) {
 	const [sortby, setSortby] = useState<"ASC" | "DESC">("ASC");
 	const [nameFilter, setNameFilter] = useState("");
+	const [tagFilter, setTagFilter] = useState<string | null>(null);
+	const [view, setView] = useState<"list" | "grid">(
+		() => getPreferences().defaultView,
+	);
 	const deferredNameFilter = useDeferredValue(nameFilter);
 
-	const { data, isPending, isError, error } = useQuery({
-		...recordQueries.all(),
-		select: (data) => LibraryFilter(data, deferredNameFilter, sortby),
-	});
+	const {
+		data: rawData,
+		isPending,
+		isError,
+		error,
+	} = useQuery(recordQueries.all());
+
+	const allTags = (() => {
+		const tags = new Set<string>();
+		for (const r of rawData ?? []) {
+			for (const t of r.record.tags) {
+				tags.add(t);
+			}
+		}
+		return Array.from(tags).sort();
+	})();
+
+	const data = (() => {
+		let filtered = LibraryFilter(rawData ?? [], deferredNameFilter, sortby);
+		if (tagFilter) {
+			filtered = filtered.filter((r) => r.record.tags.includes(tagFilter!));
+		}
+		return filtered;
+	})();
 
 	if (isError || !data) {
 		return <div>An error occurred: {error?.message}</div>;
 	}
 
 	return (
-		<div>
-			<Card className="flex flex-col gap-4 p-8 rounded-none h-dvh overflow-y-auto bg-background">
-				<div className="flex justify-between items-center my-2">
-					<div className="flex gap-4 items-center mx-2">
-						<h6 className="text-xl text-muted-foreground">Library</h6>
-						<Link to={"/editor"}>
-							<Button className="flex p-4 cursor-pointer rounded-full">
-								<Plus />
-								<p className="text-lg">New</p>
-							</Button>
-						</Link>
-					</div>
+		<div className="h-dvh w-full overflow-y-auto bg-background">
+			<div className="flex w-full flex-col gap-4 px-4 py-6">
+				<header className="flex items-center justify-between gap-3">
+					<h1 className="text-xl font-medium tracking-tight text-foreground">
+						Library
+					</h1>
+					<Button
+						variant="ghost"
+						size="sm"
+						className="gap-1.5 text-muted-foreground hover:text-foreground"
+						onClick={onAddClick}
+					>
+						<Plus className="size-4" />
+						New
+					</Button>
+				</header>
 
-					<div className="flex gap-2">
-						<Input
-							className="max-w-xs"
-							placeholder="Type to filter..."
-							onChange={(e) => setNameFilter(e.target.value)}
-						/>
+				<div className="flex flex-wrap items-center gap-2">
+					<Input
+						className="h-8 max-w-xs text-[13px]"
+						placeholder="Filter by name..."
+						value={nameFilter}
+						onChange={(e) => setNameFilter(e.target.value)}
+					/>
+					<Button
+						variant="ghost"
+						size="sm"
+						className="gap-1.5 text-muted-foreground hover:text-foreground"
+						onClick={() => setSortby((old) => (old === "ASC" ? "DESC" : "ASC"))}
+					>
+						<ArrowDownAz className="size-4" />
+						<span className="text-[13px]">{sortby}</span>
+						{sortby === "ASC" ? (
+							<ChevronUp className="size-3.5" />
+						) : (
+							<ChevronDown className="size-3.5" />
+						)}
+					</Button>
+					<div className="ml-auto flex items-center gap-1">
 						<Button
-							variant={"secondary"}
-							onClick={(e) => {
-								e.preventDefault();
-								setSortby((old) => {
-									if (old === "ASC") {
-										return "DESC";
-									}
-									return "ASC";
-								});
+							variant={view === "list" ? "secondary" : "ghost"}
+							size="icon"
+							className="size-8"
+							onClick={() => {
+								if (view !== "list") {
+									setView("list");
+									setPreferences({ defaultView: "list" });
+								}
 							}}
+							title="List view"
 						>
-							<ArrowDownAz />
-							<p>Sort by: {sortby}</p>
-							{sortby === "ASC" ? <ChevronUp /> : <ChevronDown />}
+							<List className="size-4" />
+						</Button>
+						<Button
+							variant={view === "grid" ? "secondary" : "ghost"}
+							size="icon"
+							className="size-8"
+							onClick={() => {
+								if (view !== "grid") {
+									setView("grid");
+									setPreferences({ defaultView: "grid" });
+								}
+							}}
+							title="Grid view"
+						>
+							<LayoutGrid className="size-4" />
 						</Button>
 					</div>
 				</div>
-				{children(data, isPending)}
-			</Card>
+
+				{allTags.length > 0 && (
+					<div className="flex flex-wrap gap-1">
+						<button
+							type="button"
+							onClick={() => setTagFilter(null)}
+							className={cn(
+								"rounded-md px-2 py-1 text-[12px] transition-colors",
+								tagFilter === null
+									? "bg-accent text-foreground"
+									: "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
+							)}
+						>
+							All
+						</button>
+						{allTags.map((tag) => (
+							<button
+								key={tag}
+								type="button"
+								onClick={() => setTagFilter(tagFilter === tag ? null : tag)}
+								className={cn(
+									"rounded-md px-2 py-1 text-[12px] transition-colors",
+									tagFilter === tag
+										? "bg-accent text-foreground"
+										: "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
+								)}
+							>
+								#{tag}
+							</button>
+						))}
+					</div>
+				)}
+
+				{children(data, isPending, view)}
+			</div>
 		</div>
 	);
 }
 
 export default function LibraryCard() {
+	const [addOpen, setAddOpen] = useState(false);
+	const handleAddClick = () => setAddOpen(true);
 	return (
-		<LibraryComponent>
-			{(data, isPending) => {
-				if (isPending) {
+		<>
+			<LibraryComponent onAddClick={handleAddClick}>
+				{(data, isPending, view) => {
+					if (isPending) {
+						return (
+							<div className="flex flex-col ">
+								<Skeleton className="h-10 w-full rounded-none" />
+								<Skeleton className="h-10 w-full rounded-none" />
+								<Skeleton className="h-10 w-full rounded-none" />
+							</div>
+						);
+					}
+
+					if (data.length === 0) {
+						return (
+							<div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+								<p className="text-sm text-muted-foreground">No records</p>
+								<Button
+									size="sm"
+									variant="ghost"
+									onClick={handleAddClick}
+									className="gap-2 text-muted-foreground"
+								>
+									<Plus className="size-4" />
+									New record
+								</Button>
+							</div>
+						);
+					}
+
+					if (view === "grid") {
+						return (
+							<ul className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+								{data.map((e) => (
+									<li key={e.record.id ?? e.record.name} className="min-w-0">
+										<RecordCard {...e.record} variant="grid" />
+									</li>
+								))}
+							</ul>
+						);
+					}
+
 					return (
-						<>
-							<Skeleton className="w-full h-30" />
-							<Skeleton className="w-full h-30" />
-							<Skeleton className="w-full h-30" />
-							<Skeleton className="w-full h-30" />
-							<Skeleton className="w-full h-30" />
-							<Skeleton className="w-full h-30" />
-						</>
+						<ul className="flex flex-col">
+							{data.map((e) => (
+								<RecordRow
+									key={e.record.id ?? e.record.name}
+									record={e.record}
+								/>
+							))}
+						</ul>
 					);
-				}
-
-				return data.length > 0 ? (
-					<ul className="flex gap-4 flex-col">
-						{data.map((e) => (
-							<li key={e.name} className="cv-list-item">
-								<LibraryEntryCard {...e} />
-							</li>
-						))}
-					</ul>
-				) : (
-					<div className="flex flex-col justify-center h-screen items-center gap-8">
-						<Ghost className="size-30 stroke-muted-foreground" />
-
-						<p className="text-muted-foreground shimmer text-lg text-wrap w-60 text-center">
-							No record found. Click on new to create one
-						</p>
-
-						<Button className="flex items-center w-xs p-4 cursor-pointer rounded-full">
-							<Plus />
-							<p className="text-lg">New</p>
-						</Button>
-					</div>
-				);
-			}}
-		</LibraryComponent>
-	);
-}
-
-export function ComboxboxInputGroup({
-	dispatch,
-}: {
-	dispatch: (action: any) => void;
-}) {
-	const filters = [
-		{
-			value: "Status",
-			items: ["Completed", "Drafted"],
-		},
-	] as const;
-
-	return (
-		<Combobox
-			items={filters}
-			onInputValueChange={(value) => {
-				dispatch({ type: "changefilter", filterby: value });
-			}}
-		>
-			<ComboboxInput placeholder="Filter list by">
-				<InputGroupAddon contentEditable={false}>
-					<Filter />
-				</InputGroupAddon>
-			</ComboboxInput>
-			<ComboboxContent alignOffset={-28} className="w-60">
-				<ComboboxEmpty>No filter selected</ComboboxEmpty>
-				<ComboboxList className={"flex flex-col gap-4"}>
-					{(group) => (
-						<ComboboxGroup key={group.value} items={group.items}>
-							<ComboboxLabel>{group.value}</ComboboxLabel>
-							<ComboboxCollection>
-								{(item) => (
-									<ComboboxItem key={item} value={item} className={"px-4"}>
-										{item}
-									</ComboboxItem>
-								)}
-							</ComboboxCollection>
-						</ComboboxGroup>
-					)}
-				</ComboboxList>
-			</ComboboxContent>
-		</Combobox>
+				}}
+			</LibraryComponent>
+			<AddRecordDialog open={addOpen} onOpenChange={setAddOpen} />
+		</>
 	);
 }

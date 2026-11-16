@@ -3,8 +3,8 @@ mod db;
 mod embedding;
 use anyhow::Context;
 use commands::{
-    create_record, delete_record, fetch_record_by_id, fetch_record_by_name, fetch_records,
-    get_embedding, hybrid_search, update_record,
+    create_record, delete_record, export_records, fetch_record_by_id, fetch_record_by_name,
+    fetch_records, get_embedding, hybrid_search, import_records, update_record,
 };
 use s3::{creds::Credentials, Bucket};
 
@@ -29,6 +29,7 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             if cfg!(debug_assertions) {
                 app.handle()
@@ -43,10 +44,6 @@ pub fn run() {
             let handle = app.handle().clone();
 
             tauri::async_runtime::spawn(async move {
-                let splash_window = handle
-                    .get_webview_window("splashscreen")
-                    .expect("No splashscreen found");
-
                 let model_path = handle
                     .path()
                     .resolve("res/minilm-l6.gguf", tauri::path::BaseDirectory::Resource)
@@ -54,7 +51,7 @@ pub fn run() {
 
                 let db_path = handle
                     .path()
-                    .resolve("db/appdata.db", tauri::path::BaseDirectory::Resource)
+                    .resolve("db/appdata.db", tauri::path::BaseDirectory::AppData)
                     .expect("Failed to load database engine");
 
                 let engine = embedding::init(model_path).expect("Could not load embedding engine");
@@ -74,7 +71,6 @@ pub fn run() {
                     },
                 });
 
-                let _ = splash_window.close();
                 let main_window = handle.get_webview_window("main").unwrap();
                 main_window.show();
             });
@@ -89,7 +85,9 @@ pub fn run() {
             fetch_record_by_id,
             update_record,
             delete_record,
-            hybrid_search
+            hybrid_search,
+            export_records,
+            import_records
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

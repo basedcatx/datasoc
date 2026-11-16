@@ -38,3 +38,4 @@ rust-s3 = "0.38.0"
 llama-cpp = { path = "./llama-cpp/" }
 sql = { path = "./sql/" }
 tauri-plugin-shell = "2.3.6"
+tauri-plugin-dialog = "2"

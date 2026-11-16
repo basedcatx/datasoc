@@ -63,6 +63,13 @@ pub fn init(db_path: &PathBuf) -> anyhow::Result<Connection> {
         M::up("CREATE VIRTUAL TABLE IF NOT EXISTS RecordEmbedding USING vec0(embedding float[384])"),
 
         M::up("ALTER TABLE Records ADD content_html TEXT"),
+
+        M::up("ALTER TABLE Records ADD COLUMN type INTEGER NOT NULL DEFAULT 0"),
+        M::up("ALTER TABLE Records RENAME COLUMN type TO record_type"),
+
+        // PDFs are finished documents, never drafts. Keep the other bits (for
+        // example a star) and only add the completed flag.
+        M::up("UPDATE Records SET flags = flags | 4 WHERE record_type = 1")
     ]);
 
     migrations

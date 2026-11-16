@@ -8,7 +8,7 @@ export const Route = createFileRoute("/library/")({
 
 function RouteComponent() {
 	return (
-		<div>
+		<div className="h-dvh w-full overflow-y-auto bg-background">
 			<LibraryCard />
 			<PreviewCard />
 		</div>
