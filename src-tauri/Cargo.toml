@@ -33,6 +33,7 @@ anyhow = "1.0.104"
 tokio = "1.53.1"
 anyhow-tauri = "1.0.1"
 rust-s3 = "0.38.0"
+dotenvy = "0.15"
 
 # split llama into another crate to avoid recompiling it
 llama-cpp = { path = "./llama-cpp/" }

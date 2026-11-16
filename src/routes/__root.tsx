@@ -7,13 +7,17 @@ import {
 	Scripts,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
+import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "next-themes";
-import { Toaster } from "sonner";
+import { useEffect } from "react";
+import { toast, Toaster } from "sonner";
 import { PdfDropOverlay } from "#/components/pdf/pdf-drop-overlay";
 import { PdfUploadDialogClient } from "#/components/pdf/pdf-upload-dialog-client";
 import { TooltipProvider } from "#/components/ui/tooltip";
-import { TauriQueryInspector } from "#/integrations/tanstack-query/tauri-query-inspector";
+import type { BackupStatus } from "#/lib/backup";
+import { isTauri } from "#/lib/utils";
 import Footer from "../components/Footer";
 import Sidebar from "../components/Sidebar";
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
@@ -64,6 +68,7 @@ function RootDocument() {
 					enableSystem
 					disableTransitionOnChange
 				>
+					<BackupNetworkMonitor />
 					<Toaster richColors />
 					<PdfDropOverlay />
 					<PdfUploadDialogClient />
@@ -97,4 +102,45 @@ function RootDocument() {
 			</body>
 		</html>
 	);
+}
+
+function BackupNetworkMonitor() {
+	useEffect(() => {
+		if (!isTauri()) return;
+		let active = true;
+		let previousError: string | null = null;
+		let unlisten: (() => void) | undefined;
+
+		void listen<BackupStatus>("backup-status", ({ payload }) => {
+			if (payload.lastError && payload.lastError !== previousError) {
+				previousError = payload.lastError;
+				toast.error(`Automatic cloud backup failed: ${payload.lastError}`);
+			} else if (!payload.lastError && previousError) {
+				previousError = null;
+				toast.success("Automatic cloud backup has resumed.");
+			}
+		})
+			.then((stopListening) => {
+				if (active) unlisten = stopListening;
+				else stopListening();
+			})
+			.catch((error) => {
+				toast.error(`Could not monitor cloud backup status: ${String(error)}`);
+			});
+
+		const retryOnReconnect = () => {
+			void invoke("retry_backup").catch((error) => {
+				toast.error(`Could not resume cloud backup: ${String(error)}`);
+			});
+		};
+		window.addEventListener("online", retryOnReconnect);
+
+		return () => {
+			active = false;
+			unlisten?.();
+			window.removeEventListener("online", retryOnReconnect);
+		};
+	}, []);
+
+	return null;
 }

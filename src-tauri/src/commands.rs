@@ -127,9 +127,7 @@ pub async fn create_record(input: RecordInsert, state: State<'_, AppState>) -> R
         embedding,
     } = &input;
 
-    // A PDF is a finished artifact, so it is completed no matter what the
-    // caller sent. Keeping the rule here means no upload path can create a
-    // draft by forgetting the flag.
+    // PDFs are completed artifacts, so uploads cannot create one as a draft.
     let flags = if *record_type == 1 {
         *flags | FLAG_IS_COMPLETED
     } else {
@@ -163,6 +161,7 @@ pub async fn create_record(input: RecordInsert, state: State<'_, AppState>) -> R
 
     tx.commit()
         .map_err(|e| format!("Failed to commit transaction {e}"))?;
+    state.backup.mark_dirty();
     Ok(id)
 }
 
@@ -414,6 +413,7 @@ pub async fn update_record(
     tx.commit()
         .map_err(|e| format!("Failed to commit transaction {e}"))?;
 
+    state.backup.mark_dirty();
     Ok(true)
 }
 
@@ -440,6 +440,7 @@ pub async fn delete_record(input: u32, state: State<'_, AppState>) -> Result<boo
     tx.commit()
         .map_err(|e| format!("Failed to commit transaction {e}"))?;
 
+    state.backup.mark_dirty();
     // It is okay if we just return true for now.
     Ok(true)
 }
@@ -612,6 +613,7 @@ pub async fn import_records(json: String, state: State<'_, AppState>) -> Result<
             .map_err(|e| format!("Embedding insert failed: {e}"))?;
         }
         tx.commit().map_err(|e| format!("Commit failed: {e}"))?;
+        state.backup.mark_dirty();
         imported += 1;
     }
     Ok(imported)

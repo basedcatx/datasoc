@@ -12,15 +12,14 @@ import {
 } from "lucide-react";
 import type React from "react";
 import { useEffect, useState } from "react";
+import { usePresence } from "#/hooks/use-presence";
 import { recordQueries } from "#/lib/features/query";
 import { createFlags, FLAGS } from "../lib/utils";
 import { AddRecordDialog } from "./add-record-dialog";
 import NavSection from "./nav-section";
 import SearchComponent from "./SearchComponent";
-import SettingsCard from "./SettingsCard";
 import { Button } from "./ui/button";
 import { Skeleton } from "./ui/skeleton";
-import { usePresence } from "#/hooks/use-presence";
 
 const navLinks = [
 	{ text: "Home", path: "/", icon: Home },
@@ -52,7 +51,7 @@ function SidebarComponent({ children }: { children: React.ReactNode }) {
 	const location = useLocation();
 	const [isOpen, setIsOpen] = useState(false)
 	const [addOpen, setAddOpen] = useState(false);
-	const { mounted, ref, state } = usePresence(isOpen);
+	const { ref, state } = usePresence(isOpen);
 	const [animatable, setAnimatable] = useState(false)
 
 
@@ -143,16 +142,12 @@ function SidebarComponent({ children }: { children: React.ReactNode }) {
 					</div>
 
 					<div className="mt-3 flex flex-col gap-0.5 border-t border-border pt-3">
-						<SettingsCard
-							Trigger={
-								<button type="button" className="w-full text-left">
-									<NavRow>
-										<Settings className="size-4 shrink-0" />
-										<span>Settings</span>
-									</NavRow>
-								</button>
-							}
-						/>
+						<Link to="/settings" className="block">
+							<NavRow active={location.pathname === "/settings"}>
+								<Settings className="size-4 shrink-0" />
+								<span>Settings</span>
+							</NavRow>
+						</Link>
 						<button
 							type="button"
 							className="w-full text-left"
@@ -197,18 +192,19 @@ function SidebarComponent({ children }: { children: React.ReactNode }) {
 						);
 					})}
 					<div className="mt-auto flex flex-col items-center gap-2 pb-1">
-						<SettingsCard
-							Trigger={
-								<Button
-									variant="ghost"
-									size="icon"
-									className="size-8 text-muted-foreground"
-									title="Settings"
-								>
-									<Settings className="size-4" />
-								</Button>
-							}
-						/>
+						<Button
+							asChild
+							variant="ghost"
+							size="icon"
+							className={cn(
+								"size-8 text-muted-foreground hover:text-foreground",
+								location.pathname === "/settings" && "bg-accent text-foreground",
+							)}
+						>
+							<Link to="/settings" title="Settings">
+								<Settings className="size-4" />
+							</Link>
+						</Button>
 						<Button
 							variant="ghost"
 							size="icon"

@@ -1,12 +1,38 @@
-import { s3client } from "#/server/db";
+import { invoke } from "@tauri-apps/api/core";
 
-export class BackupManager {
-	public async backupDB() {
-		const allFiles = await s3client.list();
-		console.log(allFiles);
-		// list all files in the bucket that end with .sql
-		// If the files are more than 10 delete the oldest files till they are max 10 ie sort files by date desc and delete the first 10 - file-length files
-		//
-		//
-	}
+export interface RecentRecord {
+	id: number;
+	name: string;
+	createdAt: string | null;
+	updatedAt: string | null;
 }
+
+export interface RecordSummary {
+	count: number;
+	latestRecord: RecentRecord | null;
+}
+
+export interface BackupStatus {
+	configured: boolean;
+	lastBackupAt: string | null;
+	lastError: string | null;
+	pendingBackup: boolean;
+}
+
+export interface RestorePreview {
+	backupKey: string;
+	local: RecordSummary;
+	backup: RecordSummary;
+}
+
+export const getBackupStatus = () => invoke<BackupStatus>("get_backup_status");
+
+export const createBackup = () => invoke<string>("create_backup");
+
+export const prepareRestore = () =>
+	invoke<RestorePreview | null>("prepare_restore");
+
+export const cancelRestore = () => invoke<void>("cancel_restore");
+
+export const restoreBackup = (backupKey: string) =>
+	invoke<RecordSummary>("restore_backup", { backupKey });
