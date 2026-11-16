@@ -1,9 +1,27 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
-import { Copy, Download, RotateCcw, Trash, Trash2 } from "lucide-react";
+import {
+	ArrowUpRight,
+	Copy,
+	Download,
+	Heart,
+	RotateCcw,
+	Search,
+	SquarePen,
+	Trash,
+	Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
+import {
+	ContextMenu,
+	ContextMenuContent,
+	ContextMenuItem,
+	ContextMenuSeparator,
+	ContextMenuTrigger,
+} from "#/components/ui/context-menu";
+import { appStore } from "#/integrations/tanstack-query/store-provider";
 import { recordMutations } from "#/lib/features/query";
 import { fetchRecordById, type R } from "#/lib/libs";
 import { createFlags, FLAGS, isTauri, RecordTypes } from "#/lib/utils";
@@ -93,9 +111,11 @@ export function RecordRow({
 	variant?: "default" | "trash";
 }) {
 	const qc = useQueryClient();
+	const nav = useNavigate();
 	const flag = createFlags(record.flags);
 	const isPdf = record.record_type === RecordTypes.PDF;
 	const isCompleted = flag.check(FLAGS.IS_COMPLETED);
+	const isFavorite = flag.check(FLAGS.IS_FAVORITE);
 	const date = formatDate(record.created_at);
 	const isTrash = variant === "trash";
 
@@ -106,23 +126,7 @@ export function RecordRow({
 		...recordMutations(qc).permanentDelete(record.id ?? 0),
 	});
 
-	const handleDelete = (e: React.MouseEvent) => {
-		e.preventDefault();
-		e.stopPropagation();
-		if (!record.id) return;
-		if (isTrash) {
-			permanentDeleteMutation.mutate();
-			return;
-		}
-		changeFlagMutation.mutate({
-			flag: FLAGS.IS_DELETED,
-			data: { ...record, id: record.id },
-		});
-	};
-
-	const handleRestore = (e: React.MouseEvent) => {
-		e.preventDefault();
-		e.stopPropagation();
+	const softDelete = () => {
 		if (!record.id) return;
 		changeFlagMutation.mutate({
 			flag: FLAGS.IS_DELETED,
@@ -130,9 +134,27 @@ export function RecordRow({
 		});
 	};
 
-	const handleCopy = async (e: React.MouseEvent) => {
-		e.preventDefault();
-		e.stopPropagation();
+	const permanentDelete = () => {
+		if (!record.id) return;
+		permanentDeleteMutation.mutate();
+	};
+
+	const handleDelete = (e?: React.MouseEvent) => {
+		e?.preventDefault();
+		e?.stopPropagation();
+		if (isTrash) permanentDelete();
+		else softDelete();
+	};
+
+	const handleRestore = (e?: React.MouseEvent) => {
+		e?.preventDefault();
+		e?.stopPropagation();
+		softDelete();
+	};
+
+	const handleCopy = async (e?: React.MouseEvent) => {
+		e?.preventDefault();
+		e?.stopPropagation();
 		try {
 			await navigator.clipboard.writeText(record.name ?? "");
 			toast.success("Copied");
@@ -153,9 +175,9 @@ export function RecordRow({
 		setTimeout(() => URL.revokeObjectURL(url), 1000);
 	};
 
-	const handleDownload = async (e: React.MouseEvent) => {
-		e.preventDefault();
-		e.stopPropagation();
+	const handleDownload = async (e?: React.MouseEvent) => {
+		e?.preventDefault();
+		e?.stopPropagation();
 		if (!record.id) {
 			toast.error("Record not available");
 			return;
@@ -201,6 +223,34 @@ export function RecordRow({
 		}
 	};
 
+	const handlePreview = () => {
+		if (!record.content_html) {
+			toast.error("No preview available");
+			return;
+		}
+		appStore.setState((prev) => ({
+			...prev,
+			preview: { content: record.content_html },
+		}));
+	};
+
+	const handleSearchSimilar = () => {
+		nav({ to: "/search", search: { query: record.name || "", page: "all" } });
+	};
+
+	const handleFavorite = () => {
+		if (!record.id) return;
+		changeFlagMutation.mutate({
+			flag: FLAGS.IS_FAVORITE,
+			data: { ...record, id: record.id },
+		});
+	};
+
+	const handleEdit = () => {
+		if (!record.id) return;
+		nav({ to: "/editor/$reportId", params: { reportId: String(record.id) } });
+	};
+
 	const title = (
 		<>
 			<span
@@ -221,68 +271,123 @@ export function RecordRow({
 
 	return (
 		<li className="group">
-			<div className="flex items-center gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-accent/40">
-				{isTrash ? (
-					<div className="flex min-w-0 flex-1 items-center gap-3">{title}</div>
-				) : (
-					<Link
-						to={"/view/$reportId"}
-						params={{ reportId: String(record.id) }}
-						className="flex min-w-0 flex-1 items-center gap-3"
-					>
-						{title}
-					</Link>
-				)}
-				<div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
-					{isTrash ? (
+			<ContextMenu>
+				<ContextMenuTrigger asChild>
+					<div className="flex items-center gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-accent/40">
+						{isTrash ? (
+							<div className="flex min-w-0 flex-1 items-center gap-3">
+								{title}
+							</div>
+						) : (
+							<Link
+								to={"/view/$reportId"}
+								params={{ reportId: String(record.id) }}
+								className="flex min-w-0 flex-1 items-center gap-3"
+							>
+								{title}
+							</Link>
+						)}
+						<div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+							{isTrash ? (
+								<>
+									<button
+										type="button"
+										onClick={handleRestore}
+										className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+										title="Restore"
+									>
+										<RotateCcw className="size-3.5" />
+									</button>
+									<button
+										type="button"
+										onClick={handleDelete}
+										className="rounded p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+										title="Delete permanently"
+									>
+										<Trash2 className="size-3.5" />
+									</button>
+								</>
+							) : (
+								<>
+									<button
+										type="button"
+										onClick={handleCopy}
+										className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+										title="Copy name"
+									>
+										<Copy className="size-3.5" />
+									</button>
+									<button
+										type="button"
+										onClick={handleDownload}
+										className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+										title="Download"
+									>
+										<Download className="size-3.5" />
+									</button>
+									<button
+										type="button"
+										onClick={handleDelete}
+										className="rounded p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+										title="Delete"
+									>
+										<Trash className="size-3.5" />
+									</button>
+								</>
+							)}
+						</div>
+					</div>
+				</ContextMenuTrigger>
+				<ContextMenuContent className="w-52">
+					{!isPdf && !isTrash && (
+						<ContextMenuItem onClick={handlePreview}>
+							<ArrowUpRight className="size-4" />
+							Open in preview window
+						</ContextMenuItem>
+					)}
+					<ContextMenuItem onClick={handleSearchSimilar}>
+						<Search className="size-4" />
+						Search similar
+					</ContextMenuItem>
+					{!isTrash && (
+						<ContextMenuItem onClick={handleFavorite}>
+							<Heart className={`size-4 ${isFavorite ? "fill-primary" : ""}`} />
+							{isFavorite ? "Remove from favorite" : "Add to favorite"}
+						</ContextMenuItem>
+					)}
+					{!isPdf && !isTrash && (
 						<>
-							<button
-								type="button"
-								onClick={handleRestore}
-								className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-								title="Restore"
-							>
-								<RotateCcw className="size-3.5" />
-							</button>
-							<button
-								type="button"
-								onClick={handleDelete}
-								className="rounded p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-								title="Delete permanently"
-							>
-								<Trash2 className="size-3.5" />
-							</button>
-						</>
-					) : (
-						<>
-							<button
-								type="button"
-								onClick={handleCopy}
-								className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-								title="Copy name"
-							>
-								<Copy className="size-3.5" />
-							</button>
-							<button
-								type="button"
-								onClick={handleDownload}
-								className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-								title="Download"
-							>
-								<Download className="size-3.5" />
-							</button>
-							<button
-								type="button"
-								onClick={handleDelete}
-								className="rounded p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-								title="Delete"
-							>
-								<Trash className="size-3.5" />
-							</button>
+							<ContextMenuSeparator />
+							<ContextMenuItem onClick={handleEdit}>
+								<SquarePen className="size-4" />
+								Edit
+							</ContextMenuItem>
 						</>
 					)}
-				</div>
-			</div>
+					<ContextMenuSeparator />
+					{isTrash ? (
+						<>
+							<ContextMenuItem onClick={() => handleRestore()}>
+								<RotateCcw className="size-4" />
+								Restore
+							</ContextMenuItem>
+							<ContextMenuSeparator />
+							<ContextMenuItem
+								variant="destructive"
+								onClick={() => permanentDelete()}
+							>
+								<Trash2 className="size-4" />
+								Delete permanently
+							</ContextMenuItem>
+						</>
+					) : (
+						<ContextMenuItem variant="destructive" onClick={() => softDelete()}>
+							<Trash className="size-4" />
+							Delete
+						</ContextMenuItem>
+					)}
+				</ContextMenuContent>
+			</ContextMenu>
 		</li>
 	);
 }
