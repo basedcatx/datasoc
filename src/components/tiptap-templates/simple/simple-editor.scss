@@ -59,6 +59,11 @@ body,
   overflow: auto;
 }
 
+.simple-editor-wrapper.simple-editor-viewer {
+  --tt-toolbar-bg-color: var(--background);
+  --tt-toolbar-border-color: var(--border);
+}
+
 .simple-editor-search-and-replace {
   position: fixed;
   top: calc(var(--tt-toolbar-height) + 0.5rem);

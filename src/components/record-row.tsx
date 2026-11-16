@@ -4,8 +4,10 @@ import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
 import {
 	ArrowUpRight,
+	BookOpen,
 	Copy,
 	Download,
+	FileText,
 	Heart,
 	RotateCcw,
 	Search,
@@ -118,6 +120,14 @@ export function RecordRow({
 	const isFavorite = flag.check(FLAGS.IS_FAVORITE);
 	const date = formatDate(record.created_at);
 	const isTrash = variant === "trash";
+	const RecordIcon = isPdf ? BookOpen : FileText;
+	const metadata = [
+		isPdf ? "PDF" : "Doc",
+		date,
+		isCompleted ? "Completed" : "Draft",
+	]
+		.filter(Boolean)
+		.join(" · ");
 
 	const changeFlagMutation = useMutation({
 		...recordMutations(qc).changeFlag(record.id ?? 0),
@@ -253,18 +263,15 @@ export function RecordRow({
 
 	const title = (
 		<>
-			<span
-				className={`size-1.5 shrink-0 rounded-full ${
-					isCompleted ? "bg-primary/70" : "bg-muted-foreground/50"
-				}`}
-				title={isCompleted ? "Completed" : "Draft"}
+			<RecordIcon
+				className="size-4 shrink-0 text-muted-foreground/70"
+				aria-hidden="true"
 			/>
 			<span className="min-w-0 flex-1 truncate text-sm text-foreground/90">
 				{record.name || "Untitled"}
 			</span>
 			<span className="shrink-0 text-sm text-muted-foreground/70">
-				{isPdf ? "PDF" : "Doc"}
-				{date ? ` · ${date}` : ""}
+				{metadata}
 			</span>
 		</>
 	);
