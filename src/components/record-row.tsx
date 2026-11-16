@@ -1,10 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
+import { save } from "@tauri-apps/plugin-dialog";
+import { writeFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { Copy, Download, RotateCcw, Trash, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { recordMutations } from "#/lib/features/query";
 import { fetchRecordById, type R } from "#/lib/libs";
-import { createFlags, FLAGS, RecordTypes } from "#/lib/utils";
+import { createFlags, FLAGS, isTauri, RecordTypes } from "#/lib/utils";
 
 function formatDate(date?: Date | string | null) {
 	if (!date) return "";
@@ -94,6 +96,8 @@ export function RecordRow({
 		}
 		try {
 			const { record: full } = await fetchRecordById(record.id);
+			const baseName = full.name || record.name || "document";
+
 			if (isPdf || full.record_type === RecordTypes.PDF) {
 				if (!full.content) {
 					toast.error("No PDF content to download");
@@ -102,17 +106,42 @@ export function RecordRow({
 				const binary = atob(full.content.replace(/\s/g, ""));
 				const bytes = new Uint8Array(binary.length);
 				for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+
+				if (isTauri()) {
+					const path = await save({
+						defaultPath: `${baseName}.pdf`,
+						filters: [{ name: "PDF", extensions: ["pdf"] }],
+					});
+					if (!path) return;
+					await writeFile(path, bytes);
+					toast.success("Saved");
+					return;
+				}
+
 				const blob = new Blob([bytes], { type: "application/pdf" });
-				triggerDownload(blob, `${full.name || record.name || "document"}.pdf`);
+				triggerDownload(blob, `${baseName}.pdf`);
 				return;
 			}
+
 			const text = full.content_html || full.content || "";
 			if (!text.trim()) {
 				toast.error("No content to download");
 				return;
 			}
+
+			if (isTauri()) {
+				const path = await save({
+					defaultPath: `${baseName}.html`,
+					filters: [{ name: "HTML", extensions: ["html"] }],
+				});
+				if (!path) return;
+				await writeTextFile(path, text);
+				toast.success("Saved");
+				return;
+			}
+
 			const blob = new Blob([text], { type: "text/html;charset=utf-8" });
-			triggerDownload(blob, `${full.name || record.name || "document"}.html`);
+			triggerDownload(blob, `${baseName}.html`);
 		} catch {
 			toast.error("Could not download");
 		}
