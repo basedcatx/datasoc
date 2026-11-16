@@ -109,14 +109,16 @@ function SidebarComponent({ children }: { children: React.ReactNode }) {
 				<>
 					<div className="flex flex-col gap-3">
 						<SearchComponent>
-							<button type="button" className="w-full text-left">
-								<div className="flex flex-row justify-between">
-									<span className="flex gap-2 items-center">
-										<Search className="size-4 shrink-0" />
-										<span className="flex-1">Search</span>
+							<button type="button" className="block w-full text-left">
+								<NavRow>
+									<span className="flex w-full items-center justify-between gap-2">
+										<span className="flex items-center gap-2.5">
+											<Search className="size-4 shrink-0" />
+											<span>Search</span>
+										</span>
+										<span className="text-xs text-muted-foreground/60">⌘K</span>
 									</span>
-									<span className="text-xs text-muted-foreground/60">⌘K</span>
-								</div>
+								</NavRow>
 							</button>
 						</SearchComponent>
 						{navLinks.map((l) => {
