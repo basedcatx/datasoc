@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { FilePlus2, LucideInbox, Plus } from "lucide-react";
+import { LucideInbox, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { recordQueries } from "#/lib/features/query";
 import type { R } from "#/lib/libs";
