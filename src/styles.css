@@ -261,40 +261,40 @@
   animation: slideUp 200ms ease-out;
 }
 
-.sidebar[data-animate][data-state="open"] {
+.sidebar[data-animate="true"][data-state="open"] {
   animation: growOut 200ms ease-out;
 }
 
-.sidebar[data-animate][data-state="closed"] {
+.sidebar[data-animate="true"][data-state="closed"] {
   animation: growIn 200ms ease-out forwards;
 }
 
-@media (prefers-reduced-motion: reduce) {
+/* @media (prefers-reduced-motion: reduce) {
   .sidebar[data-animate][data-state="open"],
   .sidebar[data-animate][data-state="closed"],
   .radix-collapsibleContent[data-state="open"],
   .radix-collapsibleContent[data-state="closed"] {
     animation: none !important;
   }
-}
+} */
 
 @keyframes growOut {
   from {
-    width: 80px;
+    width: 52px;
   }
 
   to {
-    width: 400px;
+    width: 240px;
   }
 }
 
 @keyframes growIn {
   to {
-    width: 80px;
+    width: 52px;
   }
 
   from {
-    width: 400px;
+    width: 240px;
   }
 }
 

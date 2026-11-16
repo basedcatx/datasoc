@@ -20,6 +20,7 @@ import SearchComponent from "./SearchComponent";
 import SettingsCard from "./SettingsCard";
 import { Button } from "./ui/button";
 import { Skeleton } from "./ui/skeleton";
+import { usePresence } from "#/hooks/use-presence";
 
 const navLinks = [
 	{ text: "Home", path: "/", icon: Home },
@@ -49,21 +50,19 @@ function NavRow({
 
 function SidebarComponent({ children }: { children: React.ReactNode }) {
 	const location = useLocation();
-	const [isOpen, setIsOpen] = useState(() => {
-		if (typeof window === "undefined") return true;
-		return localStorage.getItem("datasoc.sidebarOpen") !== "false";
-	});
+	const [isOpen, setIsOpen] = useState(false)
 	const [addOpen, setAddOpen] = useState(false);
+	const { mounted, ref, state } = usePresence(isOpen);
+	const [animatable, setAnimatable] = useState(false)
 
-	useEffect(() => {
-		localStorage.setItem("datasoc.sidebarOpen", String(isOpen));
-	}, [isOpen]);
+
 
 	useEffect(() => {
 		const onKey = (e: KeyboardEvent) => {
 			if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "b") {
 				e.preventDefault();
 				setIsOpen((prev) => !prev);
+				setAnimatable(true)
 			}
 		};
 		document.addEventListener("keydown", onKey);
@@ -72,11 +71,15 @@ function SidebarComponent({ children }: { children: React.ReactNode }) {
 
 	if (location.pathname === "/splashscreen") return null;
 
+
 	return (
 		<nav
+			ref={ref}
+			data-animate={animatable ? "true" : "false"}
+			data-state={state}
 			className={cn(
-				"flex h-screen shrink-0 flex-col overflow-y-auto border-r border-border bg-sidebar text-sidebar-foreground",
-				isOpen ? "w-60 p-3" : "w-14 items-center p-2",
+				"flex h-screen shrink-0 flex-col overflow-y-auto border-r border-border bg-sidebar text-sidebar-foreground sidebar",
+				isOpen ? "w-60 p-3" : "w-13 items-center p-2",
 			)}
 		>
 			<div
@@ -95,7 +98,10 @@ function SidebarComponent({ children }: { children: React.ReactNode }) {
 				<Button
 					variant="ghost"
 					size="icon"
-					onClick={() => setIsOpen(!isOpen)}
+					onClick={() => {
+						setIsOpen(!isOpen)
+						setAnimatable(true)
+					}}
 					className="size-7 text-muted-foreground hover:text-foreground"
 					title="Toggle sidebar (⌘B)"
 				>
