@@ -73,6 +73,7 @@ import {
 	subscribePreferences,
 } from "#/lib/preferences";
 import { isTauri } from "#/lib/utils";
+import { cn } from "cn";
 
 export const Route = createFileRoute("/settings")({
 	component: RouteComponent,
@@ -611,7 +612,7 @@ function RouteComponent() {
 											Changes upload after five quiet minutes; failed attempts
 										</p>
 									</div>
-									<div className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-xs">
+									<div className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs">
 										<span
 											className={`size-2 rounded-full ${!isTauri() || !backupStatus ? "bg-muted-foreground" : backupStatus.lastError ? "bg-destructive" : backupStatus.pendingBackup ? "bg-amber-500" : backupStatus.configured ? "bg-emerald-500" : "bg-muted-foreground"}`}
 										/>
@@ -630,14 +631,14 @@ function RouteComponent() {
 								</div>
 
 								<div className="grid gap-3 sm:grid-cols-2">
-									<div className="rounded-lg bg-muted/40 p-3">
+									<div className="rounded-lg bg-muted/40">
 										<p className="text-xs text-muted-foreground">
 											Last successful backup
 										</p>
 										<p className="mt-1 text-sm font-medium">
 											{backupStatus?.lastBackupAt
 												? formatTimestamp(backupStatus.lastBackupAt)
-												: "No snapshot yet"}
+												: "No cloud backups yet"}
 										</p>
 									</div>
 
@@ -656,7 +657,7 @@ function RouteComponent() {
 								)}
 								{isTauri() && backupStatus && !backupStatus.configured && (
 									<p className="text-xs text-muted-foreground">
-										There was an error configuring the backup, please contact the admin
+										There was an error configuring the backup, please contact the admin if this keeps up
 									</p>
 								)}
 								{!isTauri() && (
@@ -703,8 +704,8 @@ function RouteComponent() {
 										className="block text-sm text-muted-foreground"
 									>
 										{busy === "backup"
-											? "Creating a consistent database snapshot and uploading it to B2..."
-											: "Listing backups and downloading the latest snapshot for comparison..."}
+											? "Creating a consistent database and uploading it to cloud..."
+											: "Listing backups and downloading the latest..."}
 									</output>
 								)}
 							</div>
@@ -899,7 +900,7 @@ function SettingsSection({
 					<h2 className="text-base font-semibold">{title}</h2>
 				</div>
 			</div>
-			<div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+			<div className="overflow-hidden rounded-xl bg-card shadow-sm">
 				{children}
 			</div>
 		</section>
@@ -919,7 +920,7 @@ function SettingsRow({
 }) {
 	return (
 		<div
-			className={`flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between ${last ? "" : "border-b border-border"}`}
+			className={cn(`flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between`)}
 		>
 			<div className="min-w-0">
 				<p className="text-sm font-medium">{title}</p>
@@ -940,7 +941,7 @@ function Shortcut({
 	description: string;
 }) {
 	return (
-		<div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-background px-3 py-2.5">
+		<div className="flex items-center justify-between gap-3 rounded-lg bg-background px-3 py-2.5">
 			<span className="text-sm text-muted-foreground">{description}</span>
 			<kbd className="shrink-0 rounded-md border border-input bg-muted px-2 py-1 font-mono text-xs text-foreground">
 				{keys}
