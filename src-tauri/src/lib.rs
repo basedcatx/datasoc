@@ -48,6 +48,13 @@ pub fn run() {
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
+            if !cfg!(debug_assertions) {
+                let env_path = app
+                    .path()
+                    .resolve(".env", tauri::path::BaseDirectory::Resource)?;
+                dotenvy::from_path(env_path)?;
+            }
+
             if cfg!(debug_assertions) {
                 app.handle()
                     .plugin(
