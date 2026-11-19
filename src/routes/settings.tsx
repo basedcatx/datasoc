@@ -383,21 +383,17 @@ function RouteComponent() {
 	return (
 		<div className="h-full overflow-y-auto bg-background">
 			<div className="w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
-
-				<div className="grid gap-8 lg:grid-cols-[190px_minmax(0,1fr)]">
-					<nav
-						aria-label="Settings sections"
-						className="sticky top-0 z-10 -mx-4 overflow-x-auto border-b border-border bg-background/95 px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6 lg:top-6 lg:mx-0 lg:h-fit lg:border-0 lg:bg-transparent lg:p-0"
-					>
-						<div className="flex min-w-max gap-1 lg:min-w-0 lg:flex-col">
+				<div className="grid grid-cols-[132px_minmax(0,1fr)] gap-3 sm:grid-cols-[160px_minmax(0,1fr)] sm:gap-8 lg:grid-cols-[190px_minmax(0,1fr)]">
+					<nav aria-label="Settings sections" className="sticky top-6 h-fit">
+						<div className="flex flex-col gap-1">
 							{settingsNavigation.map(({ id, label, icon: Icon }) => (
 								<a
 									key={id}
 									href={`#${id}`}
-									className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+									className="flex items-start gap-2 rounded-lg px-2 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:px-3"
 								>
-									<Icon className="size-4" />
-									{label}
+									<Icon className="mt-0.5 size-4 shrink-0" />
+									<span className="min-w-0 truncate max-w-20">{label}</span>
 								</a>
 							))}
 						</div>
@@ -814,8 +810,8 @@ function RouteComponent() {
 					<DialogHeader>
 						<DialogTitle>Review database restore</DialogTitle>
 						<DialogDescription>
-							This snapshot will replace the database currently on this device.
-							Review the record counts and most recent entries before
+							This cloud backup will replace the database currently on this device.
+							Review the entries before
 							continuing.
 						</DialogDescription>
 					</DialogHeader>
@@ -827,11 +823,11 @@ function RouteComponent() {
 							</div>
 							<div className="grid gap-3 sm:grid-cols-2">
 								{renderSummary("This device", restorePreview.local)}
-								{renderSummary("Backblaze snapshot", restorePreview.backup)}
+								{renderSummary("Cloud backup", restorePreview.backup)}
 							</div>
 							{restorePreview.local.count !== restorePreview.backup.count && (
 								<p className="text-sm text-muted-foreground">
-									The snapshot has{" "}
+									The cloud backup has{" "}
 									{Math.abs(
 										restorePreview.backup.count - restorePreview.local.count,
 									)}{" "}
@@ -867,7 +863,7 @@ function RouteComponent() {
 							) : (
 								<RotateCcw className="size-4" />
 							)}
-							{busy === "restore" ? "Restoring..." : "Replace local database"}
+							{busy === "restore" ? "Restoring... this could take a while" : "Replace local database"}
 						</Button>
 					</DialogFooter>
 				</DialogContent>

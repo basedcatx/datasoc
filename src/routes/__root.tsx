@@ -69,7 +69,7 @@ function RootDocument() {
 					disableTransitionOnChange
 				>
 					<BackupNetworkMonitor />
-					<Toaster richColors />
+					<Toaster />
 					<PdfDropOverlay />
 					<PdfUploadDialogClient />
 					<SessionProvider>
